@@ -205,6 +205,10 @@ Na slici \ref{fig:stack} navedeni su stek okviri za dva funkcijska poziva. Pre p
 
 Za čitanje vrednosti promenljivih u programu, debager pretražuje DWARF stablo tražeći promenljivu sa zadatim imenom. U slučaju lokalnih promenljivih, traži se \texttt{DW\_TAG\_variable} element čiji \texttt{DW\_AT\_name} odgovara navedenoj promenljivoj. Kada se ista pronađe konsultuje se \texttt{DW\_AT\_location}, koji ukazuje na lokaciju gde se vrednost promenljive nalazi. Ukoliko ovaj atribut nije naveden debager će vrednost takve promenljive smatrati kao optimizovanu prijavljujući informaciju o tome \cite{GDB}.
 
+\section{Windows debageri}
+
+Windows debageri i programski prevodioci ne prate DWARF standard prilikom baratanja sa debag informacijama namenjene za taj operativni sistem, već isti konsultuju \emph{CodeView} Majkrosoft standard, više informacija možete pronaći na \cite{CodeView}.
+
 \chapter{GNU GDB alat}
 \label{chp:GDB}
 
