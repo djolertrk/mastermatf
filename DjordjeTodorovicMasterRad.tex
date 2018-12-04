@@ -41,7 +41,7 @@
 \usepackage[latinica]{pangrami}
 
 % Datoteka sa literaturom u BibTex tj. BibLaTeX/Biber formatu
-\bib{matfmaster-primer}
+\bib{DjordjeTodorovicMasterRad}
 
 % Ime kandidata na srpskom jeziku (u odabranom pismu)
 \autor{Đorđe Todorović}
@@ -108,7 +108,7 @@ Podršku debagerima, u opštem slučaju, svakako daju operativni sistemi, kroz s
 \section{Linux debageri}
 
 Pre svega, definišimo neke od osnovnih pojmova Linux programiranja koje ćemo često pominjati u radu.
-Osvrnimo se prvo na ELF (eng.~\emph{Executable and Linkable Format}) fajl format izvršnih fajlova, deljenih biblioteka, objektnih fajlova i datoteka jezgara. ELF sadrži razne informacije o samom fajlu koji je podeljen u dva dela: ELF zaglavlje i podaci fajla. ELF zaglavlje sadrži informacije o arhitekturi za koju je program preveden i definiše da li program koristi 32-bitni ili 64-bitni adresni prostor. Zaglavlje 32-bitnih programa je dužine 52 bajta, dok kod 64-bitnih programa isti je dužine 64 bajta. Podaci fajla mogu sadržati programsku tabelu zaglavlja (eng.~\emph{Program header table}), sekcijisku tabelu zaglavlja (eng.~\emph{Section header table}) i ulazne tačke prethodne dve tabele.
+Osvrnimo se prvo na ELF (eng.~\emph{Executable and Linkable Format}) fajl format izvršnih fajlova, deljenih biblioteka, objektnih fajlova i datoteka jezgara \cite{ELF}. ELF sadrži razne informacije o samom fajlu koji je podeljen u dva dela: ELF zaglavlje i podaci fajla. ELF zaglavlje sadrži informacije o arhitekturi za koju je program preveden i definiše da li program koristi 32-bitni ili 64-bitni adresni prostor. Zaglavlje 32-bitnih programa je dužine 52 bajta, dok kod 64-bitnih programa isti je dužine 64 bajta. Podaci fajla mogu sadržati programsku tabelu zaglavlja (eng.~\emph{Program header table}), sekcijisku tabelu zaglavlja (eng.~\emph{Section header table}) i ulazne tačke prethodne dve tabele.
 
 \begin{figure}[h!]
 	\begin{center}
@@ -118,9 +118,9 @@ Osvrnimo se prvo na ELF (eng.~\emph{Executable and Linkable Format}) fajl format
 	\label{fig:elf}
 \end{figure}
 
-Nakon ELF fajl formata, jako bitan fajl format je DWARF, koji predstavalja format zapisa debag informacija koje debageri koriste kada analiziraju programe. DWARF je od posebne važnosti za rad te će isti biti opisan detaljnije u nastavku.
+Nakon ELF fajl formata, jako bitan fajl format je DWARF, koji predstavalja format zapisa debag informacija koje debageri koriste kada analiziraju programe. DWARF \cite{DWARF} je od posebne važnosti za rad te će isti biti opisan detaljnije u nastavku.
 
-GNU Linux operativni sistem pruža sistemski poziv \emph{ptrace} koji zapravo debagerima omogućava rad. Ovaj sistemski poziv omogućava jednom procesu kontrolu nad izvršavanjem nekog drugog procesa i menjanje memroije i registara istog.
+GNU Linux operativni sistem pruža sistemski poziv \texttt{ptrace} \cite{ptrace} koji zapravo debagerima omogućava rad. Ovaj sistemski poziv omogućava jednom procesu kontrolu nad izvršavanjem nekog drugog procesa i menjanje memroije i registara istog.
 \newline\newline
 \texttt{ long ptrace(enum \_\_ptrace\_request request, pid\_t pid, void *addr, void *data);}
 \newline
@@ -137,7 +137,7 @@ Prvi argument sistemskog poziva predstavlja zapravo informaciju kojom operativno
 Drugi argmunet sistemskog poziva \texttt{pid} ukazuje na identifikacioni broj ciljanog procesa, dok treći i četvrti argument se po potrebi koriste u zavisnosti od namere korišćenja \emph{ptrace} sistemskog poziva za čitanje ili pisanje sa adrese datom trećim argumentom, pri tom baratajući podacima na adresi zadatoj četvrtim argumentom. To znači ukoliko se koristi \texttt{PTRACE\_TRACEME} poslednja tri argumenta sistemsko poziva se ignorišu. Ukoliko se koristi \texttt{PTRACE\_PEEKDATA} sa adrese \texttt{addr} se čita jedna reč iz memorije.
 \subsection{Tačke prekida}
 
-Postoje dve vrste tačaka prekida (eng.~\emph{brakpoints}): softverske i hardverske.
+Postoje dve vrste tačaka prekida (eng.~\emph{brakpoints}): softverske i hardverske \cite{GDB}.
 
 Osvrnimo se prvo na softverske tačke prekida. Postavljanje tačaka prekida predstavlja jednu od najkorišćenijih mogućnosti debagera, te stoga navedimo par smernica kako je ista realizovana, u opštem slučaju. Ali takođe treba napomenuti da ne postoji jedinstveni poziv nekog sistemskog poziva za postavljanje tačke prekida, već se ista obavlja kao kombinacija više mogućnosti \emph{ptrace} sistemskog poziva. Opišimo ceo postupak na jednostavnom primeru. Program je preveden za Intel x86-64 procesorsku arhitekturu i asemblerski kod \texttt{main} funkcije primera izgelda kao na primeru \ref{fig:primer1}.
 
@@ -175,7 +175,7 @@ Hardverske tačke prekida su direktno povezane sa hardverom u vidu specijalnih r
 
 \subsection{Koračanje}
 
-Pod procesom koračanja (eng.~\emph{stepping}) kroz program podrazumevamo izvršavanje programa sekvencu po sekvencu. Sekvenca može biti jedna procesorska instrukcija, linija koda ili pak neka funkcija programa koji se debaguje.
+Pod procesom koračanja (eng.~\emph{stepping}) kroz program podrazumevamo izvršavanje programa sekvencu po sekvencu. Sekvenca može biti jedna procesorska instrukcija, linija koda ili pak neka funkcija programa koji se debaguje \cite{GDB}.
 
 Instrukcijsko koračanje na Intel x86-64 platformi je direktno omogućeno kroz sistemski poziv \texttt{ptrace}:\newline\newline
 \texttt{ptrace(PTRACE\_SINGLESTEP, debuggee\_pid, nullptr, nullptr);}
@@ -189,7 +189,7 @@ Treba napomenuti da postoje arhitekture za koje ovo ne važi, kao npr. ARM platf
 
 \subsection{Izlistavanje pozivanih funkcija}
 
-Objasnimo komandu izlistavanje pozivanih funkcija (eng.~\emph{backtrace}) posmatrajući organizaciju stek okvira (eng.~\emph{stack frames}) na Intel x86-64 platformi.
+Objasnimo komandu izlistavanje pozivanih funkcija (eng.~\emph{backtrace}) posmatrajući organizaciju stek okvira (eng.~\emph{stack frames}) na Intel x86-64 platformi \cite{GDB}.
 
 \begin{figure}[h!]
 	\begin{center}
@@ -203,7 +203,7 @@ Na slici \ref{fig:stack} navedeni su stek okviri za dva funkcijska poziva. Pre p
 
 \subsection{Čitanje vrednosti promenljivih}
 
-Za čitanje vrednosti promenljivih u programu, debager pretražuje DWARF stablo tražeći promenljivu sa zadatim imenom. U slučaju lokalnih promenljivih, traži se \texttt{DW\_TAG\_variable} element čiji \texttt{DW\_AT\_name} odgovara navedenoj promenljivoj. Kada se ista pronađe konsultuje se \texttt{DW\_AT\_location}, koji ukazuje na lokaciju gde se vrednost promenljive nalazi. Ukoliko ovaj atribut nije naveden debager će vrednost takve promenljive smatrati kao optimizovanu prijavljujući informaciju o tome.
+Za čitanje vrednosti promenljivih u programu, debager pretražuje DWARF stablo tražeći promenljivu sa zadatim imenom. U slučaju lokalnih promenljivih, traži se \texttt{DW\_TAG\_variable} element čiji \texttt{DW\_AT\_name} odgovara navedenoj promenljivoj. Kada se ista pronađe konsultuje se \texttt{DW\_AT\_location}, koji ukazuje na lokaciju gde se vrednost promenljive nalazi. Ukoliko ovaj atribut nije naveden debager će vrednost takve promenljive smatrati kao optimizovanu prijavljujući informaciju o tome \cite{GDB}.
 
 \chapter{GNU GDB alat}
 \label{chp:GDB}
