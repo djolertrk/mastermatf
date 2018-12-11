@@ -105,10 +105,13 @@ Debageri mogu startovati neki proces i debagovati ga, ili "nakačiti" se na neki
 
 Podršku debagerima, u opštem slučaju, daju operativni sistemi, kroz sistemske pozive koji omogućavaju tim alatima da pokrenu i preuzmu kontrolu nad nekim drugim procesom.
 
+U radu će detaljno biti obrađen rad UNIX-olikih, posebno Linux debagera.
+Windows debageri i programski prevodioci ne prate standard DWARF\cite{DWARF} prilikom baratanja sa debag informacijama namenjene za taj operativni sistem, već isti konsultuju standard \emph{CodeView} Majkrosoft, više informacija možete pronaći na \cite{CodeView}.
+
 \section{Linux debageri}
 
 Pre svega, definišimo neke od osnovnih pojmova Linux programiranja koje ćemo često pominjati u radu.
-Osvrnimo se prvo na fajl format izvršnih fajlova, deljenih biblioteka, objektnih fajlova i datoteka jezgara, ELF (eng.~\emph{Executable and Linkable Format})\cite{ELF}. ELF sadrži razne informacije o samom fajlu koji je podeljen u dva dela: ELF zaglavlje i podaci fajla. ELF zaglavlje sadrži informacije o arhitekturi za koju je program preveden i definiše da li program koristi 32-bitni ili 64-bitni adresni prostor. Zaglavlje 32-bitnih programa je dužine 52 bajta, dok kod 64-bitnih programa isti je dužine 64 bajta. Podaci fajla mogu sadržati programsku tabelu zaglavlja (eng.~\emph{Program header table}), sekcijisku tabelu zaglavlja (eng.~\emph{Section header table}) i ulazne tačke prethodne dve tabele.
+Osvrnimo se prvo na fajl format izvršnih fajlova, deljenih biblioteka, objektnih fajlova i datoteka jezgara, ELF (eng.~\emph{Executable and Linkable Format})\cite{ELF}. ELF sadrži razne informacije o samom fajlu koji je podeljen u dva dela: ELF zaglavlje i podaci fajla. ELF zaglavlje sadrži informacije o arhitekturi za koju je program preveden i definiše da li program koristi 32-bitni ili 64-bitni adresni prostor. Zaglavlje 32-bitnih programa je dužine 52 bajta, dok kod 64-bitnih programa isti je dužine 64 bajta. Podaci fajla mogu sadržati programsku tabelu zaglavlja (eng.~\emph{Program header table}), sekcijisku tabelu zaglavlja (eng.~\emph{Section header table}) i ulazne tačke prethodne dve tabele. Slika \ref{fig:elf} prikazuje primer prikaza fajla u formatu ELF.
 
 \begin{figure}[h!]
 	\begin{center}
@@ -118,24 +121,15 @@ Osvrnimo se prvo na fajl format izvršnih fajlova, deljenih biblioteka, objektni
 	\label{fig:elf}
 \end{figure}
 
-Nakon fajl formata ELF, jako bitan fajl format je DWARF, koji predstavalja format zapisa debag informacija koje debageri koriste kada analiziraju programe. DWARF \cite{DWARF} je od posebne važnosti za rad te će isti biti opisan detaljno u nastavku.
+Nakon fajl formata ELF, jako bitan fajl format je DWARF, koji predstavalja format zapisa debag informacija koje debageri koriste kada analiziraju programe. DWARF je od posebne važnosti za rad te će isti biti opisan detaljno u nastavku.
 
-Operativni sistem GNU Linux pruža sistemski poziv \texttt{ptrace} \cite{ptrace} koji debagerima omogućava rad. Ovaj sistemski poziv omogućava jednom procesu kontrolu nad izvršavanjem nekog drugog procesa i menjanje memroije i registara istog.
+Operativni sistem GNU Linux pruža sistemski poziv \texttt{ptrace} \cite{ptrace} koji debagerima omogućava rad. Ovaj sistemski poziv omogućava jednom procesu kontrolu nad izvršavanjem nekog drugog procesa i menjanje memorije i registara istog.
 Potpis ove funkcije je:
 \newline\newline
 \texttt{ long ptrace(enum \_\_ptrace\_request request, pid\_t pid, void *addr, void *data);}
 \newline
 
-Prvi argument sistemskog poziva predstavlja informaciju kojom operativnom sistemu jedan proces, ne nužno debager, ukazuje na nameru preuzimanja kontrole drugog procesa. Neki od njih su:
-
-\begin{enumerate}
-	\item \texttt{PTRACE\_TRACEME} - omogućava praćenje (eng.~\emph{tracing})
-	\item \texttt{PTRACE\_PEEKDATA} - čitanje memorije
-	\item \texttt{PTRACE\_POKEDATA} - pisanje memorije
-	\item \texttt{PTRACE\_GETREGS} - čitanje registara
-	\item \texttt{PTRACE\_SETREGS} - pisanje registara
-\end{enumerate}
-Drugi argument sistemskog poziva \texttt{pid} ukazuje na identifikacioni broj ciljanog procesa, dok treći i četvrti argument se po potrebi koriste u zavisnosti od namere korišćenja sistemskog poziva \texttt{ptrace} za čitanje ili pisanje sa adrese datom trećim argumentom, pri tom baratajući podacima na adresi zadatoj četvrtim argumentom. To znači ukoliko se koristi \texttt{PTRACE\_TRACEME} poslednja tri argumenta sistemskog poziva se ignorišu. Ukoliko se koristi \texttt{PTRACE\_PEEKDATA} sa adrese \texttt{addr} se čita jedna reč iz memorije.
+Prvi argument sistemskog poziva predstavlja informaciju kojom operativnom sistemu jedan proces, ne nužno debager, ukazuje na nameru preuzimanja kontrole drugog procesa. Ukoliko isti ima vrednost \texttt{PTRACE\_TRACEME} to ukazuje na nameru praćenja (eng.~\emph{tracing}) određenig procesa, \texttt{PTRACE\_PEEKDATA} i \texttt{PTRACE\_POKEDATA} redom ukazuju na nameru čitanja i pisanja  memorije, \texttt{PTRACE\_GETREGS} i \texttt{PTRACE\_SETREGS} se odnose na čitanje i pisanje registara itd. Drugi argument sistemskog poziva \texttt{pid} ukazuje na identifikacioni broj ciljanog procesa. Treći i četvrti argument se po potrebi koriste u zavisnosti od namere korišćenja sistemskog poziva \texttt{ptrace} za čitanje ili pisanje sa adrese datom trećim argumentom, pri tom baratajući podacima na adresi zadatoj četvrtim argumentom. To znači ukoliko se koristi \texttt{PTRACE\_TRACEME} poslednja tri argumenta sistemskog poziva se ignorišu. Ukoliko se koristi \texttt{PTRACE\_PEEKDATA} sa adrese \texttt{addr} se čita jedna reč iz memorije.
 \subsection{Tačke prekida}
 
 Postoje dve vrste tačaka prekida (eng.~\emph{brakpoints}): softverske i hardverske \cite{GDB}.
@@ -206,9 +200,6 @@ Na slici \ref{fig:stack} navedeni su stek okviri za dva funkcijska poziva. Pre p
 
 Za čitanje vrednosti promenljivih u programu, debager pretražuje DWARF stablo tražeći promenljivu sa zadatim imenom. U slučaju lokalnih promenljivih, traži se \texttt{DW\_TAG\_variable} element čiji \texttt{DW\_AT\_name} odgovara navedenoj promenljivoj. Kada se ista pronađe konsultuje se \texttt{DW\_AT\_location}, koji ukazuje na lokaciju gde se vrednost promenljive nalazi. Ukoliko ovaj atribut nije naveden debager će vrednost takve promenljive smatrati kao optimizovanu prijavljujući informaciju o tome \cite{GDB}.
 
-\section{Windows debageri}
-
-Windows debageri i programski prevodioci ne prate standard DWARF prilikom baratanja sa debag informacijama namenjene za taj operativni sistem, već isti konsultuju standard \emph{CodeView} Majkrosoft, više informacija možete pronaći na \cite{CodeView}.
 
 \chapter{GNU GDB alat}
 \label{chp:GDB}
