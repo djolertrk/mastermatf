@@ -106,12 +106,12 @@ Debageri mogu startovati neki proces i debagovati ga, ili "nakačiti" se na neki
 Podršku debagerima, u opštem slučaju, daju operativni sistemi, kroz sistemske pozive koji omogućavaju tim alatima da pokrenu i preuzmu kontrolu nad nekim drugim procesom.
 
 U radu će detaljno biti obrađen rad UNIX-olikih, posebno Linux debagera.
-Windows debageri i programski prevodioci ne prate standard DWARF\cite{DWARF} prilikom baratanja sa debag informacijama namenjene za taj operativni sistem, već isti konsultuju standard \emph{CodeView} Majkrosoft, više informacija možete pronaći na \cite{CodeView}.
+Windows debageri i programski prevodioci ne prate standard DWARF\cite{DWARF} prilikom baratanja sa debag informacijama namenjene za taj operativni sistem, već isti konsultuju standard \emph{Majkrosoft CodeView}, više informacija možete pronaći na \cite{CodeView}.
 
 \section{Linux debageri}
 
 Pre svega, definišimo neke od osnovnih pojmova Linux programiranja koje ćemo često pominjati u radu.
-Osvrnimo se prvo na fajl format izvršnih fajlova, deljenih biblioteka, objektnih fajlova i datoteka jezgara, ELF (eng.~\emph{Executable and Linkable Format})\cite{ELF}. ELF sadrži razne informacije o samom fajlu koji je podeljen u dva dela: ELF zaglavlje i podaci fajla. ELF zaglavlje sadrži informacije o arhitekturi za koju je program preveden i definiše da li program koristi 32-bitni ili 64-bitni adresni prostor. Zaglavlje 32-bitnih programa je dužine 52 bajta, dok kod 64-bitnih programa isti je dužine 64 bajta. Podaci fajla mogu sadržati programsku tabelu zaglavlja (eng.~\emph{Program header table}), sekcijisku tabelu zaglavlja (eng.~\emph{Section header table}) i ulazne tačke prethodne dve tabele. Slika \ref{fig:elf} prikazuje primer prikaza fajla u formatu ELF.
+Osvrnimo se prvo na fajl format izvršnih fajlova, deljenih biblioteka, objektnih fajlova i datoteka jezgara ELF (eng.~\emph{Executable and Linkable Format})\cite{ELF}. ELF sadrži razne informacije o samom fajlu koji je podeljen u dva dela: ELF zaglavlje i podaci fajla. ELF zaglavlje sadrži informacije o arhitekturi za koju je program preveden i definiše da li program koristi 32-bitni ili 64-bitni adresni prostor. Zaglavlje 32-bitnih programa je dužine 52 bajta, dok kod 64-bitnih programa isti je dužine 64 bajta. Podaci fajla mogu sadržati programsku tabelu zaglavlja (eng.~\emph{Program header table}), sekcijisku tabelu zaglavlja (eng.~\emph{Section header table}) i ulazne tačke prethodne dve tabele. Slika \ref{fig:elf} prikazuje primer prikaza fajla u formatu ELF.
 
 \begin{figure}[h!]
 	\begin{center}
@@ -134,7 +134,7 @@ Prvi argument sistemskog poziva predstavlja informaciju kojom operativnom sistem
 
 Postoje dve vrste tačaka prekida (eng.~\emph{brakpoints}): softverske i hardverske \cite{GDB}.
 
-Osvrnimo se prvo na softverske tačke prekida. Postavljanje tačaka prekida predstavlja jednu od najkorišćenijih mogućnosti debagera, te stoga navedimo par smernica kako je ista realizovana, u opštem slučaju. Ali takođe treba napomenuti da ne postoji jedinstveni poziv nekog sistemskog poziva za postavljanje tačke prekida, već se ista obavlja kao kombinacija više mogućnosti \emph{ptrace} sistemskog poziva. Opišimo ceo postupak na jednostavnom primeru. Program je preveden za procesorsku arhitekturu Intel x86-64 i asemblerski kod \texttt{main} funkcije primera izgelda kao na primeru \ref{fig:primer1}.
+Osvrnimo se prvo na softverske tačke prekida. Postavljanje tačaka prekida predstavlja jednu od najkorišćenijih mogućnosti debagera, te stoga navedimo par smernica kako je ista realizovana, u opštem slučaju. Ali takođe treba napomenuti da ne postoji jedinstveni poziv nekog sistemskog poziva za postavljanje tačke prekida, već se ista obavlja kao kombinacija više mogućnosti  sistemskog poziva \texttt{ptrace}. Opišimo ceo postupak na jednostavnom primeru. Program je preveden za procesorsku arhitekturu Intel x86-64 i asemblerski kod \texttt{main} funkcije primera izgelda kao na primeru \ref{fig:primer1}.
 
 \begin{figure}[h!]
 	\begin{center}
@@ -154,9 +154,9 @@ Pošto \texttt{0x48} menjamo sa \texttt{0xcc} i na tom mestu u kodu dobijamo ins
 
 \texttt{cc 89 e5  int3}
 
-Instrukcija \texttt{int3} je posebna instrukcija Intel x86-64 procesorske arhitekture, koja izazva softverski prekid. Kada registar programski brojač (eng.~\emph{CPU register pc}) stigne do \texttt{int3} instrukcije izvršavanje se zaustavalja na toj tački. Dibager je već upoznat od strane korisnika i svestan je da je tačka prekida postavljena te isti čeka na signal koji ukazuje na to da je program dostigao do instrukcije prekida. Operativni sistem prepoznaje \texttt{int3} instrukciju, poziva se specijalni obrađivač tog signala (na Linux sistemima \texttt{do\_int3()}), koji dalje obaveštava debager šaljući mu signal sa kodom \texttt{SIGTRAP} koji on obrađuje na željeni način. Treba napomenuti da ovo važi za procesorsku arhitekturu Intel x86-64, instrukcija prekida za arhitekture kao što su ARM, MIPS, PPC itd., se drugačije kodira, ali postupak implementacije tačaka prekida je isti.
+Instrukcija \texttt{int3} je posebna instrukcija procesorske arhitekture Intel x86-64, koja izazva softverski prekid. Kada registar programski brojač (eng.~\emph{CPU register pc}) stigne do \texttt{int3} instrukcije izvršavanje se zaustavalja na toj tački. Debager je već upoznat od strane korisnika i svestan je da je tačka prekida postavljena te isti čeka na signal koji ukazuje na to da je program dostigao do instrukcije prekida. Operativni sistem prepoznaje \texttt{int3} instrukciju, poziva se specijalni obrađivač tog signala (na Linux sistemima \texttt{do\_int3()}), koji dalje obaveštava debager šaljući mu signal sa kodom \texttt{SIGTRAP} koji on obrađuje na željeni način. Treba napomenuti da ovo važi za procesorsku arhitekturu Intel x86-64, instrukcija prekida za arhitekture kao što su ARM, MIPS, PPC itd., se drugačije kodira, ali postupak implementacije tačaka prekida je isti.
 
-Ukoliko želimo da stavimo tačku prekida eksplicitno na funkciju \emph{main}, za to koristimo posrednika u vidu DWARF debug informacija. U tom slučaju debager traži element DWARF stabla koji ukazuje na informacije o \texttt{main} funkciji, i odatle dohvata informaciju na kojoj adresi u memoriji se nalazi prva mašinska instrukcija date funkcije. Na slici \ref{fig:mainsub} vidimo DWARF element koji opisuje funkciju uz pomoć atributa. Dibager će pročitati \texttt{DW\_AT\_low\_pc} atribut i na tu adresu postaviti \texttt{int3} instrukciju. Napomenimo da DWARF debag simbole generišemo uz pomoć \texttt{-g} opcije kompajlera, ali o istim će biti opširnije u posebnoj sekciji.
+Ukoliko želimo da stavimo tačku prekida eksplicitno na funkciju \texttt{main}, za to koristimo posrednika u vidu DWARF debug informacija. U tom slučaju debager traži element DWARF stabla koji ukazuje na informacije o \texttt{main} funkciji, i odatle dohvata informaciju na kojoj adresi u memoriji se nalazi prva mašinska instrukcija date funkcije. Na slici \ref{fig:mainsub} vidimo DWARF element koji opisuje funkciju uz pomoć atributa. Debager će pročitati \texttt{DW\_AT\_low\_pc} atribut i na tu adresu postaviti \texttt{int3} instrukciju. Napomenimo da DWARF debag simbole generišemo uz pomoć \texttt{-g} opcije kompajlera, ali o istim će biti navedena opširna analiza u posebnoj sekciji.
 
 \begin{figure}[h!]
 	\begin{center}
@@ -166,7 +166,7 @@ Ukoliko želimo da stavimo tačku prekida eksplicitno na funkciju \emph{main}, z
 	\label{fig:mainsub}
 \end{figure}
 
-Hardverske tačke prekida su direktno povezane sa hardverom u vidu specijalnih registara. Postavlja se na određenu adresu i harverski \emph{watchpoint} montri na zadatu adresu i može signalizirati razne promene na istoj, npr. čitanje, pisanje ili izvršavanje, što im daje prednost u odnosu na softverske tačke prekida. Mane u odnosu na softverske tačke prekida svakako jesu performanse, gde su neuporedivo sporije, i takođe neophodna hardverska podrška za korišćenje istih.
+Hardverske tačke prekida su direktno povezane sa hardverom u vidu specijalnih registara. Postavlja se na određenu adresu i harverski \emph{watchpoint} montri na zadatu adresu i može signalizirati razne promene na istoj, npr. čitanje, pisanje ili izvršavanje, što im daje prednost u odnosu na softverske tačke prekida. Mane u odnosu na softverske tačke prekida su performanse, gde su iste neuporedivo sporije, i takođe neophodna hardverska podrška za korišćenje hardverskih tačaka prekida.
 
 \subsection{Koračanje}
 
@@ -180,7 +180,7 @@ Operativni sistem će dati signal kada je korak izvršen.
 
 Pored instrukcijkog koračanja pomenućemo još jednu vrstu zakoračavanja u neku funkciju koja je pozvana \texttt{call} ili \texttt{jump} instrukcijom. Komanda koja nam to omogućava jeste \texttt{step in}.
 
-Treba napomenuti da postoje arhitekture za koje ovo ne važi, kao npr. platforma ARM, koja nema hardversku podršku za instrukcijsko koračanje i za njih se koračanje implementira na drugačiji način, uz pomoć emulacije instrukcija, ali u ovom radu neće biti opširnije o tome.
+Treba napomenuti da postoje arhitekture za koje ovo ne važi, kao npr. platforma ARM, koja nema hardversku podršku za instrukcijsko koračanje i za njih se koračanje implementira na drugačiji način, uz pomoć emulacije instrukcija, ali u ovom radu neće biti opširno o tome.
 
 \subsection{Izlistavanje pozivanih funkcija}
 
