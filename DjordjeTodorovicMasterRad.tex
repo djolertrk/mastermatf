@@ -101,17 +101,16 @@
 \label{chp:debageri}
 
 Debager (eng.~\emph{debagger}) je softverski alat koji koriste programeri za testiranje, analizu i otklanjanje grešaka u programima. Sam proces korišćenja takvih alata nazivamo debagovanjem (eng.~\emph{debugging}).
-Debageri mogu startovati neki proces i debagovati ga, ili "nakačiti" se na neki proces koji je već u fazi rada. Kada isti preuzme kontrolu nad programom može ga izvršavati instrukciju po instrukciju, postavljati tačke prekida (eng.~\emph{brakpoints}) itd. Neki debageri imaju mogućnost izvršavanja funkcija programa koji se debaguje, uz ograničenje da isti pripada istoj procesorskoj arhitekturi kao i domaćinski sistem na kojem se debager izvršava, ili čak menjati strukturu programa prateći propratne efekte.
+Debageri mogu pokrenuti rad nekog procesa ili se „nakačiti” na proces koji je već u fazi rada. U oba slučaja, debager preuzima kontrolu nad procesom. To mu mogućava da izvršava proces instrukciju po instrukciju, do postavlja tačke prekida (eng.~\emph{brakpoints}) itd. Neki debageri imaju mogućnost izvršavanja funkcija programa koji se debaguje, uz ograničenje da isti pripada istoj procesorskoj arhitekturi kao i domaćinski sistem na kojem se debager izvršava. Čak i struktura programa može biti promenjena, prateći propratne efekte.
 
-Podršku debagerima, u opštem slučaju, daju operativni sistemi, kroz sistemske pozive koji omogućavaju tim alatima da pokrenu i preuzmu kontrolu nad nekim drugim procesom.
-
-U radu će detaljno biti obrađen rad UNIX-olikih, posebno Linux debagera.
-Windows debageri i programski prevodioci ne prate standard DWARF\cite{DWARF} prilikom baratanja sa debag informacijama namenjene za taj operativni sistem, već isti konsultuju standard \emph{Majkrosoft CodeView}, više informacija možete pronaći na \cite{CodeView}.
+Podršku debagerima, u opštem slučaju, daju operativni sistemi, kroz sistemske pozive koji omogućavaju tim alatima da pokrenu i preuzmu kontrolu nad nekim drugim procesom. Za neke naprednije tehnike debagovanja poželjna je podrška od strane hardvera. U radu će detaljno biti obrađen rad UNIX-olikih, posebno Linux debagera. Windows debageri i programski prevodioci ne prate standard DWARF \cite{DWARF} prilikom baratanja sa debag informacijama namenjene za taj operativni sistem. Windows alati za debagovanje konsultuju standard \emph{Majkrosoft CodeView}, više informacija možete pronaći na \cite{CodeView}.
 
 \section{Linux debageri}
 
-Pre svega, definišimo neke od osnovnih pojmova Linux programiranja koje ćemo često pominjati u radu.
-Osvrnimo se prvo na fajl format izvršnih fajlova, deljenih biblioteka, objektnih fajlova i datoteka jezgara ELF (eng.~\emph{Executable and Linkable Format})\cite{ELF}. ELF sadrži razne informacije o samom fajlu koji je podeljen u dva dela: ELF zaglavlje i podaci fajla. ELF zaglavlje sadrži informacije o arhitekturi za koju je program preveden i definiše da li program koristi 32-bitni ili 64-bitni adresni prostor. Zaglavlje 32-bitnih programa je dužine 52 bajta, dok kod 64-bitnih programa isti je dužine 64 bajta. Podaci fajla mogu sadržati programsku tabelu zaglavlja (eng.~\emph{Program header table}), sekcijisku tabelu zaglavlja (eng.~\emph{Section header table}) i ulazne tačke prethodne dve tabele. Slika \ref{fig:elf} prikazuje primer prikaza fajla u formatu ELF.
+Najpre definišimo neke od osnovnih pojmova Linux programiranja koje ćemo često pominjati u radu.
+Osvrnimo se prvo na format izvršnih fajlova, deljenih biblioteka, objektnih fajlova i datoteka jezgara ELF (eng.~\emph{Executable and Linkable Format})\cite{ELF}.
+
+ELF sadrži razne informacije o samom fajlu. Podeljen u dva dela: ELF zaglavlje i podaci fajla. ELF zaglavlje sadrži informacije o arhitekturi za koju je program preveden i definiše da li program koristi 32-bitni ili 64-bitni adresni prostor. Zaglavlje 32-bitnih programa je dužine 52 bajta, dok kod 64-bitnih programa zaglavlje je dužine 64 bajta. Podaci fajla mogu sadržati programsku tabelu zaglavlja (eng.~\emph{Program header table}), sekcijsku tabelu zaglavlja (eng.~\emph{Section header table}) i ulazne tačke prethodne dve tabele. Slika \ref{fig:elf} prikazuje primer prikaza fajla u formatu ELF.
 
 \begin{figure}[h!]
 	\begin{center}
@@ -121,7 +120,7 @@ Osvrnimo se prvo na fajl format izvršnih fajlova, deljenih biblioteka, objektni
 	\label{fig:elf}
 \end{figure}
 
-Nakon fajl formata ELF, jako bitan fajl format je DWARF, koji predstavalja format zapisa debag informacija koje debageri koriste kada analiziraju programe. DWARF je od posebne važnosti za rad te će isti biti opisan detaljno u nastavku.
+Osim fajl formata ELF, veoma bitan fajl format je DWARF, koji predstavalja format zapisa debag informacija koje debageri koriste kada analiziraju programe. DWARF je od posebne važnosti za rad te će isti biti opisan detaljno u nastavku.
 
 Operativni sistem GNU Linux pruža sistemski poziv \texttt{ptrace} \cite{ptrace} koji debagerima omogućava rad. Ovaj sistemski poziv omogućava jednom procesu kontrolu nad izvršavanjem nekog drugog procesa i menjanje memorije i registara istog.
 Potpis ove funkcije je:
@@ -129,12 +128,12 @@ Potpis ove funkcije je:
 \texttt{ long ptrace(enum \_\_ptrace\_request request, pid\_t pid, void *addr, void *data);}
 \newline
 
-Prvi argument sistemskog poziva predstavlja informaciju kojom operativnom sistemu jedan proces, ne nužno debager, ukazuje na nameru preuzimanja kontrole drugog procesa. Ukoliko isti ima vrednost \texttt{PTRACE\_TRACEME} to ukazuje na nameru praćenja (eng.~\emph{tracing}) određenig procesa, \texttt{PTRACE\_PEEKDATA} i \texttt{PTRACE\_POKEDATA} redom ukazuju na nameru čitanja i pisanja  memorije, \texttt{PTRACE\_GETREGS} i \texttt{PTRACE\_SETREGS} se odnose na čitanje i pisanje registara itd. Drugi argument sistemskog poziva \texttt{pid} ukazuje na identifikacioni broj ciljanog procesa. Treći i četvrti argument se po potrebi koriste u zavisnosti od namere korišćenja sistemskog poziva \texttt{ptrace} za čitanje ili pisanje sa adrese datom trećim argumentom, pri tom baratajući podacima na adresi zadatoj četvrtim argumentom. To znači ukoliko se koristi \texttt{PTRACE\_TRACEME} poslednja tri argumenta sistemskog poziva se ignorišu. Ukoliko se koristi \texttt{PTRACE\_PEEKDATA} sa adrese \texttt{addr} se čita jedna reč iz memorije.
+Prvi argument sistemskog poziva predstavlja informaciju kojom operativnom sistemu jedan proces, ne nužno debager, ukazuje na nameru preuzimanja kontrole drugog procesa. Ukoliko isti ima vrednost \texttt{PTRACE\_TRACEME} to ukazuje na nameru praćenja (eng.~\emph{tracing}) određenig procesa, \texttt{PTRACE\_PEEKDATA} i \texttt{PTRACE\_POKEDATA} redom ukazuju na nameru čitanja i pisanja  memorije, \texttt{PTRACE\_GETREGS} i \texttt{PTRACE\_SETREGS} se odnose na čitanje i pisanje registara. Drugi argument sistemskog poziva \texttt{pid} ukazuje na identifikacioni broj ciljanog procesa. Treći i četvrti argument se po potrebi koriste u zavisnosti od namere korišćenja sistemskog poziva \texttt{ptrace} za čitanje ili pisanje sa adrese datom trećim argumentom, pri tom baratajući podacima na adresi zadatoj četvrtim argumentom. To znači ukoliko se koristi \texttt{PTRACE\_TRACEME} poslednja tri argumenta sistemskog poziva se ignorišu. Ukoliko se koristi \texttt{PTRACE\_PEEKDATA} sa adrese \texttt{addr} se čita jedna reč iz memorije.
 \subsection{Tačke prekida}
 
 Postoje dve vrste tačaka prekida (eng.~\emph{brakpoints}): softverske i hardverske \cite{GDB}.
 
-Osvrnimo se prvo na softverske tačke prekida. Postavljanje tačaka prekida predstavlja jednu od najkorišćenijih mogućnosti debagera, te stoga navedimo par smernica kako je ista realizovana, u opštem slučaju. Ali takođe treba napomenuti da ne postoji jedinstveni poziv nekog sistemskog poziva za postavljanje tačke prekida, već se ista obavlja kao kombinacija više mogućnosti  sistemskog poziva \texttt{ptrace}. Opišimo ceo postupak na jednostavnom primeru. Program je preveden za procesorsku arhitekturu Intel x86-64 i asemblerski kod \texttt{main} funkcije primera izgelda kao na primeru \ref{fig:primer1}.
+Osvrnimo se prvo na softverske tačke prekida. Postavljanje tačaka prekida predstavlja jednu od najkorišćenijih mogućnosti debagera, te stoga navedimo par smernica kako je ista realizovana, u opštem slučaju. Ali takođe treba napomenuti da ne postoji jedinstveni poziv nekog sistemskog poziva za postavljanje tačke prekida, već se ista obavlja kao kombinacija više mogućnosti  sistemskog poziva \texttt{ptrace}. Opišimo ceo postupak na jednostavnom primeru. Program je preveden za procesorsku arhitekturu Intel x86-64 i asemblerski kod \texttt{main} funkcije primera izgleda kao na primeru \ref{fig:primer1}.
 
 \begin{figure}[h!]
 	\begin{center}
@@ -162,7 +161,7 @@ Ukoliko želimo da stavimo tačku prekida eksplicitno na funkciju \texttt{main},
 	\begin{center}
 		\includegraphics[scale=0.4]{slike/main_subprogram.png}
 	\end{center}
-	\caption{\texttt{main} funkcija prikazana DWARF subprogramom.}
+	\caption{\texttt{main} funkcija prikazana DWARF potprogramom.}
 	\label{fig:mainsub}
 \end{figure}
 
