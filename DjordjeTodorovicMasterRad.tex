@@ -105,6 +105,59 @@ Debageri mogu pokrenuti rad nekog procesa ili se „nakačiti” na proces koji 
 
 Podršku debagerima, u opštem slučaju, daju operativni sistemi, kroz sistemske pozive koji omogućavaju tim alatima da pokrenu i preuzmu kontrolu nad nekim drugim procesom. Za neke naprednije tehnike debagovanja poželjna je podrška od strane hardvera. U radu će detaljno biti obrađen rad UNIX-olikih, posebno Linux debagera. Windows debageri i programski prevodioci ne prate standard DWARF \cite{DWARF} prilikom baratanja sa debag informacijama namenjene za taj operativni sistem. Windows alati za debagovanje konsultuju standard \emph{Majkrosoft CodeView}, više informacija možete pronaći na \cite{CodeView}.
 
+\section{Prevođenje programa}
+
+Programi koji se debaguju se prevode uz pomoc opcije programskih prevodioca "-g". Ukoliko je program koji se analizira prevoden bez optimizacija, debag informacije koje prate program su potpune. Programi koji se puštaju u produkciju, da bi bili brži i zauzimali manje memorije, se prevode uz pomoć optimizacija. Nivoi optimizacija produkcijskih programa su "-O2" i "-O3". Prilikom optimizacija se gube razne debag informacije. Neke promenljive i funkcije programa neće biti predstavljene debag informacijama. Npr. ~funckije koje se ne koriste će biti optimizovane i izbrisane iz mašinskog koda programa, te samim tim i debag informacije za nju će biti izostavljene. Promenljiva programa može biti živa samo u nekim određenim delovima programa, pa programski prevodioci generišu debag informacije o njima samo u tim određenim delovima koda.
+
+\section{Fajl format DWARF}
+
+DWARF je debag fajl format koji se koristi od strane programskih prevodioca (kao npr.~GCC ili LLVM/Clang) i debagera (kao npr.~GNU GDB) da bi se omogućilo debagovanje na nivou izvornog koda. Omogućava podršku za razne programske jezike kao što su C/C++ i Fortran, ali je dizajniran tako da se lako može proširiti na ostale jezike. Arhitekturalno je nezavistan i predstavlja "most" između izvornog koda i izvršnog fajla. Trenutno je DWARF verzija 5 poslednji realizovani standard.
+
+DWARF debug fajl format se odnosi na Unix-olike operativne sisteme, kao što su Linux i MacOS. Generisane debag informacije, prateći DWARF standard, su podeljene u nekoliko sekcija sa prefiksom \texttt{.debug\_}. Neke od njih su \texttt{.debug\_line}, \texttt{.debug\_loc} i \texttt{.debug\_info} koje redom predstavljaju informacije o linijama izvornog koda, lokacijama promenljivih i ključna debag sekcija koja sadrži debug informacije koje referišu na informacije iz ostalih debug sekcija.
+DWARF je predstavljen kao drvolika struktura, smeštena u .debug\_info sekciju,  koja razne entitete programskog jezika opisuje osnovnom debag jedinicom DIE (eng.~Debug Info Entry). Osnovna debag jedinica može opisivati lokalnu promenljivu programa, formalni parametar, funkciju itd. Svaka od njih je identifikovana DWARF tagom koji predstavalja informaciju o toj jedinici, gde je npr.~tag za lokalne promenljive predstavljen sa \texttt{DW\_TAG\_local\_variable}, ili tag za funkciju je \texttt{DW\_TAG\_subprogram}. Svaka debag jedinica je opisana određenim DWARF atributima sa prefikosm \texttt{DW\_AT\_}. Oni mogu ukazivati na razne informacije o entitetu kao sto su ime promenljive ili funkcije, liniju deklaracije, itd. Koren svakog DWARF stabla je predstavljen debug jedinicom \texttt{DW\_TAG\_compile\_unit} koja predstavlja kompilacionu jedinicu, tj. izvorni kod programa. Primer dela DWARF stabla za primer predstavljen \ref{fig:testPrimer} je dat slikom \ref{fig:dwarfPrimer}.
+
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.8]{slike/testPrimer.png}
+	\end{center}
+	\caption{Izvorni kod test primera koji se analizira.}
+	\label{fig:testPrimer}
+\end{figure}
+
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.6]{slike/dwarfPrimer.png}
+	\end{center}
+	\caption{Debug jedinice DWARF stabla primera sa slike \ref{fig:testPrimer}.}
+	\label{fig:dwarfPrimer}
+\end{figure}
+
+Funkcija \texttt{main} primera sa slike \ref{fig:testPrimer} je predstavljena DWARF tagom \texttt{DW\_TAG\_subprogram}. Atribut te debag jedinice predstavljen \texttt{DW\_AT\_name} ima vrednost imena funkcije. Atributi \texttt{DW\_AT\_low\_pc} i \texttt{DW\_AT\_high\_pc} redom predstavljaju adresu prve mašinske instrukcije te funkcije u memoriji programa i ofset na kojem se nalazi poslednja mašinska instrukcija te funkcije. Sledeci čvor drveta predstavlja promenljivu \texttt{x} istog test primera. Ta debag jedinica je dete cvora koji predstavlja \texttt{main} funkciju i ukazuje da se promenljiva \texttt{x} nalazi unutar \texttt{main} funkcije. Promenljiva \texttt{x} je predstavljena DWARF tagom \texttt{DW\_TAG\_variable}. Atribut \texttt{DW\_AT\_name} predstavlja ime promenljive, \texttt{DW\_AT\_type} referiše na debag jedinicu koja predstavlja tip promenljive, dok \texttt{DW\_AT\_location} atribut predstavlja lokaciju promenljive u memoriji programa. 
+
+\subsection{Debag promenljive}
+
+Svaka promenljiva programa prevedenog sa debag informacijama, ukoliko se ne radi o optimizovanom programu, je predstavljena DWARF tagom \texttt{DW\_TAG\_variable}. Atribut \texttt{DW\_AT\_location} ukazuje na lokaciju promenljive. Lokacija može biti predstavljena DWARF izrazom, kao npr.~lokacija promenljive \texttt{x} na slici \ref{fig:dwarfPrimer}. DWARF izraz te promenljive ukazuje da se ona nalazi na ofsetu -20 trenutnog stek okvira \texttt{main} funkcije. U neoptimizovanom kodu sve promenljive imaju lokacije zadate DWARF izrazom. Njihove vrednosti su dostupne debagerima u bilo kom delu koda u kom su definisane.
+
+U optimizovanom kodu lokacija promenljive može sadržati referencu na informaciju o lokaciji u \texttt{.debug\_loc} sekciji. Lokacije u toj sekciji su predstavljene listama lokacija. Jedna promenljiva u optimizovanom kodu može biti smeštena na raznim memorijskim lokacijama ili registrima. Elementi liste opisuju lokacije promenljive na mestima u kodu gde je ona živa. Ukoliko promenljiva nije živa u nekom delu koda, programski prevodioci u optimizovanom kodu neće pratiti njenu lokaciju. Slika \ref{fig:optPrimer} predstavlja primer lokacije promenljive u optimizovanom kodu.
+
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.6]{slike/optimizovanPrimer.png}
+	\end{center}
+	\caption{Debag jedinica promenljive \texttt{x} u optimizovanom kodu.}
+	\label{fig:optPrimer}
+\end{figure}
+
+Lokacijska lista promenljive \texttt{x} je predstavljena na slici \ref{fig:debugLoc}. U ovom konkretnom primeru, promenljiva živi samo na jednom mestu. Potencijalno je mogla imati još elemenata lokacijske liste. Ofset predstavlja informaciju gde se lokacijska lista određene promenljive nalazi u \texttt{.debug\_loc} sekciji. \texttt{Begin} i \texttt{End} predstavljaju informaciju od koje do koje adrese u programu važi data lokacija, tj. od koje do koje instrukcije je određena promenljiva živa. \texttt{Expression} predstavlja DWARF izraz koji opisuje lokaciju promenljive.
+
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.6]{slike/debugLoc.png}
+	\end{center}
+	\caption{Lokacijska lista promenljive \texttt{x} u optimizovanom kodu.}
+	\label{fig:debugLoc}
+\end{figure}
+
 \section{Linux debageri}
 
 Najpre definišimo neke od osnovnih pojmova Linux programiranja koje ćemo često pominjati u radu.
@@ -202,9 +255,6 @@ Za čitanje vrednosti promenljivih u programu, debager pretražuje DWARF stablo 
 
 \chapter{GNU GDB alat}
 \label{chp:GDB}
-
-\chapter{DWARF format}
-\label{chp:DWARF}
 
 \chapter{Datoteke jezgra}
 \label{chp:corefiles}
