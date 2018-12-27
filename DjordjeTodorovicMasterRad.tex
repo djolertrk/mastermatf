@@ -43,6 +43,8 @@
 % Datoteka sa literaturom u BibTex tj. BibLaTeX/Biber formatu
 \bib{DjordjeTodorovicMasterRad}
 
+\newtheorem{primer}{Primer}
+
 % Ime kandidata na srpskom jeziku (u odabranom pismu)
 \autor{Đorđe Todorović}
 % Naslov teze na srpskom jeziku (u odabranom pismu)
@@ -183,16 +185,21 @@ Potpis ove funkcije je:
 \texttt{ long ptrace(enum \_\_ptrace\_request request, pid\_t pid, void *addr, void *data);}
 \newline
 
-Prvi argument sistemskog poziva predstavlja informaciju kojom operativnom sistemu jedan proces, ne nužno debager, ukazuje na nameru preuzimanja kontrole drugog procesa. Ukoliko isti ima vrednost \texttt{PTRACE\_TRACEME} to ukazuje na nameru praćenja (eng.~\emph{tracing}) određenig procesa, \texttt{PTRACE\_PEEKDATA} i \texttt{PTRACE\_POKEDATA} redom ukazuju na nameru čitanja i pisanja  memorije, \texttt{PTRACE\_GETREGS} i \texttt{PTRACE\_SETREGS} se odnose na čitanje i pisanje registara. To su samo neki osnovni slučajevi korišćenja, za više informacija pogledati \cite{ptrace}. Drugi argument sistemskog poziva \texttt{pid} ukazuje na identifikacioni broj ciljanog procesa. Treći i četvrti argument se po potrebi koriste u zavisnosti od namere korišćenja sistemskog poziva \texttt{ptrace} za čitanje ili pisanje sa adrese datom trećim argumentom, pri tom baratajući podacima na adresi zadatoj četvrtim argumentom. Navodimo par osnovnih primera korišćenja \texttt{ptrace} sistemskog poziva, a u nastavku će biti navedeno još primera.
+Prvi argument sistemskog poziva predstavlja informaciju kojom operativnom sistemu jedan proces, ne nužno debager, ukazuje na nameru preuzimanja kontrole drugog procesa. Ukoliko isti ima vrednost \texttt{PTRACE\_TRACEME} to ukazuje na nameru praćenja (eng.~\emph{tracing}) određenig procesa, \texttt{PTRACE\_PEEKDATA} i \texttt{PTRACE\_POKEDATA} redom ukazuju na nameru čitanja i pisanja  memorije, \texttt{PTRACE\_GETREGS} i \texttt{PTRACE\_SETREGS} se odnose na čitanje i pisanje registara. To su samo neki osnovni slučajevi korišćenja, za više informacija pogledati \cite{ptrace}. Drugi argument sistemskog poziva \texttt{pid} ukazuje na identifikacioni broj ciljanog procesa. Treći i četvrti argument se po potrebi koriste u zavisnosti od namere korišćenja sistemskog poziva \texttt{ptrace} za čitanje ili pisanje sa adrese datom trećim argumentom, pri tom baratajući podacima na adresi zadatoj četvrtim argumentom. To znači ukoliko se koristi \texttt{PTRACE\_TRACEME} poslednja tri argumenta sistemskog poziva se ignorišu. Ukoliko se koristi \texttt{PTRACE\_GETREGS} sa adrese \texttt{addr} se čita jedna reč iz memorije. Navodimo par osnovnih primera korišćenja \texttt{ptrace} sistemskog poziva, a u nastavku će biti navedeno još primera.
 
+\begin{primer}
 Program inicira da će biti praćen od strane roditeljskog procesa:
-\texttt{ptrace(PTRACE\_TRACEME, 0, NULL, NULL);}
 
-Primer čitanja vrednosti registara procesa sa identifikatorom \texttt{8845} na adresu promenljive \texttt{regs}:
+\texttt{ptrace(PTRACE\_TRACEME, 0, NULL, NULL);}
+\end{primer}
+
+\begin{primer}
+Čitanje vrednosti registara procesa sa identifikatorom \texttt{8845} i upisivanje tih vrednosti na adresu promenljive \texttt{regs}:
 
 \texttt{ptrace(PTRACE\_GETREGS, 8845, NULL, \&regs);}
 
-To znači ukoliko se koristi \texttt{PTRACE\_TRACEME} poslednja tri argumenta sistemskog poziva se ignorišu. Ukoliko se koristi \texttt{PTRACE\_PEEKDATA} sa adrese \texttt{addr} se čita jedna reč iz memorije.
+\end{primer}
+
 \subsection{Tačke prekida}
 
 Postoje dve vrste tačaka prekida (eng.~\emph{brakpoints}): softverske i hardverske \cite{GDB}.
