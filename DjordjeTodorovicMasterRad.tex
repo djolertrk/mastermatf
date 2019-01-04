@@ -102,29 +102,29 @@
 \chapter{Kako rade debageri?}
 \label{chp:debageri}
 
-Greške su sastavni deo svakog rada koji obavlja čovek, te i programeri prave iste. Greške mogu biti hardverske i softverske. One mogu imati razne poslednice. Neke su manje važne, kao npr.~korisnički interfejs aplikacije ima neočekivanu boju pozadine. Postoje i greške koje mogu imati daleko veće posledice, pa čak i ugroziti živote drugih, kao npr.~greške u softveru ili hardveru uređaja i aplikacija avio industrije. Faza testiranja je veoma važna u ciklusu razvoja informacionih sistema. Nakon faze testiranja obično sledi faza analize i otklanjanja grešaka.
+Greške su sastavni deo svakog rada koji obavlja čovek, te ih i programeri prave. Greške mogu biti hardverske i softverske. One mogu imati razne poslednice. Neke su manje važne, kao npr.~korisnički interfejs aplikacije ima neočekivanu boju pozadine. Postoje i greške koje mogu imati daleko veće posledice, pa čak i ugroziti živote drugih, kao npr.~greške u softveru ili hardveru uređaja i aplikacija avio industrije. Faza testiranja je veoma važna u ciklusu razvoja softvera. Nakon faze testiranja obično sledi faza analize i otklanjanja grešaka.
 
 Debager (eng.~\emph{debagger}) je softverski alat koji koriste programeri za testiranje, analizu i otklanjanje grešaka u programima. Sam proces korišćenja takvih alata nazivamo debagovanjem (eng.~\emph{debugging}).
 Debageri mogu pokrenuti rad nekog procesa ili se „nakačiti” na proces koji je već u fazi rada. U oba slučaja, debager preuzima kontrolu nad procesom. To mu mogućava da izvršava proces instrukciju po instrukciju, do postavlja tačke prekida (eng.~\emph{brakpoints}) itd. Proces izvršavanja programa od strane debagera sekvencijalno, instrukciju po instrukciju ili liniju po liniju, nazivamo koračanje. Tačke prekida su mogućnost debagera da zaustavi izvršavanje programa na određenoj tački. To može biti trenutak kada program izvrši određenu funkciju, liniju koda itd. Neki debageri imaju mogućnost izvršavanja funkcija programa koji se debaguje, uz ograničenje da isti pripada istoj procesorskoj arhitekturi kao i domaćinski sistem na kojem se debager izvršava. Čak i struktura programa može biti promenjena, prateći propratne efekte.
 
-Podršku debagerima, u opštem slučaju, daju operativni sistemi, kroz sistemske pozive koji omogućavaju tim alatima da pokrenu i preuzmu kontrolu nad nekim drugim procesom. Za neke naprednije tehnike debagovanja poželjna je podrška od strane hardvera. U radu će detaljno biti obrađen rad UNIX-olikih, posebno Linux debagera. Windows debageri i programski prevodioci ne prate standard DWARF \cite{DWARF} prilikom baratanja sa debag informacijama namenjene za taj operativni sistem. Windows alati za debagovanje konsultuju standard \emph{Majkrosoft CodeView}, više informacija možete pronaći na \cite{CodeView}.
+Podršku debagerima, u opštem slučaju, daju operativni sistemi, kroz sistemske pozive koji omogućavaju tim alatima da pokrenu i preuzmu kontrolu nad nekim drugim procesom. Za neke naprednije tehnike debagovanja poželjna je podrška od strane hardvera. U radu će detaljno biti obrađen rad UNIX-olikih, posebno Linux debagera. Windows debageri i programski prevodioci ne prate standard DWARF \cite{DWARF} prilikom baratanja sa debag informacijama namenjene za taj operativni sistem. Alati za debagovanje u okviru operativnog sistema Windows koriste standard \emph{Majkrosoft CodeView}.  Više informacija o ovom standardu može se pronaći u literaturi \cite{CodeView}.
 
 \section{Prevođenje programa}
 
-Programi koji se debaguju se prevode uz pomoć opcije programskih prevodioca \texttt{-g}. Ukoliko je program koji se analizira prevoden bez optimizacija, debag informacije koje prate program su potpune. Programi koji se puštaju u produkciju, da bi bili brži i zauzimali manje memorije, se prevode uz pomoć optimizacija. Nivoi optimizacija produkcijskih programa su "-O2" i "-O3". Prilikom optimizacija se gube razne debag informacije. Neke promenljive i funkcije programa neće biti predstavljene debag informacijama. Npr.~funckije koje se ne koriste će biti optimizovane i izbrisane iz mašinskog koda programa, te samim tim i debag informacije za nju će biti izostavljene. Promenljiva programa može biti živa samo u nekim određenim delovima programa, pa programski prevodioci generišu debag informacije o njenim lokacijama samo u tim određenim delovima koda.
+Programi koji se debaguju se prevode uz pomoć odgovarajuće opcije programskih prevodioca (za prevodioce GCC i LLVM/Clang, to je opcija \texttt{-g}) koja obezbeđuje generisanje pomoćnih debag informacija. Ukoliko je program koji se analizira preveden bez optimizacija, debag informacije koje prate program su potpune. Programi koji se puštaju u produkciju, da bi bili brži i zauzimali manje memorije, se prevode uz pomoć optimizacija. Nivoi optimizacija produkcijskih programa su "-O2" i "-O3". Prilikom optimizacija se gube razne debag informacije. Neke promenljive i funkcije programa neće biti predstavljene debag informacijama. Funckije koje se ne koriste će biti optimizovane i izbrisane iz mašinskog koda programa, te samim tim i debag informacije za nju će biti izostavljene. Promenljiva programa može biti živa samo u nekim određenim delovima programa, pa programski prevodioci generišu debag informacije o njenim lokacijama samo u tim određenim delovima koda.
 
 \section{Fajl format DWARF}
 
-DWARF je debag fajl format koji se koristi od strane programskih prevodioca (kao npr.~GCC ili LLVM/Clang) i debagera (kao npr.~GNU GDB) da bi se omogućilo debagovanje na nivou izvornog koda. Omogućava podršku za razne programske jezike kao što su C/C++ i Fortran, ali je dizajniran tako da se lako može proširiti na ostale jezike. Arhitekturalno je nezavistan i predstavlja "most" između izvornog koda i izvršnog fajla. Trenutno je DWARF verzija 5 poslednji realizovani standard.
+DWARF je debag fajl format koji se koristi od strane programskih prevodioca (kao npr.~GCC ili LLVM/Clang) i debagera (kao npr.~GNU GDB) da bi se omogućilo debagovanje na nivou izvornog koda. Omogućava podršku za razne programske jezike kao što su C/C++ i Fortran, ali je dizajniran tako da se lako može proširiti na ostale jezike. Arhitekturalno je nezavisan i predstavlja "most" između izvornog koda i izvršnog fajla. Trenutno je poslednji realizovani standard verzija 5 formata DWARF.
 
-DWARF debug fajl format se odnosi na Unix-olike operativne sisteme, kao što su Linux i MacOS. Generisane debag informacije, prateći DWARF standard, su podeljene u nekoliko sekcija sa prefiksom \texttt{.debug\_}. Neke od njih su \texttt{.debug\_line}, \texttt{.debug\_loc} i \texttt{.debug\_info} koje redom predstavljaju informacije o linijama izvornog koda, lokacijama promenljivih i ključna debag sekcija koja sadrži debug informacije koje referišu na informacije iz ostalih debug sekcija.
-DWARF je predstavljen kao drvolika struktura, smeštena u .debug\_info sekciju,  koja razne entitete programskog jezika opisuje osnovnom debag jedinicom DIE (eng.~Debug Info Entry). Osnovna debag jedinica može opisivati lokalnu promenljivu programa, formalni parametar, funkciju itd. Svaka od njih je identifikovana DWARF tagom koji predstavalja informaciju o toj jedinici, gde je npr.~tag za lokalne promenljive predstavljen sa \texttt{DW\_TAG\_local\_variable}, ili tag za funkciju je obeležen sa \texttt{DW\_TAG\_subprogram}. Svaka debag jedinica je opisana određenim DWARF atributima sa prefikosm \texttt{DW\_AT\_}. Oni mogu ukazivati na razne informacije o entitetu kao sto su ime promenljive ili funkcije, liniju deklaracije, itd. Koren svakog DWARF stabla je predstavljen debug jedinicom, sa tagom  \texttt{DW\_TAG\_compile\_unit}, koja predstavlja kompilacionu jedinicu, tj. izvorni kod programa. Primer dela DWARF stabla za primer predstavljen \ref{fig:testPrimer} je dat slikom \ref{fig:dwarfPrimer}.
+Debag fajl format DWARF se odnosi na Unix-olike operativne sisteme, kao što su Linux i MacOS. Generisane debag informacije, prateći DWARF standard, su podeljene u nekoliko sekcija sa prefiksom \texttt{.debug\_}. Neke od njih su \texttt{.debug\_line}, \texttt{.debug\_loc} i \texttt{.debug\_info} koje redom predstavljaju informacije o linijama izvornog koda, lokacijama promenljivih i ključna debag sekcija koja sadrži debag informacije koje referišu na informacije iz ostalih debag sekcija.
+DWARF je predstavljen kao drvolika struktura, smeštena u \texttt{.debug\_info} sekciju,  koja razne entitete programskog jezika opisuje osnovnom debag jedinicom DIE (eng.~Debug Info Entry). Osnovna debag jedinica može opisivati lokalnu promenljivu programa, formalni parametar, funkciju itd. Svaka od njih je identifikovana DWARF tagom koji predstavalja informaciju o toj jedinici, gde je npr.~tag za lokalne promenljive predstavljen sa \texttt{DW\_TAG\_local\_variable}, ili tag za funkciju je obeležen sa \texttt{DW\_TAG\_subprogram}. Svaka debag jedinica je opisana određenim DWARF atributima sa prefikosm \texttt{DW\_AT\_}. Oni mogu ukazivati na razne informacije o entitetu kao sto su ime promenljive ili funkcije, liniju deklaracije, itd. Koren svakog DWARF stabla je predstavljen debag jedinicom, sa tagom  \texttt{DW\_TAG\_compile\_unit}, koja predstavlja kompilacionu jedinicu, tj. izvorni kod programa. Primer dela DWARF stabla za primer predstavljen slikom \ref{fig:testPrimer} je dat slikom \ref{fig:dwarfPrimer}.
 
 \begin{figure}[h!]
 	\begin{center}
 		\includegraphics[scale=0.8]{slike/testPrimer.png}
 	\end{center}
-	\caption{Izvorni kod test primera koji se analizira.}
+	\caption{Izvorni k\'{o}d test primera koji se analizira.}
 	\label{fig:testPrimer}
 \end{figure}
 
@@ -136,7 +136,7 @@ DWARF je predstavljen kao drvolika struktura, smeštena u .debug\_info sekciju, 
 	\label{fig:dwarfPrimer}
 \end{figure}
 
-Funkcija \texttt{main} primera sa slike \ref{fig:testPrimer} na slici \ref{fig:dwarfPrimer} je predstavljena DWARF tagom \texttt{DW\_TAG\_subprogram}. Atribut te debag jedinice predstavljen sa \texttt{DW\_AT\_name} ima vrednost imena funkcije. Atributi \texttt{DW\_AT\_low\_pc} i \texttt{DW\_AT\_high\_pc} redom predstavljaju adresu prve mašinske instrukcije te funkcije u memoriji programa i ofset na kojem se nalazi poslednja mašinska instrukcija te funkcije. Sledeci čvor drveta predstavlja promenljivu \texttt{x} istog test primera. Ta debag jedinica je dete čvora koji predstavlja \texttt{main} funkciju i ukazuje da se promenljiva \texttt{x} nalazi unutar \texttt{main} funkcije. Promenljiva \texttt{x} je predstavljena DWARF tagom \texttt{DW\_TAG\_variable}. Atribut \texttt{DW\_AT\_name} predstavlja ime promenljive, \texttt{DW\_AT\_type} referiše na debag jedinicu koja predstavlja tip promenljive, dok \texttt{DW\_AT\_location} atribut predstavlja lokaciju promenljive u memoriji programa. 
+Funkcija \texttt{main} primera sa slike \ref{fig:testPrimer} na slici \ref{fig:dwarfPrimer} je predstavljena DWARF tagom \texttt{DW\_TAG\_subprogram}. Atribut te debag jedinice predstavljen sa \texttt{DW\_AT\_name} ima vrednost imena funkcije. Atributi \texttt{DW\_AT\_low\_pc} i \texttt{DW\_AT\_high\_pc} redom predstavljaju adresu prve mašinske instrukcije te funkcije u memoriji programa i ofset na kojem se nalazi poslednja mašinska instrukcija te funkcije. Sledeći čvor drveta predstavlja promenljivu \texttt{x} istog test primera. Ta debag jedinica je dete čvora koji predstavlja funkciju \texttt{main} i ukazuje da se promenljiva \texttt{x} nalazi unutar funkcije \texttt{main}. Promenljiva \texttt{x} je predstavljena DWARF tagom \texttt{DW\_TAG\_variable}. Atribut \texttt{DW\_AT\_name} predstavlja ime promenljive, \texttt{DW\_AT\_type} referiše na debag jedinicu koja predstavlja tip promenljive, dok \texttt{DW\_AT\_location} atribut predstavlja lokaciju promenljive u memoriji programa. 
 
 \subsection{Debag promenljive}
 
@@ -164,10 +164,10 @@ Lokacijska lista promenljive \texttt{x} je predstavljena na slici \ref{fig:debug
 
 \section{Linux debageri}
 
-Najpre definišimo neke od osnovnih pojmova Linux programiranja koje ćemo često pominjati u radu.
+Definišimo neke od osnovnih pojmova Linux programiranja koje ćemo često pominjati u radu.
 Osvrnimo se prvo na format izvršnih fajlova, deljenih biblioteka, objektnih fajlova i datoteka jezgara ELF (eng.~\emph{Executable and Linkable Format})\cite{ELF}.
 
-ELF sadrži razne informacije o samom fajlu. Podeljen u dva dela: ELF zaglavlje i podaci fajla. ELF zaglavlje sadrži informacije o arhitekturi za koju je program preveden i definiše da li program koristi 32-bitni ili 64-bitni adresni prostor. Zaglavlje 32-bitnih programa je dužine 52 bajta, dok kod 64-bitnih programa zaglavlje je dužine 64 bajta. Podaci fajla mogu sadržati programsku tabelu zaglavlja (eng.~\emph{Program header table}), sekcijsku tabelu zaglavlja (eng.~\emph{Section header table}) i ulazne tačke prethodne dve tabele. Slika \ref{fig:elf} prikazuje primer prikaza fajla u formatu ELF.
+ELF sadrži razne informacije o samom fajlu. Podeljen je u dva dela: ELF zaglavlje i podaci fajla. ELF zaglavlje sadrži informacije o arhitekturi za koju je program preveden i definiše da li program koristi 32-bitni ili 64-bitni adresni prostor. Zaglavlje 32-bitnih programa je dužine 52 bajta, dok kod 64-bitnih programa zaglavlje je dužine 64 bajta. Podaci fajla mogu sadržati programsku tabelu zaglavlja (eng.~\emph{Program header table}), sekcijsku tabelu zaglavlja (eng.~\emph{Section header table}) i ulazne tačke prethodne dve tabele. Slika \ref{fig:elf} prikazuje primer prikaza fajla u formatu ELF.
 
 \begin{figure}[h!]
 	\begin{center}
@@ -176,8 +176,6 @@ ELF sadrži razne informacije o samom fajlu. Podeljen u dva dela: ELF zaglavlje 
 	\caption{ELF fajl format počitan alatom \emph{objdump}.}
 	\label{fig:elf}
 \end{figure}
-
-Osim fajl formata ELF, veoma bitan fajl format je DWARF, koji predstavalja format zapisa debag informacija koje debageri koriste kada analiziraju programe.
 
 Operativni sistem GNU Linux pruža sistemski poziv \texttt{ptrace} \cite{ptrace} koji debagerima omogućava rad. Ovaj sistemski poziv omogućava jednom procesu kontrolu nad izvršavanjem nekog drugog procesa i menjanje memorije i registara istog.
 Potpis ove funkcije je:
@@ -202,15 +200,17 @@ Program inicira da će biti praćen od strane roditeljskog procesa:
 
 \subsection{Tačke prekida}
 
-Postoje dve vrste tačaka prekida (eng.~\emph{brakpoints}): softverske i hardverske \cite{GDB}.
+Postoje dve vrste tačaka prekida (eng.~\emph{breakpoints}): softverske i hardverske \cite{GDB}.
 
-Osvrnimo se prvo na softverske tačke prekida. Postavljanje tačaka prekida predstavlja jednu od najkorišćenijih mogućnosti debagera, te stoga navedimo par smernica kako je ista realizovana, u opštem slučaju. Ali takođe treba napomenuti da ne postoji jedinstveni poziv nekog sistemskog poziva za postavljanje tačke prekida, već se ista obavlja kao kombinacija više mogućnosti  sistemskog poziva \texttt{ptrace}. Opišimo ceo postupak na jednostavnom primeru. Program je preveden za procesorsku arhitekturu Intel x86-64 i asemblerski kod \texttt{main} funkcije primera izgleda kao na primeru \ref{fig:primer1}.
+Osvrnimo se prvo na softverske tačke prekida. Postavljanje tačaka prekida predstavlja jednu od najkorišćenijih mogućnosti debagera, te stoga navedimo par smernica kako je ista realizovana, u opštem slučaju. Ali takođe treba napomenuti da ne postoji jedinstveni poziv nekog sistemskog poziva za postavljanje tačke prekida, već se ista obavlja kao kombinacija više mogućnosti  sistemskog poziva \texttt{ptrace}. Opišimo ceo postupak na jednostavnom primeru.
+
+Program je preveden za procesorsku arhitekturu Intel x86-64 i asemblerski k\'{o}d \texttt{main} funkcije primera izgleda kao u primeru sa slike \ref{fig:primer1}.
 
 \begin{figure}[h!]
 	\begin{center}
-		\includegraphics[scale=0.4]{slike/example_bp.png}
+		\includegraphics[scale=0.3]{slike/example_bp.png}
 	\end{center}
-	\caption{Asemblerski kod \texttt{main} fukcije test primera na x86-64 platformi.}
+	\caption{Asemblerski k\'{o}d \texttt{main} fukcije test primera na x86-64 platformi.}
 	\label{fig:primer1}
 \end{figure}
 
@@ -218,15 +218,15 @@ Primera radi, želimo da postavimo tačku prekida na treću po redu instrukciju 
 
 \texttt{48 89 e5  mov \%rsp,\%rbp}
 
-Da bismo to uradili, menjamo prvi bajt instrukcije sa posebnom magičnom vrednošću, obično \texttt{0xCC}, i kada izvršavanje dostigne do tog dela koda ono će se zaustaviti na tom mestu.
+Da bismo to uradili, menjamo prvi bajt instrukcije sa posebnom magičnom vrednošću, obično \texttt{0xcc}, i kada izvršavanje dostigne do tog dela koda ono će se zaustaviti na tom mestu.
 
 Pošto \texttt{0x48} menjamo sa \texttt{0xcc} i na tom mestu u kodu dobijamo instrukciju:
 
 \texttt{cc 89 e5  int3}
 
-Instrukcija \texttt{int3} je posebna instrukcija procesorske arhitekture Intel x86-64, koja izazva softverski prekid. Kada registar programski brojač (eng.~\emph{CPU register pc}) stigne do \texttt{int3} instrukcije izvršavanje se zaustavalja na toj tački. Debager je već upoznat od strane korisnika i svestan je da je tačka prekida postavljena te isti čeka na signal koji ukazuje na to da je program dostigao do instrukcije prekida. Operativni sistem prepoznaje \texttt{int3} instrukciju, poziva se specijalni obrađivač tog signala (na Linux sistemima \texttt{do\_int3()}), koji dalje obaveštava debager šaljući mu signal sa kodom \texttt{SIGTRAP} koji on obrađuje na željeni način. Treba napomenuti da ovo važi za procesorsku arhitekturu Intel x86-64, instrukcija prekida za arhitekture kao što su ARM, MIPS, PPC itd., se drugačije kodira, ali postupak implementacije tačaka prekida je isti.
+Instrukcija \texttt{int3} je posebna instrukcija procesorske arhitekture Intel x86-64, koja izazva softverski prekid. Kada registar programski brojač (eng.~\emph{CPU register pc}) stigne do \texttt{int3} instrukcije izvršavanje se zaustavalja na toj tački. Debager je već upoznat od strane korisnika da je tačka prekida postavljena te on čeka na signal koji ukazuje na to da je program dostigao do instrukcije prekida. Operativni sistem prepoznaje instrukciju \texttt{int3}, poziva se specijalni obrađivač tog signala (na Linux sistemima \texttt{do\_int3()}), koji dalje obaveštava debager šaljući mu signal sa kodom \texttt{SIGTRAP} koji on obrađuje na željeni način. Treba napomenuti da ovo važi za procesorsku arhitekturu Intel x86-64, instrukcija prekida za arhitekture kao što su ARM, MIPS, PPC itd., se drugačije kodira, ali postupak implementacije tačaka prekida je isti.
 
-Ukoliko želimo da stavimo tačku prekida eksplicitno na funkciju \texttt{main}, za to koristimo posrednika u vidu DWARF debug informacija. U tom slučaju debager traži element DWARF stabla koji ukazuje na informacije o \texttt{main} funkciji, i odatle dohvata informaciju na kojoj adresi u memoriji se nalazi prva mašinska instrukcija date funkcije. Na slici \ref{fig:mainsub} vidimo DWARF element koji opisuje funkciju uz pomoć atributa. Debager će pročitati \texttt{DW\_AT\_low\_pc} atribut i na tu adresu postaviti \texttt{int3} instrukciju. Napomenimo da DWARF debag simbole generišemo uz pomoć \texttt{-g} opcije kompajlera.
+Ukoliko želimo da stavimo tačku prekida eksplicitno na funkciju \texttt{main}, za to koristimo posrednika u vidu DWARF debag informacija. U tom slučaju debager traži element DWARF stabla koji ukazuje na informacije o \texttt{main} funkciji, i odatle dohvata informaciju na kojoj adresi u memoriji se nalazi prva mašinska instrukcija date funkcije. Na slici \ref{fig:mainsub} vidimo DWARF element koji opisuje funkciju uz pomoć atributa. Debager će pročitati \texttt{DW\_AT\_low\_pc} atribut i na tu adresu postaviti \texttt{int3} instrukciju. Napomenimo da DWARF debag simbole generišemo uz pomoć \texttt{-g} opcije kompajlera.
 
 \begin{figure}[h!]
 	\begin{center}
@@ -236,7 +236,7 @@ Ukoliko želimo da stavimo tačku prekida eksplicitno na funkciju \texttt{main},
 	\label{fig:mainsub}
 \end{figure}
 
-Hardverske tačke prekida su direktno povezane sa hardverom u vidu specijalnih registara. Postavlja se na određenu adresu i harverski \emph{watchpoint} montri na zadatu adresu i može signalizirati razne promene na istoj, npr. čitanje, pisanje ili izvršavanje, što im daje prednost u odnosu na softverske tačke prekida. Mane u odnosu na softverske tačke prekida su performanse, gde su iste neuporedivo sporije, i takođe neophodna hardverska podrška za korišćenje hardverskih tačaka prekida.
+Hardverske tačke prekida su direktno povezane sa hardverom u vidu specijalnih registara. Postavlja se na određenu adresu i hardverski \emph{watchpoint} monitori za zadatu adresu mogu signalizirati razne promene, npr. čitanje, pisanje ili izvršavanje, što im daje prednost u odnosu na softverske tačke prekida. Mane u odnosu na softverske tačke prekida su performanse, koje su neuporedivo sporije, i takođe neophodna hardverska podrška za korišćenje hardverskih tačaka prekida.
 
 \subsection{Koračanje}
 
@@ -248,9 +248,9 @@ Instrukcijsko koračanje na platformi Intel x86-64 je direktno omogućeno kroz s
 
 Operativni sistem će dati signal kada je korak izvršen.
 
-Pored instrukcijkog koračanja pomenućemo još jednu vrstu zakoračavanja u neku funkciju koja je pozvana \texttt{call} ili \texttt{jump} instrukcijom. Komanda koja nam to omogućava jeste \texttt{step in}.
+Pored instrukcijkog koračanja pomenućemo još jednu vrstu zakoračavanja u neku funkciju koja je pozvana \texttt{call} ili \texttt{jump} instrukcijom. Komanda debagara GNU GDB koja nam to omogućava jeste \texttt{step in}.
 
-Treba napomenuti da postoje arhitekture za koje ovo ne važi, kao npr. platforma ARM, koja nema hardversku podršku za instrukcijsko koračanje i za njih se koračanje implementira na drugačiji način, uz pomoć emulacije instrukcija, ali u ovom radu neće biti opširno o tome.
+Treba napomenuti da postoje arhitekture za koje ovo ne važi, kao npr. platforma ARM, koja nema hardversku podršku za instrukcijsko koračanje i za njih se koračanje implementira na drugačiji način, uz pomoć emulacije instrukcija, ali u ovom radu neće biti reči o tome.
 
 \subsection{Izlistavanje pozivanih funkcija}
 
