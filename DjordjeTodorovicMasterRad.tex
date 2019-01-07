@@ -162,10 +162,11 @@ Lokacijska lista promenljive \texttt{x} je predstavljena na slici \ref{fig:debug
 	\label{fig:debugLoc}
 \end{figure}
 
-\section{Linux debageri}
+%\section{Linux debageri}
+\newpage
+\section{Fajl format ELF}
 
-Definišimo neke od osnovnih pojmova Linux programiranja koje ćemo često pominjati u radu.
-Osvrnimo se prvo na format izvršnih fajlova, deljenih biblioteka, objektnih fajlova i datoteka jezgara ELF (eng.~\emph{Executable and Linkable Format})\cite{ELF}.
+ELF (eng.~\emph{Executable and Linkable Format}) \cite{ELF} je format izvršnih fajlova, deljenih biblioteka, objektnih fajlova i datoteka jezgara.
 
 ELF sadrži razne informacije o samom fajlu. Podeljen je u dva dela: ELF zaglavlje i podaci fajla. ELF zaglavlje sadrži informacije o arhitekturi za koju je program preveden i definiše da li program koristi 32-bitni ili 64-bitni adresni prostor. Zaglavlje 32-bitnih programa je dužine 52 bajta, dok kod 64-bitnih programa zaglavlje je dužine 64 bajta. Podaci fajla mogu sadržati programsku tabelu zaglavlja (eng.~\emph{Program header table}), sekcijsku tabelu zaglavlja (eng.~\emph{Section header table}) i ulazne tačke prethodne dve tabele. Slika \ref{fig:elf} prikazuje primer prikaza fajla u formatu ELF.
 
@@ -176,6 +177,8 @@ ELF sadrži razne informacije o samom fajlu. Podeljen je u dva dela: ELF zaglavl
 	\caption{ELF fajl format počitan alatom \emph{objdump}.}
 	\label{fig:elf}
 \end{figure}
+
+\section{Sistemski poziv \texttt{ptrace}}
 
 Operativni sistem GNU Linux pruža sistemski poziv \texttt{ptrace} \cite{ptrace} koji debagerima omogućava rad. Ovaj sistemski poziv omogućava jednom procesu kontrolu nad izvršavanjem nekog drugog procesa i menjanje memorije i registara istog.
 Potpis ove funkcije je:
@@ -197,6 +200,8 @@ Program inicira da će biti praćen od strane roditeljskog procesa:
 \texttt{ptrace(PTRACE\_GETREGS, 8845, NULL, \&regs);}
 
 \end{primer}
+
+\section{Realizacija osnovnih elemenata upotrebe debagera}
 
 \subsection{Tačke prekida}
 
