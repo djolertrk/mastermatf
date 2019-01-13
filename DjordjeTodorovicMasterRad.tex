@@ -229,6 +229,8 @@ Pošto \texttt{0x48} menjamo sa \texttt{0xcc} i na tom mestu u kodu dobijamo ins
 
 \texttt{cc 89 e5  int3}
 
+Ukoliko korisnik želi da nastavi dalje, instrukcija prekida se zamenjuje sa originalnom instrukcijom koja se izvršava i nastavlja se sa radom programa.
+
 Instrukcija \texttt{int3} je posebna instrukcija procesorske arhitekture Intel x86-64, koja izazva softverski prekid. Kada registar programski brojač (eng.~\emph{CPU register pc}) stigne do \texttt{int3} instrukcije izvršavanje se zaustavalja na toj tački. Debager je već upoznat od strane korisnika da je tačka prekida postavljena te on čeka na signal koji ukazuje na to da je program dostigao do instrukcije prekida. Operativni sistem prepoznaje instrukciju \texttt{int3}, poziva se specijalni obrađivač tog signala (na Linux sistemima \texttt{do\_int3()}), koji dalje obaveštava debager šaljući mu signal sa kodom \texttt{SIGTRAP} koji on obrađuje na željeni način. Treba napomenuti da ovo važi za procesorsku arhitekturu Intel x86-64, instrukcija prekida za arhitekture kao što su ARM, MIPS, PPC itd., se drugačije kodira, ali postupak implementacije tačaka prekida je isti.
 
 Ukoliko želimo da stavimo tačku prekida eksplicitno na funkciju \texttt{main}, za to koristimo posrednika u vidu DWARF debag informacija. U tom slučaju debager traži element DWARF stabla koji ukazuje na informacije o \texttt{main} funkciji, i odatle dohvata informaciju na kojoj adresi u memoriji se nalazi prva mašinska instrukcija date funkcije. Na slici \ref{fig:mainsub} vidimo DWARF element koji opisuje funkciju uz pomoć atributa. Debager će pročitati \texttt{DW\_AT\_low\_pc} atribut i na tu adresu postaviti \texttt{int3} instrukciju. Napomenimo da DWARF debag simbole generišemo uz pomoć \texttt{-g} opcije kompajlera.
@@ -251,9 +253,9 @@ Instrukcijsko koračanje na platformi Intel x86-64 je direktno omogućeno kroz s
 \texttt{ptrace(PTRACE\_SINGLESTEP, debuggee\_pid, nullptr, nullptr);}
 \newline
 
-Operativni sistem će dati signal kada je korak izvršen.
+Operativni sistem će poslati debageru signal \texttt{SIGTRAP} kada je korak izvršen.
 
-Pored instrukcijkog koračanja pomenućemo još jednu vrstu zakoračavanja u neku funkciju koja je pozvana \texttt{call} ili \texttt{jump} instrukcijom. Komanda debagara GNU GDB koja nam to omogućava jeste \texttt{step in}.
+Pored instrukcijkog koračanja pomenućemo još jednu vrstu koračanja u neku funkciju koja je pozvana \texttt{call} ili \texttt{jump} instrukcijom. Komanda debagara GNU GDB koja nam to omogućava jeste \texttt{step in}.
 
 Treba napomenuti da postoje arhitekture za koje ovo ne važi, kao npr. platforma ARM, koja nema hardversku podršku za instrukcijsko koračanje i za njih se koračanje implementira na drugačiji način, uz pomoć emulacije instrukcija, ali u ovom radu neće biti reči o tome.
 
