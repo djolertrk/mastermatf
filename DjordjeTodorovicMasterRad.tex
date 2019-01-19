@@ -278,8 +278,91 @@ Na slici \ref{fig:stack} navedeni su stek okviri za dva funkcijska poziva. Pre p
 Za čitanje vrednosti promenljivih u programu, debager pretražuje DWARF stablo tražeći promenljivu sa zadatim imenom. U slučaju lokalnih promenljivih, traži se \texttt{DW\_TAG\_variable} element čiji \texttt{DW\_AT\_name} odgovara navedenoj promenljivoj. Kada se ista pronađe konsultuje se \texttt{DW\_AT\_location}, koji ukazuje na lokaciju gde se vrednost promenljive nalazi. Ukoliko ovaj atribut nije naveden debager će vrednost takve promenljive smatrati kao optimizovanu prijavljujući informaciju o tome \cite{GDB}.
 
 
-\chapter{GNU GDB alat}
+\chapter{Alat GNU GDB}
 \label{chp:GDB}
+
+GNU GDB je alat koji nam omogućava da vidimo šta se događa unutar drugog programa dok se izvršava, ili u slučaju neregularnog prekida izvršavanja šta se dešavalo pa je do toga došlo. On nam omogućava da vidimo šta se to dešavalo sa programima i na platformama koje imaju različitu arhitekturu od domaćinske arhitekture. Da bi se to realizovalo koriste se GDB server, što nazivamo udaljeno debagovanje, ili \texttt{Multiarch GNU GDB} koji koristi biblioteke namenjene ciljanim arhitekturama. Programi koji mogu biti analizirani mogu biti napisani u raznim programskim jezicima, kao što su Ada, C, C++, Objective-C, Pascal i mnogi drugi. GNU GDB alat se može pokrenuti na najpopularnijim operativnim sistemima UNIX i Microsoft Windows varijanti. U radu se podrazumeva korišćenje UNIX-olikog operativnog sistema.
+
+Poslednja verzija GNU GDB alata koja je realizovana je 8.2.1.
+
+\section{Kako radi GNU GDB?}
+
+\section{Domaćinski GNU GDB}
+
+Domaćinski GNU GDB alat je preveden za istu procesorsku arhitekturu kao i računar na kome se alat izvršava. Korišćenje domaćinskog alata GNU GDB nad nekim programom ima ograničenje. Program koji se debaguje mora biti iste procesorske arhitekture kao i arhitektura domaćina.
+
+\subsection{Prevođenje domaćinskog GNU GDB alata}
+
+Preuzimanje izvornog koda alata se radi sledećim komandama:
+\newline
+\texttt{mkdir gdb}
+\newline
+\texttt{cd gdb}
+\newline
+\texttt{git pull http://gnu.org/gnu/gdb.git}
+
+Prvi korak prevođenja je konfiguracija direktorijuma u kome se prevođenje izvršava. Ovim komandama kreiramo \texttt{Makefile}:
+\newline
+\texttt{mkdir build}
+\newline
+\texttt{cd build}
+\newline
+\texttt{../configure}
+
+Nakon konfiguracije direktorijuma prevođenje alata se vrši komandom:
+\newline
+\texttt{make}
+
+\subsection{Pokretanje domaćinskog GNU GDB alata}
+
+GNU GDB očekuje kao argument komandne linije program koji je preveden za istu procesorsku arhitekturu kao i on. Pokretanje alata se vrši sledećom komandom:
+\newline
+\texttt{./gdb/gdb a.out}
+
+\subsection{Korišćenje domaćinskog GNU GDB alata}
+
+Pokažimo neke od osnovnih komandi alata GNU GDB.
+
+\subsubsection{Postavljanje tačke prekida}
+
+Postavljanje tačke prekida na funkciju programa koji se debaguje se vrši komandom \texttt{break}. Primer korišćenja je prikazan na slici \ref{fig:break-fn}. Program koji se debaguje se zaustavlja kada dostigne do određene funkcije.
+
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.5]{slike/break-fn.png}
+	\end{center}
+	\caption{Primer postavljanja tačke prekida na funkciju programa.}
+	\label{fig:break-fn}
+\end{figure}
+
+\subsubsection{Izvršavanje programa sekvencu po sekvencu}
+
+Izvršavanje programa sekvencu po sekvencu se radi pomoću tehnike koračanja. Komanda u okviru alata GNU GDB koja nam omogućava izvršavanje instrukciju po instrukciju je \texttt{stepi}. Primer korišćenja \texttt{stepi} komande, uz pomoć korišćenja \texttt{disassemble} komande koja nam prikazuje asemblerski kod programa koji se debaguje je prikazan na slici \ref{fig:stepi}.
+
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.5]{slike/break-fn.png}
+	\end{center}
+	\caption{Primer izvršavanja pojedinačne instrukcije programa koji se debaguje.}
+	\label{fig:stepi}
+\end{figure}
+
+Izvršavanje sledeće linije programa se radi korišćenjem komande \texttt{next}. Na slici \ref{fig:next} je prikazan primer korišćenja \texttt{next} komande.
+
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.5]{slike/break-fn.png}
+	\end{center}
+	\caption{Primer izvršavanja sledeće linije programa koji se debaguje.}
+	\label{fig:next}
+\end{figure}
+
+\newpage
+\section{Multiarch GNU GDB}
+
+\subsection{Prevođenje Multiarch GNU GDB}
+\subsection{Pokretanje Multiarch GNU GDB}
+\subsection{Korišćenje Multiarch GNU GDB}
 
 \chapter{Datoteke jezgra}
 \label{chp:corefiles}
