@@ -277,15 +277,54 @@ Na slici \ref{fig:stack} navedeni su stek okviri za dva funkcijska poziva. Pre p
 
 Za čitanje vrednosti promenljivih u programu, debager pretražuje DWARF stablo tražeći promenljivu sa zadatim imenom. U slučaju lokalnih promenljivih, traži se \texttt{DW\_TAG\_variable} element čiji \texttt{DW\_AT\_name} odgovara navedenoj promenljivoj. Kada se ista pronađe konsultuje se \texttt{DW\_AT\_location}, koji ukazuje na lokaciju gde se vrednost promenljive nalazi. Ukoliko ovaj atribut nije naveden debager će vrednost takve promenljive smatrati kao optimizovanu prijavljujući informaciju o tome \cite{GDB}.
 
+\chapter{Datoteke jezgra}
+\label{chp:corefiles}
+
+Datoteka jezgra (eng.~\emph{core dump file}) je snimak (eng.~\emph{snapshot}) memorije programa, registara i ostalih sistemskih informacija u trenutku neočekivanog prekida rada programa. Veoma važnu ulogu ima u procesu debagovanja programa sa ugrađenih uređaja koji često pripadaju različitoj procesorskoj arhitekturi u odnosu na lični računar. Ugrađeni uređaji obično imaju ograničene resurse, pa nemaju deabger na njoj. Najčešća procedura debagovanja ovakvih programa jeste prebacivanje datoteke jezgra i programa na lični računar na kome se analiza problema dovija koristeći debager.
+
+\section{Struktura datoteke jezgra}
+
+Datoteke jezgra sadrže razne informacije iz memorije programa uključujući i podatke lokalne za niti, vrednosti lokalnih promenljivih, globalnih promenljivih itd. Takođe sadrži vrednosti registara u trenutku prekida programa. U to spadaju i programski brojač i stek pokazivač.
+
+Sadržaj datoteke jezgra je organizovan sekvencijalno sledećim redosledom:
+
+\begin{itemize}
+	\item \emph{Zaglavlje}. Sadrži osnovne informacije o datoteci jezgra i ofsete kojima se lociraju ostale informacije iz nje.
+	\item \emph{ldinfo} strukture. Definiše informacije relevantne za dinamički loader.
+	\item \emph{mstsave} strukture. Definiše informacije relevantne za sistemske niti.
+	\item \emph{Korisnički stek}. Sadrži kopiju korisničkog steka u trenutku pucanja programa.
+	\item \emph{Segment podataka}. Sadrži kopiju segmenta podataka u trenutku pucanja programa.
+	\item \emph{Memorijski mapirani regioni i vm\_info strukture}. Sadrži informacije o ofsetima i dužinama mapiranih regiona.
+\end{itemize}
+
+\section{Generisanje datoteke jezgra}
+
+Datoteke jezgra se generišu ukoliko dođe do nepredviđenog prekida programa. To je podrazumevana akcija prilikom okidanja signala operativnog sistema koji ukazuju na prekid rada programa. Jezgra UNIX-olikih operativnih sistema podrazumevano postavljaju dužinu datoteka jezgara na 0. To je razlog zašto na našim sistemima nemamo datoteku jezgra nakon npr.~ prekidanja programa uz poruku \emph{Segmentation fault}. Da bi se datoteke jezgra generisale, potrebno je eksplicitno promeniti dužinu datoteka jezgara koristeći komandu:
+\newline
+\texttt{ulimit -c unlimited}
+
+Datoteka jezgra se može generisati i iz korisničkog nivoa koristeći GNU GDB alat komandom \texttt{gcore}.
+
+\section{Primer učitavanja datoteke jezgra u GNU GDB alat}
 
 \chapter{Alat GNU GDB}
 \label{chp:GDB}
 
-GNU GDB je alat koji nam omogućava da vidimo šta se događa unutar drugog programa dok se izvršava, ili u slučaju neregularnog prekida izvršavanja šta se dešavalo pa je do toga došlo. On nam omogućava da vidimo šta se to dešavalo sa programima i na platformama koje imaju različitu arhitekturu od domaćinske arhitekture. Da bi se to realizovalo koriste se GDB server, što nazivamo udaljeno debagovanje, ili \texttt{Multiarch GNU GDB} koji koristi biblioteke namenjene ciljanim arhitekturama. Programi koji mogu biti analizirani mogu biti napisani u raznim programskim jezicima, kao što su Ada, C, C++, Objective-C, Pascal i mnogi drugi. GNU GDB alat se može pokrenuti na najpopularnijim operativnim sistemima UNIX i Microsoft Windows varijanti. U radu se podrazumeva korišćenje UNIX-olikog operativnog sistema.
+GNU GDB je alat koji nam omogućava da vidimo šta se događa unutar drugog programa dok se izvršava, ili u slučaju neregularnog prekida izvršavanja šta se dešavalo pa je do toga došlo. On nam omogućava da vidimo šta se to dešavalo sa programima i na platformama koje imaju različitu arhitekturu od domaćinske arhitekture. Da bi se to realizovalo koriste se GDB server, što nazivamo udaljeno debagovanje, ili \emph{Multiarch} GNU GDB koji koristi biblioteke namenjene ciljanim arhitekturama. Programi koji mogu biti analizirani mogu biti napisani u raznim programskim jezicima, kao što su Ada, C, C++, Objective-C, Pascal i mnogi drugi. GNU GDB alat se može pokrenuti na najpopularnijim operativnim sistemima UNIX i Microsoft Windows varijanti. U radu se podrazumeva korišćenje UNIX-olikog operativnog sistema.
 
 Poslednja verzija GNU GDB alata koja je realizovana je 8.2.1.
 
 \section{Kako radi GNU GDB?}
+
+
+\section{Šta je \emph{arhitektura} za GNU GDB?}
+
+Za alat GNU GDB je veoma labav koncept. Može se posmatrati kao bilo koje svojstvo programa koji se debaguje, ali obično se misli na procesorsku arhitekturu. Za debager su bitna dva svojstva procesorske arhitekture:
+
+\begin{itemize}
+	\item Skup instrukcija (eng.~\emph{Instruction Set Architecture - ISA}). On predstavlja specifičnu kombinaciju registara i mašinskih instrukcija.
+	\item ABI (eng.~\emph{Application Binary Interface}). On predstavlja spisak pravila koja propisuju pravilan način korišćenja skupa instrukcija.
+\end{itemize}
 
 \section{Domaćinski GNU GDB}
 
@@ -358,14 +397,33 @@ Izvršavanje sledeće linije programa se radi korišćenjem komande \texttt{next
 \end{figure}
 
 \newpage
-\section{Multiarch GNU GDB}
+\section{\emph{Multiarch} GNU GDB}
 
-\subsection{Prevođenje Multiarch GNU GDB}
-\subsection{Pokretanje Multiarch GNU GDB}
-\subsection{Korišćenje Multiarch GNU GDB}
+\emph{Multiarch} GNU GDB je verzija alata koja može da debaguje programe sa platformi različitih arhitektura. Alat na korisničkom nivou emulira instrukcije i registre ciljanih platformi. Potrebne su mu i deljene biblioteke za tu ciljanu platformu koje koristi program koji se debaguje. Skup komandi alata je limitiran u odnosu na \emph{domaćinski} GDB.
 
-\chapter{Datoteke jezgra}
-\label{chp:corefiles}
+\subsection{Prevođenje \emph{Multiarch} GNU GDB}
+
+Prvi korak je pozicioniranje u direktorijum sa izvornim kodom alata:
+\newline
+\texttt{cd gdb}
+
+Prvi korak prevođenja je konfiguracija direktorijuma u kome se prevođenje izvršava. Ovim komandama kreiramo \texttt{Makefile} kojim odobravamo debagovanje svih podržanih arhitektura u alatu GBD (kao npr.~MIPS32, MIPS64, ARM, AARCH64, x86\_64, i386, SPARC i druge):
+\newline
+\texttt{mkdir build\_multi}
+\newline
+\texttt{cd build\_multi}
+\newline
+\texttt{../configure --enable-targets=all}
+
+\subsection{Pokretanje \emph{Multiarch} GNU GDB}
+
+Pokretanje alata \emph{Multiarch} GDB se vrši na isti način kao i domaćinska verzija alata komandom:
+\newline
+\texttt{./gdb/gdb a.out}
+
+\subsection{Korišćenje \emph{Multiarch} GNU GDB}
+
+Spisak komandi koje se mogu koristiti korišćenjem \emph{Multiarch} verzije alata GNU GDB je limitiran. To se odnosi na izvršavanje programa koji se debaguje, jer pripada program pripada drugačijem adresnom prostoru. Najčešće se ova verzija alata koristi tako što se učita datoteka jezgra koja je generisana na ciljanoj platformi kada je program koji se debaguje neočekivano prekinuo sa radom. To obično prati analiza uzroka greške. Neke od komandi koje mogu biti upotrebljene su izlistavanje vrednosti registara programa, izlistavanje instrukcija, analiza stek okvira pozivanih funkcija, itd.
 
 \chapter{TLS}
 \label{chp:TLS}
