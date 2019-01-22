@@ -307,6 +307,26 @@ Datoteka jezgra se može generisati i iz korisničkog nivoa koristeći GNU GDB a
 
 \section{Primer učitavanja datoteke jezgra u GNU GDB alat}
 
+Na slici \ref{fig:ucitavanje_core} prikazan je primer učitavanja datoteke jezgra programa koji čije izvršavanje je prekinuto od strane jezgra operativnog sistema. Komandom alata \texttt{core-file} učitavamo datoteku jezgra u debager. OVDE RECI ZA abort() i da je tako prekinuto. i posle sta sve moze jos da se radi i da ce biti primera u narednoj sekciji.
+
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.6]{slike/ucitanje_core.png}
+	\end{center}
+	\caption{Primer učitavanja datoteke jezgra u GNU GDB.}
+	\label{fig:ucitavanje_core}
+\end{figure}
+
+Izlistavanje pozivanih funkcija.
+
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.6]{slike/bt_core.png}
+	\end{center}
+	\caption{Primer izlistavanja poyivanih funkcija.}
+	\label{fig:bt_core}
+\end{figure}
+
 \chapter{Alat GNU GDB}
 \label{chp:GDB}
 
@@ -424,6 +444,26 @@ Pokretanje alata \emph{Multiarch} GDB se vrši na isti način kao i domaćinska 
 \subsection{Korišćenje \emph{Multiarch} GNU GDB}
 
 Spisak komandi koje se mogu koristiti korišćenjem \emph{Multiarch} verzije alata GNU GDB je limitiran. To se odnosi na izvršavanje programa koji se debaguje, jer pripada program pripada drugačijem adresnom prostoru. Najčešće se ova verzija alata koristi tako što se učita datoteka jezgra koja je generisana na ciljanoj platformi kada je program koji se debaguje neočekivano prekinuo sa radom. To obično prati analiza uzroka greške. Neke od komandi koje mogu biti upotrebljene su izlistavanje vrednosti registara programa, izlistavanje instrukcija, analiza stek okvira pozivanih funkcija, itd.
+
+\subsubsection{Analiza datoteke jezgra}
+
+Koristeći alat \emph{Multiarch} GNU GDB učitavamo datoteku jezgra generisanu na ugrađenom uređaju MIPS arhitekture. Uz datoteku jezgra učitavaju se izvršni fajl i deljene biblioteke koje izvršni fajl koristi na ciljanoj platfomi.
+
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.5]{slike/core1.png}
+	\end{center}
+	\caption{Primer učitavanja datoteke jezgra generisane na MIPS platformi.}
+	\label{fig:stepi}
+\end{figure}
+
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.5]{slike/core2.png}
+	\end{center}
+	\caption{Primer izvršavanja pojedinačne instrukcije programa koji se debaguje.}
+	\label{fig:stepi}
+\end{figure}
 
 \chapter{TLS}
 \label{chp:TLS}
