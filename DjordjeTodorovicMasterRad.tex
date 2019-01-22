@@ -307,8 +307,11 @@ Datoteka jezgra se može generisati i iz korisničkog nivoa koristeći GNU GDB a
 
 \section{Primer učitavanja datoteke jezgra u GNU GDB alat}
 
-Na slici \ref{fig:ucitavanje_core} prikazan je primer učitavanja datoteke jezgra programa koji čije izvršavanje je prekinuto od strane jezgra operativnog sistema. Komandom alata \texttt{core-file} učitavamo datoteku jezgra u debager. OVDE RECI ZA abort() i da je tako prekinuto. i posle sta sve moze jos da se radi i da ce biti primera u narednoj sekciji.
+Na slici \ref{fig:ucitavanje_core} prikazan je primer učitavanja datoteke jezgra programa koji čije izvršavanje je prekinuto od strane jezgra operativnog sistema. Komandom alata \texttt{core-file} se učitava datoteka jezgra u debager.
 
+Da bi se izazvalo generisanje datoteke jezgra u izvornom kodu programa napisanog u C ili C++ programskom jeziku može se koristiti \texttt{abort()} funkcija iz standardne C biblioteke. U primieru na slici \ref{fig:ucitavanje_core} je pozvana ta funkcija koja je izazvala prekid programa uz signal \texttt{SIGABRT}. Tom prilikom jezgro operativnog sistema je napravilo datoteku jezgra sa imenom \emph{core}.
+
+\newpage
 \begin{figure}[h!]
 	\begin{center}
 		\includegraphics[scale=0.6]{slike/ucitanje_core.png}
@@ -317,13 +320,13 @@ Na slici \ref{fig:ucitavanje_core} prikazan je primer učitavanja datoteke jezgr
 	\label{fig:ucitavanje_core}
 \end{figure}
 
-Izlistavanje pozivanih funkcija.
+Na slici \ref{fig:bt_core} je prikazan primer upotrebe komande alata GNU GDB \texttt{bt}. Ona se koristi za izlistavanje pozivanih funkcija programa. Stek okviri programa koji su prikazani na primeru potvrđuju da je u funkciji \texttt{main()} došlo do poziva \texttt{abort()} funkcije. Što je izazvalo prekid rada programa.
 
 \begin{figure}[h!]
 	\begin{center}
 		\includegraphics[scale=0.6]{slike/bt_core.png}
 	\end{center}
-	\caption{Primer izlistavanja poyivanih funkcija.}
+	\caption{Primer izlistavanja pozivanih funkcija koristeći alat GNU GDB uz pomoć datoteke jezgra.}
 	\label{fig:bt_core}
 \end{figure}
 
@@ -447,22 +450,26 @@ Spisak komandi koje se mogu koristiti korišćenjem \emph{Multiarch} verzije ala
 
 \subsubsection{Analiza datoteke jezgra}
 
-Koristeći alat \emph{Multiarch} GNU GDB učitavamo datoteku jezgra generisanu na ugrađenom uređaju MIPS arhitekture. Uz datoteku jezgra učitavaju se izvršni fajl i deljene biblioteke koje izvršni fajl koristi na ciljanoj platfomi.
+Na slici \ref{ref:core1} je prikazan primer koristećenja alata \emph{Multiarch} GNU GDB. U primeru se vrši učitavanje datoteke jezgra generisane na ugrađenom uređaju MIPS arhitekture. Uz datoteku jezgra učitavaju se izvršni fajl i deljene biblioteke koje izvršni fajl koristi na ciljanoj platfomi.
 
 \begin{figure}[h!]
 	\begin{center}
 		\includegraphics[scale=0.5]{slike/core1.png}
 	\end{center}
 	\caption{Primer učitavanja datoteke jezgra generisane na MIPS platformi.}
-	\label{fig:stepi}
+	\label{fig:core1}
 \end{figure}
+
+Komanda \texttt{set solib-search-path \emph{dir}} alata GNU GDB korišćena u primeru na sici \ref{ref:core1} služi za navođenje direktorijuma iz kojeg debager treba da koristi deljene biblioteke za učitani program. Ta komanda je veoma bitna za debagovanje programa sa drugih platformi, jer ukoliko putanja nije navedena debager koristi biblioteke na domaćinskoj mašini.
+
+Na primeru sa slike \ref{ref:core2} je prikazana upotreba komande \texttt{info registers}. \emph{Multiarch} GNU GDB čita informaciju o arhitekturi programa koji se debaguje iz datoteke jezgra. Nakon toga čita vrednosti registara iz nje i ispisuje ih.
 
 \begin{figure}[h!]
 	\begin{center}
 		\includegraphics[scale=0.5]{slike/core2.png}
 	\end{center}
-	\caption{Primer izvršavanja pojedinačne instrukcije programa koji se debaguje.}
-	\label{fig:stepi}
+	\caption{Primer čitanja vrednsoti registara korišćenjem \emph{Multiarch} GNU GDB iz datoteke jezgra generisane na MIPS platformi.}
+	\label{fig:core2}
 \end{figure}
 
 \chapter{TLS}
