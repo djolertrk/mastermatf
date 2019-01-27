@@ -277,59 +277,6 @@ Na slici \ref{fig:stack} navedeni su stek okviri za dva funkcijska poziva. Pre p
 
 Za čitanje vrednosti promenljivih u programu, debager pretražuje DWARF stablo tražeći promenljivu sa zadatim imenom. U slučaju lokalnih promenljivih, traži se \texttt{DW\_TAG\_variable} element čiji \texttt{DW\_AT\_name} odgovara navedenoj promenljivoj. Kada se ista pronađe konsultuje se \texttt{DW\_AT\_location}, koji ukazuje na lokaciju gde se vrednost promenljive nalazi. Ukoliko ovaj atribut nije naveden debager će vrednost takve promenljive smatrati kao optimizovanu prijavljujući informaciju o tome \cite{GDB}.
 
-\chapter{Datoteke jezgra}
-\label{chp:corefiles}
-
-Datoteka jezgra (eng.~\emph{core dump file}) je snimak (eng.~\emph{snapshot}) memorije programa, registara i ostalih sistemskih informacija u trenutku neočekivanog prekida rada programa. Veoma važnu ulogu ima u procesu debagovanja programa sa ugrađenih uređaja koji često pripadaju različitoj procesorskoj arhitekturi u odnosu na lični računar. Ugrađeni uređaji obično imaju ograničene resurse, pa nemaju deabger na njoj. Najčešća procedura debagovanja ovakvih programa jeste prebacivanje datoteke jezgra i programa na lični računar na kome se analiza problema dovija koristeći debager.
-
-\section{Struktura datoteke jezgra}
-
-Datoteke jezgra sadrže razne informacije iz memorije programa uključujući i podatke lokalne za niti, vrednosti lokalnih promenljivih, globalnih promenljivih itd. Takođe sadrži vrednosti registara u trenutku prekida programa. U to spadaju i programski brojač i stek pokazivač.
-
-Sadržaj datoteke jezgra je organizovan sekvencijalno sledećim redosledom:
-
-\begin{itemize}
-	\item \emph{Zaglavlje}. Sadrži osnovne informacije o datoteci jezgra i ofsete kojima se lociraju ostale informacije iz nje.
-	\item \emph{ldinfo strukture}. Definiše informacije relevantne za dinamički loader.
-	\item \emph{mstsave strukture}. Definiše informacije relevantne za sistemske niti.
-	\item \emph{Korisnički stek}. Sadrži kopiju korisničkog steka u trenutku pucanja programa.
-	\item \emph{Segment podataka}. Sadrži kopiju segmenta podataka u trenutku pucanja programa.
-	\item \emph{Memorijski mapirani regioni i vm\_info strukture}. Sadrži informacije o ofsetima i dužinama mapiranih regiona.
-\end{itemize}
-
-\section{Generisanje datoteke jezgra}
-
-Datoteke jezgra se generišu ukoliko dođe do nepredviđenog prekida programa. To je podrazumevana akcija prilikom okidanja signala operativnog sistema koji ukazuju na prekid rada programa. Jezgra UNIX-olikih operativnih sistema podrazumevano postavljaju dužinu datoteka jezgara na 0. To je razlog zašto na našim sistemima nemamo datoteku jezgra nakon npr.~ prekidanja programa uz poruku \emph{Segmentation fault}. Da bi se datoteke jezgra generisale, potrebno je eksplicitno promeniti dužinu datoteka jezgara koristeći komandu:
-\newline
-\texttt{ulimit -c unlimited}
-
-Datoteka jezgra se može generisati i iz korisničkog nivoa koristeći GNU GDB alat komandom \texttt{gcore}.
-
-\section{Primer učitavanja datoteke jezgra u GNU GDB alat}
-
-Na slici \ref{fig:ucitavanje_core} prikazan je primer učitavanja datoteke jezgra programa koji čije izvršavanje je prekinuto od strane jezgra operativnog sistema. Komandom alata \texttt{core-file} se učitava datoteka jezgra u debager.
-
-Da bi se izazvalo generisanje datoteke jezgra u izvornom kodu programa napisanog u C ili C++ programskom jeziku može se koristiti \texttt{abort()} funkcija iz standardne C biblioteke. U primieru na slici \ref{fig:ucitavanje_core} je pozvana ta funkcija koja je izazvala prekid programa uz signal \texttt{SIGABRT}. Tom prilikom jezgro operativnog sistema je napravilo datoteku jezgra sa imenom \emph{core}.
-
-\newpage
-\begin{figure}[h!]
-	\begin{center}
-		\includegraphics[scale=0.6]{slike/ucitanje_core.png}
-	\end{center}
-	\caption{Primer učitavanja datoteke jezgra u GNU GDB.}
-	\label{fig:ucitavanje_core}
-\end{figure}
-
-Na slici \ref{fig:bt_core} je prikazan primer upotrebe komande alata GNU GDB \texttt{bt}. Ona se koristi za izlistavanje pozivanih funkcija programa. Stek okviri programa koji su prikazani na primeru potvrđuju da je u funkciji \texttt{main()} došlo do poziva \texttt{abort()} funkcije. Što je izazvalo prekid rada programa.
-
-\begin{figure}[h!]
-	\begin{center}
-		\includegraphics[scale=0.6]{slike/bt_core.png}
-	\end{center}
-	\caption{Primer izlistavanja pozivanih funkcija koristeći alat GNU GDB uz pomoć datoteke jezgra.}
-	\label{fig:bt_core}
-\end{figure}
-
 \chapter{Alat GNU GDB}
 \label{chp:GDB}
 
@@ -349,11 +296,11 @@ Za alat GNU GDB je veoma labav koncept. Može se posmatrati kao bilo koje svojst
 	\item ABI (eng.~\emph{Application Binary Interface}). On predstavlja spisak pravila koja propisuju pravilan način korišćenja skupa instrukcija.
 \end{itemize}
 
-\section{Domaćinski GNU GDB}
+\subsection{Domaćinski GNU GDB}
 
 Domaćinski GNU GDB alat je preveden za istu procesorsku arhitekturu kao i računar na kome se alat izvršava. Korišćenje domaćinskog alata GNU GDB nad nekim programom ima ograničenje. Program koji se debaguje mora biti iste procesorske arhitekture kao i arhitektura domaćina.
 
-\subsection{Prevođenje domaćinskog GNU GDB alata}
+\subsubsection{Prevođenje domaćinskog GNU GDB alata}
 
 Preuzimanje izvornog koda alata se radi sledećim komandama:
 \newline
@@ -375,13 +322,13 @@ Nakon konfiguracije direktorijuma prevođenje alata se vrši komandom:
 \newline
 \texttt{make}
 
-\subsection{Pokretanje domaćinskog GNU GDB alata}
+\subsubsection{Pokretanje domaćinskog GNU GDB alata}
 
 GNU GDB očekuje kao argument komandne linije program koji je preveden za istu procesorsku arhitekturu kao i on. Pokretanje alata se vrši sledećom komandom:
 \newline
 \texttt{./gdb/gdb a.out}
 
-\subsection{Korišćenje domaćinskog GNU GDB alata}
+\subsubsection{Korišćenje domaćinskog GNU GDB alata}
 
 Pokažimo neke od osnovnih komandi alata GNU GDB.
 
@@ -420,6 +367,33 @@ Izvršavanje sledeće linije programa se radi korišćenjem komande \texttt{next
 \end{figure}
 
 \newpage
+\section{Datoteke jezgra}
+
+Datoteka jezgra (eng.~\emph{core dump file}) je snimak (eng.~\emph{snapshot}) memorije programa, registara i ostalih sistemskih informacija u trenutku neočekivanog prekida rada programa. Veoma važnu ulogu ima u procesu debagovanja programa sa ugrađenih uređaja koji često pripadaju različitoj procesorskoj arhitekturi u odnosu na lični računar. Ugrađeni uređaji obično imaju ograničene resurse, pa nemaju deabger na njoj. Najčešća procedura debagovanja ovakvih programa jeste prebacivanje datoteke jezgra i programa na lični računar na kome se analiza problema dovija koristeći debager.
+
+\subsection{Struktura datoteke jezgra}
+
+Datoteke jezgra sadrže razne informacije iz memorije programa uključujući i podatke lokalne za niti, vrednosti lokalnih promenljivih, globalnih promenljivih itd. Takođe sadrži vrednosti registara u trenutku prekida programa. U to spadaju i programski brojač i stek pokazivač.
+
+Sadržaj datoteke jezgra je organizovan sekvencijalno sledećim redosledom:
+
+\begin{itemize}
+	\item \emph{Zaglavlje}. Sadrži osnovne informacije o datoteci jezgra i ofsete kojima se lociraju ostale informacije iz nje.
+	\item \emph{ldinfo strukture}. Definiše informacije relevantne za dinamički loader.
+	\item \emph{mstsave strukture}. Definiše informacije relevantne za sistemske niti.
+	\item \emph{Korisnički stek}. Sadrži kopiju korisničkog steka u trenutku pucanja programa.
+	\item \emph{Segment podataka}. Sadrži kopiju segmenta podataka u trenutku pucanja programa.
+	\item \emph{Memorijski mapirani regioni i vm\_info strukture}. Sadrži informacije o ofsetima i dužinama mapiranih regiona.
+\end{itemize}
+
+\subsection{Generisanje datoteke jezgra}
+
+Datoteke jezgra se generišu ukoliko dođe do nepredviđenog prekida programa. To je podrazumevana akcija prilikom okidanja signala operativnog sistema koji ukazuju na prekid rada programa. Jezgra UNIX-olikih operativnih sistema podrazumevano postavljaju dužinu datoteka jezgara na 0. To je razlog zašto na našim sistemima nemamo datoteku jezgra nakon npr.~ prekidanja programa uz poruku \emph{Segmentation fault}. Da bi se datoteke jezgra generisale, potrebno je eksplicitno promeniti dužinu datoteka jezgara koristeći komandu:
+\newline
+\texttt{ulimit -c unlimited}
+
+Datoteka jezgra se može generisati i iz korisničkog nivoa koristeći GNU GDB alat komandom \texttt{gcore}.
+
 \section{\emph{Multiarch} GNU GDB}
 
 \emph{Multiarch} GNU GDB je verzija alata koja može da debaguje programe sa platformi različitih arhitektura. Alat na korisničkom nivou emulira instrukcije i registre ciljanih platformi. Potrebne su mu i deljene biblioteke za tu ciljanu platformu koje koristi program koji se debaguje. Skup komandi alata je limitiran u odnosu na \emph{domaćinski} GDB.
@@ -470,6 +444,31 @@ Na primeru sa slike \ref{ref:core2} je prikazana upotreba komande \texttt{info r
 	\end{center}
 	\caption{Primer čitanja vrednsoti registara korišćenjem \emph{Multiarch} GNU GDB iz datoteke jezgra generisane na MIPS platformi.}
 	\label{fig:core2}
+\end{figure}
+
+\subsubsection{Primer učitavanja datoteke jezgra u GNU GDB alat}
+
+Na slici \ref{fig:ucitavanje_core} prikazan je primer učitavanja datoteke jezgra programa koji čije izvršavanje je prekinuto od strane jezgra operativnog sistema. Komandom alata \texttt{core-file} se učitava datoteka jezgra u debager.
+
+Da bi se izazvalo generisanje datoteke jezgra u izvornom kodu programa napisanog u C ili C++ programskom jeziku može se koristiti \texttt{abort()} funkcija iz standardne C biblioteke. U primieru na slici \ref{fig:ucitavanje_core} je pozvana ta funkcija koja je izazvala prekid programa uz signal \texttt{SIGABRT}. Tom prilikom jezgro operativnog sistema je napravilo datoteku jezgra sa imenom \emph{core}.
+
+\newpage
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.6]{slike/ucitanje_core.png}
+	\end{center}
+	\caption{Primer učitavanja datoteke jezgra u GNU GDB.}
+	\label{fig:ucitavanje_core}
+\end{figure}
+
+Na slici \ref{fig:bt_core} je prikazan primer upotrebe komande alata GNU GDB \texttt{bt}. Ona se koristi za izlistavanje pozivanih funkcija programa. Stek okviri programa koji su prikazani na primeru potvrđuju da je u funkciji \texttt{main()} došlo do poziva \texttt{abort()} funkcije. Što je izazvalo prekid rada programa.
+
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.6]{slike/bt_core.png}
+	\end{center}
+	\caption{Primer izlistavanja pozivanih funkcija koristeći alat GNU GDB uz pomoć datoteke jezgra.}
+	\label{fig:bt_core}
 \end{figure}
 
 \chapter{TLS}
