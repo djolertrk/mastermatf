@@ -523,9 +523,7 @@ novo zaglavlje definisano. To proširenje je prikazano na slici \ref{fig:tls_sec
 \end{figure}
 
 
-Svaka TLS promenljiva je identifikovana pomoću ofseta od početka TLS sekcije. U memoriji,
-\texttt{.tbss} sekcija je alocirana odmah nakon \texttt{.tdata} sekcije. Nijedna virtualna adresa ne
-može biti izračunata prilikom povezivanja (eng. link time).
+Svaka TLS promenljiva je identifikovana pomoću ofseta od početka TLS sekcije. U memoriji, \texttt{.tbss} sekcija je alocirana odmah nakon \texttt{.tdata} sekcije. Nijedna virtualna adresa ne može biti izračunata prilikom povezivanja (eng. link time).
 
 \section{Rukovanje TLS-om tokom izvršavanja programa}
 
@@ -535,25 +533,36 @@ Mehanizami koji potpomažu izvršavanje programa bi trebalo da zaobiđu kreiranj
 
 Nije samo alociranje memorije problem za korišćenje TLS. Pravila potrage za simbolima (eng.~symbol lookup) u izvršnim fajlovima sa ELF formatom ne dozvoljavaju da odredimo objekat koji sadrži korišćenu definiciju u vremenu povezivanja. I ako taj objekat nije poznat, ofset od te promenljive unutar prostora lokalnog za niti za taj objekat ne može biti određen takođe. Normalan proces povezivanja ne može biti korišćen.
 
-Promenljiva lokalna za nit je identifikovana sa referencom na objekat i ofsetom te promenljive unutar prostora lokalnog za niti. Da bi mapirali ove vrednosti u virtualne adrese, mehanizam izvršavanja programa zahteva strukture podataka koje nisu postojale do tada. One moraju biti sposobne da mapiraju referencu objekta u neku adresu u određenom prostoru lokalnog za niti. Da bi se to omogućilo dve varijante su definisane. Različite procesorske arhitekture mogu odabrati jedan od ova dva, ali to mora biti propisano ABI-jem za tu arhitekturu.
+Promenljiva lokalna za nit je identifikovana sa referencom na objekat i ofsetom te promenljive unutar prostora lokalnog za niti. Da bi mapirali ove vrednosti u virtualne adrese, mehanizam izvršavanja programa zahteva strukture podataka koje nisu postojale do tada. One moraju biti sposobne da mapiraju referencu objekta u neku adresu u određenom prostoru lokalnog za niti. Da bi se to omogućilo dve varijante su definisane. Različite procesorske arhitekture mogu odabrati jedan od ova dva, ali to mora biti propisano ABI-jem za tu arhitekturu. Jedan od razloga za korišćenja druge varijante modela je istorijski. Neke arhitekture su dizajnirale sadržaj nitne memorije na koju pokazuje nitni registar tako da nisu kompatibilne za korišćenje prve varijante TLS strukture.
 
 \begin{figure}[h!]
 	\begin{center}
 		\includegraphics[scale=0.6]{slike/TLSModelV1.png}
 	\end{center}
-	\caption{TLS struktura podataka. Varijjanta 1.}
+	\caption{TLS struktura podataka. Varijanta 1.}
 	\label{fig:tls_model1}
 \end{figure}
+
+Na slici \ref{fig:tls_model1} je prikazan primer prve varijante TLS strukture podataka. Nitni registar za nit \texttt{t} je označen sa \texttt{tpt}. On pokazuje na nitni kontrolni blok \texttt{TCB} (eng.~Thread Control Block), koji na ofsetu nula sadrži pokazivač na nitni dinamički vektor \texttt{dtvt} za tu određenu nit.
+
+Nitni dinamički vektor kao svoje prvo polje sadrži generacioni broj \texttt{gent} koji se koristi pri promeni veličine \texttt{dtvt} i alokacije TLS blokova. Ostala polja sadrže pokazivače na TLS blokove za različite učitane module. TLS blokovi za module koji se učitavaju pri pokretanju programa su smeštena direktno nakon TCB i stoga ima arhitekturalno specifičan, fiksni ofset od adrese na nitni pokazivač. Za sve inicijalno dostupne module ofset svakog TLS bloka, s'tim i ofset TLS promenljive, u odnosu na TCB mora biri fiksan nakon pokretanja programa.
+
+Druga varijanta ima sličnu strukturu. Prikazana je na slici \ref{fig:tls_model2}. Jedina razlika je ta što nitni pokazivač pokazuje na nitni kontrolni blok za koji je nepoznata veličina i sadržaj. Negde svakako taj nitni kontrolni blok sadrži pokazivač na dinamički nitni vektor, ali nije navedeno gde. To je kontrolisano od strane mehanizma za izvršavanje programa. Napomenimo da je programskim prevodiocima zabranjeno da emituju kod koji direktno pristupaju elementima \texttt{dtvt}.
 
 \begin{figure}[h!]
 	\begin{center}
 		\includegraphics[scale=0.6]{slike/TLSmodelV2.png}
 	\end{center}
-	\caption{TLS struktura podataka. Varijjanta 2.}
-	\label{fig:tls_prheader}
+	\caption{TLS struktura podataka. Varijanta 2.}
+	\label{fig:tls_model2}
 \end{figure}
 
+U trenutku pokretanja programa TCB, zajedno sa dinamičkim nitnim vektorom, se kreiraju za glavnu nit. Pozicija tog TLS bloka, za svaki pojedinačan modul, se računaju koristeći arhitekturalno specifične formule, zasnovane na veličini i poravnanju TLS bloka.
+
 \section{TLS Modeli pristupa}
+
+STATICKI
+DINAMICKI
 
 \chapter{Implementacija rešenja}
 \label{chp:Implementacija}
