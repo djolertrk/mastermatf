@@ -476,7 +476,7 @@ Na slici \ref{fig:bt_core} je prikazan primer upotrebe komande alata GNU GDB \te
 \label{chp:TLS}
 
 % ------------------------------------------------------------------------------
-Pisanje višenitnih programa predstavlja fudamentalan i neibežan koncept savremenog programiranja. Gotovo nijedan kompleksan korisnički program ne može biti napisan bez korišćenja niti. Preciznije, niti podižu performanse i brzinu programa, te se sve čeće koriste u pisanju softvera. Promenljive lokalne za niti su takođe važan mehanizam koji pružaju programski jezici kao što su C i C++. Prirodno je da nekada imamo potrebu da definišemo promenljivu koja će imati različitu vrednost u svakoj niti. Jedan primer je promenljiva koja identifikuje grešku. Ona može biti izazvana u svakoj posbnoj niti iz različitog razloga, te promenljiva koja je opisuje ima različitu vrednost u svakoj niti.
+Pisanje višenitnih programa predstavlja fudamentalan i neibežan koncept savremenog programiranja. Gotovo nijedan kompleksan korisnički program ne može biti napisan bez korišćenja niti. Preciznije, niti podižu performanse i brzinu programa, te se sve češće koriste u pisanju softvera. Promenljive lokalne za niti su takođe važan mehanizam koji pružaju programski jezici kao što su C i C++. Prirodno je da nekada imamo potrebu da definišemo promenljivu koja će imati različitu vrednost u svakoj niti. Jedan primer je promenljiva koja identifikuje grešku. Ona može biti izazvana u svakoj posbnoj niti iz različitog razloga, te promenljiva koja je opisuje ima različitu vrednost u svakoj niti.
 
 \section{Motivacija}
 
@@ -488,7 +488,7 @@ Primeriiiiiiiiiiii
 
 Prednost TLS-a nije ograničena samo na korisničke programe. Okruženje izvršavanja programa takođe koristi pogodnosti ovog mehanizma. Npr. globalne promenljive \texttt{errno} moraju biti lokalne za niti, jer u različitim nitima može doći do različite greške. Napomenimo da navođenjem \texttt{\_\_thread} pri deklaraciji ili definiciji neke automatske promenljive nema smisla i to nije dozvoljeno, jer automatske promenljive su uvek lokalne za niti. Promenljive statičkih funkcija su takođe kandidati za korišćenje TLS promenljivih.
 
-Promenljive lokalne za niti se ponašaju intuitivno. Adresni operator vraća adresu promenljive za trenutnu nit. Memorija alocirana za promenljivu lokalnu za nit u dinamički učitanom modulu se oslobađa kada se modul očiti iz memorije.
+Promenljive lokalne za niti se ponašaju intuitivno. Npr.~ adresni operator vraća adresu promenljive za trenutnu nit. Memorija alocirana za promenljivu lokalnu za nit u dinamički učitanom modulu se oslobađa kada se modul očiti iz memorije.
 
 Implementacija ovog mehanizma zahteva promenu okruženja izvršavanja programa. Format izvršnih fajlova je proširen kako bi definisao promenljive lokalne za niti odvojeno od normalnih promenljivih. Dinamički punilac (eng. dynamic loader) mora biti nadograđen kako bi inicijalizovao te nove sekcije. Takođe, standardna biblioteka koja rukuje nitima je promenjena kako bi alocirala nove podatke lokalne za niti za svaku novu nit. U nastavku poglavlja će biti opisane izmene u fajl formatu ELF i detaljniji opis izvršavanja programa koji sadrže TLS promenljive.
 
@@ -559,10 +559,31 @@ Druga varijanta ima sličnu strukturu. Prikazana je na slici \ref{fig:tls_model2
 
 U trenutku pokretanja programa TCB, zajedno sa dinamičkim nitnim vektorom, se kreiraju za glavnu nit. Pozicija tog TLS bloka, za svaki pojedinačan modul, se računaju koristeći arhitekturalno specifične formule, zasnovane na veličini i poravnanju TLS bloka.
 
+\section{Pokretanje procesa}
+
+
+
 \section{TLS Modeli pristupa}
 
-STATICKI
-DINAMICKI
+Svako referisanje TLS promenljive prati jedan od dva modela pristupa: dinamički i statički. Različite arhitekture u ABI-jem propisuju koji od modela pristupa će koristiti kao podrazumevani. Razni modeli pristupa se mogu izvesti, ali tri najpoznatija pristupa su opisana u nastavku teksta.
+
+\subsection{Generalni dinamički TLS model}
+
+Generalni model pristupa TLS promenljivoj dozvoljava referisanje svih TLS promenljivih, bilo to iz deljene biblioteke ili dinamičkog izvršnog fajla. Ovaj model takođe podržava odloženo alociranje TLS bloka do trenutka kada se prvi put taj blok referiše iz specifične niti.
+
+\subsection{Lokalni dinamički TLS model}
+
+Lokalni dinamički model pristupa TLS promenljivoj predstavalja optimizaciju generalnog dinamičkog modela. Programski prevodioc može odrediti da je neka promenljiva definisana samo lokalno, ili zaštićeno (eng.~protected) u objektu koji je napravljen u programu. U tom slučaju, programski prevodioc daje instrukcije linkeru da statički poveže dinamički TLS ofset i da korsiti ovaj model. Iz tog razloga predstavlja hibridnu kombinaciju statičkog i dinamičkog modela pristupa, te prema tome predstavlja model koji diže performanse u odnosu na generalni dinamički model. Samo jedan poziv \texttt{tls\_get\_addr()} po funkciji je potreban za određivanje adrese \texttt{dtv0,m}.
+
+\subsection{Statički TLS model sa dodeljenim ofsetima}
+
+Ovaj model pristupa dopušta referisanje samo na one TLS promenljive koje su dostupne kao deo inicijalnog statičkog TLS šablona (eng.~template). Ovaj šablon je sastavljen od svih TLS blokova koji su sačinjeni prilikom pokretanja procesa. U ovom modelu, relativni ofset pokazivač na nit date promenljive \texttt{x} je smešten u ćeliji GOT-a (eng. Global offset table) za promenljive \texttt{x}.
+
+Deljene biblioteke uobičajeno koriste dinamički model pristupa, jer statičkim modelom mogu referisati samo na određeni broj TLS promenljivih.
+
+\subsection{Statički TLS model}
+
+Ovaj model pristupa dopušta referisanje samo na one TLS promenljive koje su dostupne kao deo TLS bloka od tog dinamičkog izvršnog fajla. Linkeru računa relativni ofset pokazivača na nit statički, bez potrebe za dinamičkim realokacijama ili dodatnih inforamcija iz GOT-a. Ovaj model pristupa ne dopušta referisanje TLS promenljivih izvan dinamičkog tog izvršnog fajla.
 
 \chapter{Implementacija rešenja}
 \label{chp:Implementacija}
