@@ -306,30 +306,37 @@ Domaćinski GNU GDB alat je preveden za istu procesorsku arhitekturu kao i raču
 \subsubsection{Prevođenje domaćinskog GNU GDB alata}
 
 Preuzimanje izvornog koda alata se radi sledećim komandama:
-\newline
-\texttt{mkdir gdb}
-\newline
-\texttt{cd gdb}
-\newline
-\texttt{git pull http://gnu.org/gnu/gdb.git}
+\begin{lstlisting}
+mkdir gdb
+cd gdb
+git pull http://gnu.org/gnu/gdb.git
+
+\end{lstlisting}
+\emph{Prva i druga komanda redom prave direktorijum i pozicionira trenutnu putanju u njega. Trećom komandom preuzimamo izvorni kod alata.}
 
 Prvi korak prevođenja je konfiguracija direktorijuma u kome se prevođenje izvršava. Ovim komandama kreiramo \texttt{Makefile}:
-\newline
-\texttt{mkdir build}
-\newline
-\texttt{cd build}
-\newline
-\texttt{../configure}
+\begin{lstlisting}
+mkdir build
+cd build
+../configure
+
+\end{lstlisting}
+\emph{Prva i druga komanda redom prave direktorijum u kome se izgrađuje (prevodi) alat i pozicionira trenutnu putanju u njega. Trećom komandom se kreira \texttt{Makefile}.}
 
 Nakon konfiguracije direktorijuma prevođenje alata se vrši komandom:
-\newline
-\texttt{make}
+\begin{lstlisting}
+make
+
+\end{lstlisting}
 
 \subsubsection{Pokretanje domaćinskog GNU GDB alata}
 
 GNU GDB očekuje kao argument komandne linije program koji je preveden za istu procesorsku arhitekturu kao i on. Pokretanje alata se vrši sledećom komandom:
-\newline
-\texttt{./gdb/gdb a.out}
+\begin{lstlisting}
+./gdb/gdb a.out
+
+\end{lstlisting}
+
 
 \subsubsection{Korišćenje domaćinskog GNU GDB alata}
 
@@ -392,8 +399,11 @@ Sadržaj datoteke jezgra je organizovan sekvencijalno sledećim redosledom:
 \subsection{Generisanje datoteke jezgra}
 
 Datoteke jezgra se generišu ukoliko dođe do nepredviđenog prekida programa. To je podrazumevana akcija prilikom okidanja signala operativnog sistema koji ukazuju na prekid rada programa. Jezgra UNIX-olikih operativnih sistema podrazumevano postavljaju dužinu datoteka jezgara na 0. To je razlog zašto na našim sistemima nemamo datoteku jezgra nakon npr.~ prekidanja programa uz poruku \emph{Segmentation fault}. Da bi se datoteke jezgra generisale, potrebno je eksplicitno promeniti dužinu datoteka jezgara koristeći komandu:
-\newline
-\texttt{ulimit -c unlimited}
+
+\begin{lstlisting}
+ulimit -c unlimited
+
+\end{lstlisting}
 
 Datoteka jezgra se može generisati i iz korisničkog nivoa koristeći GNU GDB alat komandom \texttt{gcore}.
 
@@ -404,22 +414,29 @@ Datoteka jezgra se može generisati i iz korisničkog nivoa koristeći GNU GDB a
 \subsection{Prevođenje \emph{Multiarch} GNU GDB}
 
 Prvi korak je pozicioniranje u direktorijum sa izvornim kodom alata:
-\newline
-\texttt{cd gdb}
+\begin{lstlisting}
+cd gdb
+
+\end{lstlisting}
 
 Prvi korak prevođenja je konfiguracija direktorijuma u kome se prevođenje izvršava. Ovim komandama kreiramo \texttt{Makefile} kojim odobravamo debagovanje svih podržanih arhitektura u alatu GBD (kao npr.~MIPS32, MIPS64, ARM, AARCH64, x86\_64, i386, SPARC i druge):
-\newline
-\texttt{mkdir build\_multi}
-\newline
-\texttt{cd build\_multi}
-\newline
-\texttt{../configure --enable-targets=all}
+
+\begin{lstlisting}
+mkdir build_multi
+cd build_multi
+../configure --enable-targets=all
+
+\end{lstlisting}
+\emph{Prva i druga komanda redom prave direktorijum u kome se izgrađuje (prevodi) alat i pozicionira trenutnu putanju u njega. Trećom komandom se kreira \texttt{Makefile}.}
 
 \subsection{Pokretanje \emph{Multiarch} GNU GDB}
 
 Pokretanje alata \emph{Multiarch} GDB se vrši na isti način kao i domaćinska verzija alata komandom:
-\newline
-\texttt{./gdb/gdb a.out}
+
+\begin{lstlisting}
+./gdb/gdb a.out
+
+\end{lstlisting}
 
 \subsection{Korišćenje \emph{Multiarch} GNU GDB}
 
@@ -431,7 +448,7 @@ Na slici \ref{ref:core1} je prikazan primer koristećenja alata \emph{Multiarch}
 
 \begin{figure}[h!]
 	\begin{center}
-		\includegraphics[scale=0.5]{slike/core1.png}
+		\includegraphics[scale=0.4]{slike/core1.png}
 	\end{center}
 	\caption{Primer učitavanja datoteke jezgra generisane na MIPS platformi.}
 	\label{fig:core1}
@@ -455,10 +472,9 @@ Na slici \ref{fig:ucitavanje_core} prikazan je primer učitavanja datoteke jezgr
 
 Da bi se izazvalo generisanje datoteke jezgra u izvornom kodu programa napisanog u C ili C++ programskom jeziku može se koristiti \texttt{abort()} funkcija iz standardne C biblioteke. U primeru na slici \ref{fig:ucitavanje_core} je pozvana ta funkcija koja je izazvala prekid programa uz signal \texttt{SIGABRT}. Tom prilikom jezgro operativnog sistema je napravilo datoteku jezgra sa imenom \emph{core}.
 
-\newpage
 \begin{figure}[h!]
 	\begin{center}
-		\includegraphics[scale=0.6]{slike/ucitanje_core.png}
+		\includegraphics[scale=0.5]{slike/ucitanje_core.png}
 	\end{center}
 	\caption{Primer učitavanja datoteke jezgra u GNU GDB.}
 	\label{fig:ucitavanje_core}
@@ -468,7 +484,7 @@ Na slici \ref{fig:bt_core} je prikazan primer upotrebe komande alata GNU GDB \te
 
 \begin{figure}[h!]
 	\begin{center}
-		\includegraphics[scale=0.6]{slike/bt_core.png}
+		\includegraphics[scale=0.5]{slike/bt_core.png}
 	\end{center}
 	\caption{Primer izlistavanja pozivanih funkcija koristeći alat GNU GDB uz pomoć datoteke jezgra.}
 	\label{fig:bt_core}
