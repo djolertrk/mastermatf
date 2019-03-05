@@ -444,7 +444,7 @@ Spisak komandi koje se mogu koristiti korišćenjem \emph{Multiarch} verzije ala
 
 \subsubsection{Analiza datoteke jezgra}
 
-Na slici \ref{ref:core1} je prikazan primer koristećenja alata \emph{Multiarch} GNU GDB. U primeru se vrši učitavanje datoteke jezgra generisane na ugrađenom uređaju MIPS arhitekture. Uz datoteku jezgra učitavaju se izvršni fajl i deljene biblioteke koje izvršni fajl koristi na ciljanoj platfomi.
+Na slici \ref{fig:core1} je prikazan primer koristećenja alata \emph{Multiarch} GNU GDB. U primeru se vrši učitavanje datoteke jezgra generisane na ugrađenom uređaju MIPS arhitekture. Uz datoteku jezgra učitavaju se izvršni fajl i deljene biblioteke koje izvršni fajl koristi na ciljanoj platfomi.
 
 \begin{figure}[h!]
 	\begin{center}
@@ -454,9 +454,9 @@ Na slici \ref{ref:core1} je prikazan primer koristećenja alata \emph{Multiarch}
 	\label{fig:core1}
 \end{figure}
 
-Komanda \texttt{set solib-search-path \emph{dir}} alata GNU GDB korišćena u primeru na sici \ref{ref:core1} služi za navođenje direktorijuma iz kojeg debager treba da koristi deljene biblioteke za učitani program. Ta komanda je veoma bitna za debagovanje programa sa drugih platformi, jer ukoliko putanja nije navedena debager koristi biblioteke na domaćinskoj mašini.
+Komanda \texttt{set solib-search-path \emph{dir}} alata GNU GDB korišćena u primeru na sici \ref{fig:core1} služi za navođenje direktorijuma iz kojeg debager treba da koristi deljene biblioteke za učitani program. Ta komanda je veoma bitna za debagovanje programa sa drugih platformi, jer ukoliko putanja nije navedena debager koristi biblioteke na domaćinskoj mašini.
 
-Na primeru sa slike \ref{ref:core2} je prikazana upotreba komande \texttt{info registers}. \emph{Multiarch} GNU GDB čita informaciju o arhitekturi programa koji se debaguje iz datoteke jezgra. Nakon toga čita vrednosti registara iz nje i ispisuje ih.
+Na primeru sa slike \ref{fig:core2} je prikazana upotreba komande \texttt{info registers}. \emph{Multiarch} GNU GDB čita informaciju o arhitekturi programa koji se debaguje iz datoteke jezgra. Nakon toga čita vrednosti registara iz nje i ispisuje ih.
 
 \begin{figure}[h!]
 	\begin{center}
