@@ -498,13 +498,13 @@ Pisanje višenitnih programa predstavlja fudamentalan i neibežan koncept savrem
 
 \section{Motivacija}
 
-Povećanje korišćenja niti u programiranju dovelo je do potrebe programera za boljim načinom rukovanja podacima lokalnih za niti. POSIX [ref na posix], interfejs za rukovanje nitima, definiše nove interfejse koji omogućavaju smeštanje \texttt{void *} objekata posebno za svaku nit. Ali taj interfejs je nezgrapan za korišćenje. Ključ za taj objekat mora da bude alociran dinamčki u vremenu izvršavanja programa. Ako se ključ ne koristi više mora biti oslobođen. Celokupan proces zahteva dosta posla programera. Pored toga je podložan greškama. Iz tih razloga postao je ozbiljan problem kada se kombinuje sa dinamičko učitanim kodom.
+Povećanje korišćenja niti u programiranju dovelo je do potrebe programera za boljim načinom rukovanja podacima lokalnih za niti. POSIX \cite{POSIX}, interfejs za rukovanje nitima, definiše nove interfejse koji omogućavaju smeštanje \texttt{void *} objekata posebno za svaku nit. Taj interfejs je nezgrapan za korišćenje, pa se ispostavilo da postoji potreba za efikasnijim rešenjem. Ključ za taj objekat mora da bude alociran dinamčki u vremenu izvršavanja programa. Ako se ključ ne koristi više mora biti oslobođen. Celokupan proces zahteva dosta posla programera. Pored toga je podložan greškama. Iz tih razloga postao je ozbiljan problem kada se kombinuje sa dinamičko učitanim kodom.
 
-Da bi se odgovorilo na sve opisane probleme, odlučeno je da se programski jezici prošire i tako prepuste posao programskim prevodiocima. Za jezike C i C++ ključna reč \texttt{\_\_thread} se koristi za deklaraciju i definiciju promenljivih lokalnih za niti. Neki primeri deklaracija promenljivih lokalnih za niti:
+Da bi se odgovorilo na sve opisane probleme, odlučeno je da se programski jezici prošire i tako prepuste težak posao programskim prevodiocima.
+
+Za jezike C i C++ ključna reč \texttt{\_\_thread} se koristi za deklaraciju i definiciju promenljivih lokalnih za niti. Neki primeri deklaracija promenljivih lokalnih za niti:
 
 \begin{lstlisting}
-
-
 __thread int j;
 
 __thread struct state s;
@@ -513,15 +513,15 @@ extern __thread char *p;
 
 \end{lstlisting}
 
-Prednost TLS-a nije ograničena samo na korisničke programe. Okruženje izvršavanja programa takođe koristi pogodnosti ovog mehanizma. Npr. globalne promenljive \texttt{errno} moraju biti lokalne za niti, jer u različitim nitima može doći do različite greške. Napomenimo da navođenjem \texttt{\_\_thread} pri deklaraciji ili definiciji neke automatske promenljive nema smisla i to nije dozvoljeno, jer automatske promenljive su uvek lokalne za niti. Promenljive statičkih funkcija su takođe kandidati za korišćenje TLS promenljivih.
+Prednost TLS-a nije ograničena samo na korisničke programe. Okruženje izvršavanja programa, između ostalih standardna biblioteka, takođe koristi pogodnosti ovog mehanizma. Npr.~globalne promenljive \texttt{errno}, koje jednoznačno označavaju nastalu grešku, moraju biti lokalne za niti, jer u različitim nitima može doći do različite greške. Napomenimo da navođenjem \texttt{\_\_thread} pri deklaraciji ili definiciji neke automatske promenljive nema smisla i to nije dozvoljeno, jer automatske promenljive su uvek lokalne za niti. Promenljive statičkih funkcija su takođe kandidati za korišćenje TLS promenljivih.
 
-Promenljive lokalne za niti se ponašaju intuitivno. Npr.~ adresni operator vraća adresu promenljive za trenutnu nit. Memorija alocirana za promenljivu lokalnu za nit u dinamički učitanom modulu se oslobađa kada se modul očiti iz memorije.
+Promenljive lokalne za niti se ponašaju intuitivno. Npr.~adresni operator vraća adresu promenljive za trenutnu nit. Memorija alocirana za promenljivu lokalnu za nit u dinamički učitanom modulu se oslobađa kada se taj modul očisti iz memorije.
 
-Implementacija ovog mehanizma zahteva promenu okruženja izvršavanja programa. Format izvršnih fajlova je proširen kako bi definisao promenljive lokalne za niti odvojeno od normalnih promenljivih. Dinamički punilac (eng. dynamic loader) mora biti nadograđen kako bi inicijalizovao te nove sekcije. Takođe, standardna biblioteka koja rukuje nitima je promenjena kako bi alocirala nove podatke lokalne za niti za svaku novu nit. U nastavku poglavlja će biti opisane izmene u fajl formatu ELF i detaljniji opis izvršavanja programa koji sadrže TLS promenljive.
+Implementacija ovog mehanizma zahteva promenu okruženja izvršavanja programa. Format izvršnih fajlova je proširen kako bi definisao promenljive lokalne za niti odvojeno od normalnih promenljivih. Dinamički punilac (eng. dynamic loader) mora biti nadograđen kako bi ispravno inicijalizovao te nove sekcije. Takođe, standardna biblioteka koja rukuje nitima je promenjena kako bi alocirala nove podatke lokalne za niti za svaku novu nit. U nastavku poglavlja će biti opisane izmene u fajl formatu ELF i detaljniji opis izvršavanja programa koji sadrže TLS promenljive.
 
-\section{Definicija novih podataka u ELF-u}
+\section{Definisanje novih podataka u ELF-u}
 
-Izmene u fajl formatu izvršnih fajlova, potrebne za emitovanje TLS objekata su minimalni. Umesto smeštanja promenljivih u sekcije \texttt{.data} I \texttt{.bss} za inicijalizovane i neinicijalizovane promenljive redom, TLS promenljive se smeštaju u \texttt{.tdata} I \texttt{.tbss} sekcije. Nove sekcije se od originalnih razlikuju u samo jednom dodatnom sekcijskom flegu. Sekcijaska tabela koja opisuje nove sekcije je data slikom \ref{fig:tls_secs}. Kao što se može primetiti jedina razlika u odnosu na normalne sekcije podataka jeste fleg \texttt{SHF\_TLS}.
+Izmene u fajl formatu izvršnih fajlova, potrebne za emitovanje TLS objekata su minimalni. Umesto smeštanja promenljivih u sekcije \texttt{.data} i \texttt{.bss} za inicijalizovane i neinicijalizovane promenljive redom, TLS promenljive se smeštaju u \texttt{.tdata} i \texttt{.tbss} sekcije \cite{TLS}. Nove sekcije se od originalnih razlikuju u samo jednom dodatnom sekcijskom flegu. Sekcijaska tabela koja opisuje nove sekcije je data slikom \ref{fig:tls_secs}. Kao što se može primetiti jedina razlika u odnosu na normalne sekcije podataka jeste fleg \texttt{SHF\_TLS}.
 
 \begin{figure}[h!]
 	\begin{center}
@@ -531,15 +531,12 @@ Izmene u fajl formatu izvršnih fajlova, potrebne za emitovanje TLS objekata su 
 	\label{fig:tls_secs}
 \end{figure}
 
-Imena novih sekcija, kao ni ostalih u fajl formatu ELF. Linker će svaku sekciju tipa \texttt{SHT\_PROGBITS} sa dodatnim flegom \texttt{SHF\_TLS} tretirati kao \texttt{.tdata}, dok će sekcije tipa \texttt{SHT\_NOBITS} sa dodatnim \texttt{SHF\_TLS} tretirati kao \texttt{.tbss} sekciju. Odgovornost proizvođača ovakvih sekcija, obično programskih prevodioca, je da pravilno generiše sva polja prikazana na slici \ref{fig:tls_secs}.
+Imena novih sekcija, kao ni ostalih u fajl formatu ELF, nisu bitna. Linker će svaku sekciju tipa \texttt{SHT\_PROGBITS} sa dodatnim flegom \texttt{SHF\_TLS} tretirati kao \texttt{.tdata}, dok će sekcije tipa \texttt{SHT\_NOBITS} sa dodatnim \texttt{SHF\_TLS} tretirati kao \texttt{.tbss} sekciju. Odgovornost proizvođača ovakvih sekcija, obično programskih prevodioca, je da pravilno generiše sva polja prikazana na slici \ref{fig:tls_secs}.
 
-Za razliku od normalnih \texttt{.data} sekcija program koji se izvršava ne koristi \texttt{.tdata} sekciju direktno. Ta sekcija je moguće modifikovana, u vreme pokretanja programa, od strane dinamičkog punilaca. Dinamički punilac izvršava relokaciju pri pokretanju programa, ali nakon toga podaci lokalni za niti se smeštaju u deo koji se naziva inicijalizovana slika (eng. Initialization image) I ne modifikuje se više nakon toga. Za svaku nit, uključujući I inicijalnu, nova memorija se alocira gde se kopira inicijalizovana slika. Ovim se omogućava da svaka nit ima identičan početni sadržaj. Kako ne postoji samo jedna adresa koja ukazuje na simbol TLS promenljive, normalna tabela simbola ne može biti korišćena za njih. U izvršnom fajlu polje \texttt{st\_value} ne sadrži apsolutnu adresu promenljive prilikom izvrašavanja programa, jer apsolutna adresa nije poznata prilikom prevođenja programa. Iz tog razloga novi tip simbola (\texttt{STT\_TLS}) je uveden. Svaki simbol koji referiše na TLS ima takav tip simbola. Izvršni fajlovi u polju \texttt{st\_value} imaju vrednost ofesta promenljive u TLS inicijalizovanoj slici.
-NIjedna relokacija ne sme pristupati simbolima tipa \texttt{STT\_TLS}, osim onih koji su uvedeni z
-arukovanje TLS-om. Takođe, te nove realokacije ne smeju koristi simbole ostalih tipova.
+Za razliku od normalnih \texttt{.data} sekcija program koji se izvršava ne koristi \texttt{.tdata} sekciju direktno. Ta sekcija je moguće modifikovana u vreme pokretanja programa, od strane dinamičkog punilaca. Prilikom pokretanja programa, prva akcija jeste realokaciju koju izvršava dinamički punilac. Nakon toga podaci lokalni za niti se smeštaju u deo koji se naziva inicijalizaciona slika (\emph{eng.~initialization image}) i ona se ne modifikuje više nakon toga. Za svaku nit, uključujući i inicijalnu, nova memorija se alocira gde se kopira inicijalizaciona slika. Ovim se omogućava da svaka nit ima identičan početni sadržaj. Kako ne postoji samo jedna adresa koja ukazuje na simbol TLS promenljive, normalna tabela simbola ne može biti korišćena za njih. U izvršnom fajlu polje \texttt{st\_value} ne sadrži apsolutnu adresu promenljive prilikom izvrašavanja programa, jer apsolutna adresa nije poznata prilikom prevođenja programa. Iz tog razloga  je uveden novi tip simbola (\texttt{STT\_TLS}). Svaki simbol koji referiše na TLS ima takav tip simbola. Izvršni fajlovi u polju \texttt{st\_value} imaju vrednost ofseta promenljive u TLS inicijalizacionoj slici.
+Nijedna realokacija ne sme pristupati simbolima tipa \texttt{STT\_TLS}, osim onih koji su uvedene za rukovanje TLS-om. Takođe, te nove realokacije ne smeju koristi simbole ostalih tipova.
 
-Da bi dinamički linker mogao da izvrši inicijalizaciju inicijalne slike njena pozicija koja će biti prilkom
-izvršavanja programa mora biti zapisana negde. Originalno zaglavlje programa nije korisno, pa je
-novo zaglavlje definisano. To proširenje je prikazano na slici \ref{fig:tls_prheader}.
+Da bi dinamički linker mogao da izvrši inicijalizaciju inicijalizacione slike, njena pozicija koja će biti prilkom izvršavanja programa mora biti zapisana negde. Originalno zaglavlje programa nije korisno, pa je novo zaglavlje definisano. To proširenje je prikazano na slici \ref{fig:tls_prheader}.
 
 \begin{figure}[h!]
 	\begin{center}
@@ -550,7 +547,7 @@ novo zaglavlje definisano. To proširenje je prikazano na slici \ref{fig:tls_prh
 \end{figure}
 
 
-Svaka TLS promenljiva je identifikovana pomoću ofseta od početka TLS sekcije. U memoriji, \texttt{.tbss} sekcija je alocirana odmah nakon \texttt{.tdata} sekcije. Nijedna virtualna adresa ne može biti izračunata prilikom povezivanja (eng. link time).
+Svaka TLS promenljiva je identifikovana pomoću ofseta od početka TLS sekcije. U memoriji, \texttt{.tbss} sekcija je alocirana odmah nakon \texttt{.tdata} sekcije. Nijedna virtualna adresa ne može biti izračunata prilikom povezivanja (\emph{eng.~link time}).
 
 \section{Rukovanje TLS-om tokom izvršavanja programa}
 
