@@ -676,68 +676,99 @@ Ovaj model pristupa dopušta referisanje samo na one TLS promenljive koje su dos
 \chapter{Implementacija rešenja}
 \label{chp:Implementacija}
 
-Kao što smo napomenuli, TLS može biti različito
-implementiran za različite arhitekture. Može se smeštati
-u posebne registre, u određene delove memorije itd. [1].
-GNU GDB alat mora poznavati sve arhitekturne razlike i
-anulirati ih na neki način. Implementacija proširenja
-alata se upravo i zasniva na prethodnoj pretpostavci, te
-upravo to i realizuje. Istražene su implementacije TLS-a
-raznih arhitektura, kako u funkcijama GNU C biblioteke
-(poznatije kao „glibc“) [7] tako i karakteristike koje su
-ABI-jem (eng. Application Binary Interface) propisane.
-Poboljšanje alata koje smo mi uspeli da realizujemo se
-odnosi na posebnu verziju GNU GDB-a Multiarch [9],
-koji predstavalja verziju alata koji je preveden na
-poseban način tako da može da učitava i pronalazi
-greške u programima različitih arhitektura. Naime, do
-sada se fajl „gdb/linux-thread-db.c“, koji u sebi sadrži
-funkcije za čitanje TLS-a, prevodio samo za standardni
-GNU GDB koji se prevodi za arhitekturu domaćina, pa
-smo stoga u proširenju za Multiarch GNU GDB takođe
-uvrstili pomenuti fajl prilikom prevođenja. Ukoliko je
-program koji je učitan u Multiarch GNU GDB alat iste
-arhitekture kao arhitektura domaćina, zadržava se način
-dohvatanja TLS promenljive kao u slučaju GNU GDB
-alata arhitekture domaćina, jer je ta funkcionalnost već
-implementirana. Za programe neke ciljne arhitekture,
-koja je različita od arhitekture domaćina, trebalo je
-modifikovati „glibc“ biblioteku koju koristi GNU GDB
-alat za otklanjanje grešaka prilikom rada sa nitima
-„libthread\_db“, tačnije funkcije td\_ta\_new(),
-td\_thr\_tls\_get\_addr() i td\_th\_tlsbase(), koje se služe
-za dohvatanje TLS promenljivih, koje očekuju da se na
-arhitekturi domaćina prirodno barata sa programima iste
-arhitekture.
-Izbegavanje modifikacije „libthread\_db“ biblioteke
-moguće je izbeći tako što se pomenute funkcije
-implementiraju u GNU GDB-u, na isti način kao u
-„glibc“ biblioteci, s’ tim što se sve arhitekturno zavisne
-vrednosti promenljivih i makroa koje primaju te funkcije
-postave na vrednosti koje bi trebalo da imaju u slučaju
-da je ta ciljna arhitektura zapravo arhitektura domaćina.
-Drugi način implementacije je modifikacija „libthreaddb“ funkcija eksplicitno u „glibc“-u, modifikujući ih
-tako da rade sa različitim arhitekturama. Naime, formula
-koja služi za dohvatanje TLS promenljive se računala u
-vremenu prevođenja biblioteke, sada se računa u
-vremenu izvršavanja programa, i u zavisnosti od
-arhitekture promenljive koje učestvuju u pomenutoj
-formuli će dobiti odgovarajuće vrednosti. Ukoliko se
-radi o programu arhitekture domaćina u funkciji
-td\_ta\_new() promenljive dobijaju vrednosti koje
-odgovaraju arhitekturi domaćina, dok ako se radi o
-programu ciljne arhitekture, tj. različite od arhitekture
-domaćina, iz GNU GDB-a će biti pozvana nova „glibc“
-funkcija „td\_ta\_init\_target\_consts()“ koja će postaviti
-vrednosti promenljivih koje odgovaraju ciljnoj
-arhitekturi. Ideja je upisati ove vrednosti u datoteku
-jezgra na ciljnoj arhitekturi i kasnije ih pročitati na
-arhitekturi domaćina korišćenjem GNU GDB alata. U
-ovom slučaju izmena u samom GNU GDB-u bi bila
-minorna, te zahteva samo proveru da li je učitani
-program arhitekture domaćina ili ne, i u zavisnosti od
-toga se poziva „td\_ta\_init\_target\_consts()“ ili ne.
+Kao što je napomenuto, TLS može biti različito implementiran za različite procesorske arhitekture. Može se smeštati u posebne registre, u određene delove memorije itd. GNU GDB alat mora poznavati sve arhitekturne razlike i anulirati ih na neki način. Implementacija ovog proširenja alata se upravo i zasniva na prethodnoj pretpostavci, te upravo to i realizuje. Istražene su implementacije TLS-a raznih arhitektura, kako u funkcijama GNU C biblioteke (poznatije kao „glibc“) \cite{GLIBC}, tako i karakteristike koje su ABI-jem propisane. Poboljšanje alata koje je uspešno realizovano se odnosi na verziju Multiarch GNU GDB-a. Ukoliko je program koji je učitan u Multiarch GNU GDB alat iste arhitekture kao arhitektura domaćina, zadržava se način dohvatanja TLS promenljive kao u slučaju GNU GDB alata arhitekture domaćina, jer je ta funkcionalnost već implementirana.
 
+\section{Detalji implementacije}
+
+\subsection{Izmena sistema izgradnje alata}
+
+Fajlovi \emph{gdb/configure} i \emph{gdb/Makefile.in} su zaduženi za izradnju alata. U najopštijem slučaju na UNIX-olikim operativnim sistemima, \emph{configure} skripta je zadužena za pravljenje konačnog \emph{Makefile} od ulaznog \emph{gdb/Makefile.in}.
+
+Izvorni kod koji u sebi sadrži funkcije za čitanje TLS-a (\emph{gdb/linux-thread-db.c}) se prevodio samo za domaćinsku verziju GNU GDB alata, pa stoga u proširenju za \emph{Multiarch} GNU GDB takođe treba uvrstiti pomenuti fajl prilikom prevođenja. Pored toga, postojeće funkcije koje su zadužene za dohvatanje vrednosti TLS promenljivih je trebalo izmeniti na neki način te je u projekat dodat direktorijum \emph{gdb/glibc-dep/} koji sadrži funkcije koje barataju sa TLS-om različite procesorske arhitekture od arhitekture domaćina. Da bi se ti fajlovi prevodili samo u slučaju \emph{Multiarch} verzije definisan je makro pod imenom \texttt{CROSS\_GDB} koji se definiše prilikom kreiranja \emph{Makefile}. Da bi se ispratila konvencija pisanja skripti za izgradnju alata, u direktorijum \emph{gdb/config/} je dodat fajl \emph{glibc.mh} koji definiše spisak objektnih fajlova koji služe sa dohvatanje vrednosti TLS promenljive u tom slučaju i takože u tom fajlu se definiše gore pomenuti makro \texttt{CROSS\_GDB}.
+
+Sadržaj \emph{gdb/config/glibc.mh} fajla izgleda na sledeći način:
+\begin{lstlisting}
+# GLIBC fragment comes in here
+GLIBCFILES = td_symbol_list.o \
+       fetch-value.o gdb_td_ta_new.o \
+       td_thr_tlsbase.o td_thr_tls_get_addr.o \
+       td_ta_map_lwp2thr.o native_check.o
+INTERNAL_CFLAGS += -DCROSS_GDB
+\end{lstlisting}
+
+Da bi sadržaj iz novokreiranog \emph{gdb/config/glibc.mh} fajla bio ispisan u krajnji \emph{Makefile} trebalo je uvesti promenljivu koja proverava da li je u prilikom navođenja opcija \emph{gdb/configure} skripti navedena opcija \emph{--enable\_targets}, koja zapravo označava da korisnik ima nameru da alat prevede kao \emph{Multiarch} verziju. Vrednost promenljive \texttt{cross\_makefile\_frag} u \emph{gdb/configure} skripti postaje putanja do \emph{gdb/config/glibc.mh} fajla ukoliko je pomenuta opcija navedena, a u suprotnom ona ostaje prazna.
+Deo koda u \emph{gdb/configure} skripti kojim se to postiže je:
+\begin{lstlisting}
+if test "${gdb_native}" = "no" || test "${enable_targets}" != ""; then
+  cross_makefile_frag=${srcdir}/config/glibc.mh
+else
+  cross_makefile_frag=/dev/null
+fi
+\end{lstlisting}
+
+\subsection{Implementacija funkcija za dohvatanje TLS-a}
+
+U direktorijumu \emph{gdb/glibc-dep/} se nalazi srž funkcopnalnosti dohvatanja vrednsoti TLS promenljive iz datoteke jezgara sa drugih platformi. Kako standardna C biblioteka već ima implementirane svaku arhitekturalnu zavisnost u vezi TLS-a za svaku procesorsku arhitekturu podržanu u alatu GNU GDB, potrebno je na neki način izopštiti tu funkcionalnost iz same biblioteke unutar alata. Preciznije za baratanjem nitima, GDB koristi \emph{libthread\_db} biblioteku iz standardne biblioteke. Funkcije td\_ta\_new(), td\_thr\_tls\_get\_addr() i td\_th\_tlsbase(), koje se služe za dohvatanje TLS promenljivih, očekuju da se na arhitekturi domaćina prirodno barata sa programima iste arhitekture. Izbegavanje modifikacije „libthread\_db“ biblioteke moguće je izbeći tako što se pomenute funkcije implementiraju u GNU GDB-u, na isti način kao u „glibc“ biblioteci, s’ tim što se sve arhitekturno zavisne vrednosti promenljivih i makroa koje primaju te funkcije postave na vrednosti koje bi trebalo da imaju u slučaju da je ta ciljna arhitektura zapravo arhitektura domaćina.
+
+Prvi korak ovog dela implementacije je izmeštanje funkcija iz standardne biblioteke unutar GDB projekta. Unutar \emph{gdb/glibc-dep/} je kreiran direktorijum \emph{nptl\_db} koji sadrži pomenute funkcije. Zapravo, ukoliko alat koristi bilo koju verziju standardne biblioteke do 2.22 funkcije iz \emph{nptl\_db} nisu ni potrebne za dohvatanje vrednosti TLS promenljive. Sve potrebne informacije za dohvatanje vrednosti TLS promenljive se mogu pročitati iz same datoteke jezgra. Ukoliko alat koristi verziju standardne biblioteke 2.22 i ili veću, funckcije iz \emph{nptl\_db} direktorijuma su neophodne kako bi se anulirale novonastale izmene prilikom baratanja TLS-om. Ta funkcionalnost je dodata u funkciji \texttt{gdb\_td\_thr\_tlsbase()} koja je dodata u fajl \texttt{gdb/glibc-dep/nptl\_db/td\_thr\_tlsbase.c}.
+Sve funkcije koje bi trebalo da emuliraju ponašanje TLS funkcija standardne biblioteke koje su dodate u projekat GNU GDB imaju prefiks u imenu \texttt{gdb\_}. Npr.~GDB pandam funckiji \texttt{td\_ta\_new()} je \texttt{gdb\_td\_ta\_new()}. Pomenuta funkcija je promenjena da bi alat GNU GDB imao inforamciju o tačnoj verziji standardne biblioteke koju je program koji se debaguje koristio na platformi na kojoj se izvršavao, jer kao što je napomenuto od veryije 2.22 TLS se drugačije dohvata. Nije novo da za debagovanje višenitnih programa GDB alatom, čak i upotrebom domaćinske verzije, je neophodno da GDB koristi istu veriziju \emph{libthread\_db} biblioteke kao i program koji se debaguje. To znači ako je program preveden sa verzijom 2.x standardnom bibliotekom, alat mora korsiti istu verziju 2.x tokom svog debagovanja. To se postiže eksplicitnim navođenjem putanje do \emph{libthread\_db} biblioteke komandom \texttt{set libthread-db-search-path}. Ukoliko se veryije \emph{libthread\_db} biblioteke ne poklapaju debager će ispisati upozorenje.
+
+Takođe u \texttt{gdb\_td\_ta\_new()} funkiji se poziva funkija \texttt{init\_target\_dep\_constants()}, zadužena za inicijalizaciju arhitekturalno zavisnih osobina o TLS-u.
+Deo kojim se različite osobine inicijalizuju za arhitekture MIPS i ARM u funkciji \texttt{init\_target\_dep\_constants()} izgleda:
+\begin{lstlisting}
+case bfd_arch_mips:
+  tls_tcb_at_tp = 0;
+  tls_dtv_at_tp = 1;
+  forced_dynamic_tls_offset = -2;
+  no_tls_offset = -1;
+  tcb_alignment = 16;
+  break;
+case bfd_arch_arm:
+  tls_tcb_at_tp = 0;
+  tls_dtv_at_tp = 1;
+  forced_dynamic_tls_offset = -2;
+  no_tls_offset = -1;
+  tcb_alignment = 0;
+  break;
+\end{lstlisting}
+U ovom konkretnom slučaju sve TLS osobine su identične, osim poravnanja nitnog kontrolnog bloka.
+
+Funkcija \texttt{native\_check()} definisana u fajlu \emph{gdb/glibc-dep/native-check.c} daje informaciju da li se \emph{Multiarch} verzijom alata debaguje program domaćinske arhitekture. Ako je to slučaj, dohvatanje vrednosti TLS promenljive se vrši kao do sada uz pomoć funkcija iz standardne C biblioteke. Ukoliko to nije slučaj, pozovaju se novokreirane funkcije iz direktorijuma \emph{gdb/glibc-dep/}.
+
+Cela funkcionalnost se zapravo dodaje u \emph{gdb/linux-thread-db.c} fajl u funkciju koja je zadužena za dohvatanje vrednosti TLS promenljive. Izmena nije direktno u funkciji \texttt{thread\_db\_get\_thread\_local\_address} koja vraća adresu TLS promenljive. Naime, promena je izvedena u funkciji \texttt{try\_thread\_db\_load\_1()} koja uspostavlja konekciju između alata GDB i \emph{libthread\_db} biblioteke su promenjeni pokazivači na TLS funkcije u slučaju nedomaćinskih datoteka jezgara. Deo koda koji implementira pomenutu funkcionalnost je:
+\begin{lstlisting}
+#ifdef CROSS_GDB
+ if(native_check(arch) != 0){
+  info->td_thr_tls_get_addr_p=gdb_td_thr_tls_get_addr;
+  info->td_thr_tlsbase_p=gdb_td_thr_tlsbase;
+ }else{
+  //if it's host we want to keep old way of counting tls address
+  TDB_DLSYM (info, td_thr_tls_get_addr);
+  TDB_DLSYM (info, td_thr_tlsbase);
+ }
+#else
+  TDB_DLSYM (info, td_thr_tls_get_addr);
+  TDB_DLSYM (info, td_thr_tlsbase);
+#endif
+\end{lstlisting}
+Kao što je i napomenuto, iako je u pitanju \emph{Multiarch} verzija alata, ako je datoteka jezgra kreirana na domaćinskoj platformi zadržava se normalno dohvatanje TLS-a.
+
+\section{Alternativno rešenje}
+
+Drugi način implementacije je modifikacija \emph{libthread\_db} funkcija eksplicitno u standardnoj biblioteci, modifikujući ih tako da rade sa različitim arhitekturama. Naime, formula koja služi za dohvatanje TLS promenljive se računala u vremenu prevođenja biblioteke, sada se računa u vremenu izvršavanja programa, i u zavisnosti od arhitekture promenljive koje učestvuju u pomenutoj formuli će dobiti odgovarajuće vrednosti. Ukoliko se radi o programu arhitekture domaćina u funkciji  \texttt{td\_ta\_new()} promenljive dobijaju vrednosti koje odgovaraju arhitekturi domaćina, dok ako se radi o programu ciljne arhitekture, tj. različite od arhitekture domaćina, iz GNU GDB-a će biti pozvana nova funckija u standardnoj biblioteci \texttt{td\_ta\_init\_target\_consts()} koja će postaviti vrednosti promenljivih koje odgovaraju ciljnoj arhitekturi. Ideja je upisati ove vrednosti u datoteku jezgra na ciljnoj arhitekturi i kasnije ih pročitati na arhitekturi domaćina korišćenjem GNU GDB alata. U ovom slučaju izmena u samom GNU GDB-u bi bila minorna, te zahteva samo proveru da li je učitani program arhitekture domaćina ili ne, i u zavisnosti od toga se poziva \texttt{td\_ta\_init\_target\_consts()} ili ne.
+
+\section{Unapređenje GNU GDB alata prilikom čitanja/pisanja datoteke jezgra za MIPS procesorsku arhitekturu}
+
+
+\section{Testiranje}
+
+
+\section{Upotreba alata}
+
+
+\section{Druga postojeća rešenja}
+
+Infinity
 
 % ------------------------------------------------------------------------------
 \chapter{Zaključak}
