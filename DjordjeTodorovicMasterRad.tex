@@ -676,7 +676,7 @@ Ovaj model pristupa dopušta referisanje samo na one TLS promenljive koje su dos
 \chapter{Implementacija rešenja}
 \label{chp:Implementacija}
 
-Kao što je napomenuto, TLS može biti različito implementiran za različite procesorske arhitekture. Može se smeštati u posebne registre, u određene delove memorije itd. GNU GDB alat mora poznavati sve arhitekturne razlike i anulirati ih na neki način. Implementacija ovog proširenja alata se upravo i zasniva na prethodnoj pretpostavci, te upravo to i realizuje. Istražene su implementacije TLS-a raznih arhitektura, kako u funkcijama GNU C biblioteke (poznatije kao „glibc“) \cite{GLIBC}, tako i karakteristike koje su ABI-jem propisane. Poboljšanje alata koje je uspešno realizovano se odnosi na verziju Multiarch GNU GDB-a. Ukoliko je program koji je učitan u Multiarch GNU GDB alat iste arhitekture kao arhitektura domaćina, zadržava se način dohvatanja TLS promenljive kao u slučaju GNU GDB alata arhitekture domaćina, jer je ta funkcionalnost već implementirana.
+Kao što je napomenuto, TLS može biti različito implementiran za različite procesorske arhitekture. Može se smeštati u posebne registre, u određene delove memorije itd. GNU GDB alat mora poznavati sve arhitekturne razlike i anulirati ih na neki način. Implementacija ovog proširenja alata se upravo i zasniva na prethodnoj pretpostavci, te upravo to i realizuje. Istražene su implementacije TLS-a raznih arhitektura, kako u funkcijama GNU C biblioteke (poznatije kao \emph{glib}) \cite{GLIBC}, tako i karakteristike koje su ABI-jem propisane. Poboljšanje alata koje je uspešno realizovano se odnosi na verziju \emph{Multiarch} GNU GDB-a. Ukoliko je program koji je učitan u \emph{Multiarch} GNU GDB alat iste arhitekture kao arhitektura domaćina, zadržava se način dohvatanja vrednosti TLS promenljive kao u slučaju GNU GDB alata arhitekture domaćina, jer je ta funkcionalnost već implementirana. Treba napomenuti da je u razvoju i alternativno rešenje od strane programera iz kompanije \emph{Red Hat}[REF NA RedHat] u vidu projekta \emph{Infinity}[REF NA INFINITY]. Taj projekat ima ideju da obuhvati rešenja za razne probleme o debagovanju niti, ne samo obradu TLS-a. Prednost rešenja koji se predstavlja u ovom master radu jeste svakako ta što je cela funkcionalnost prepuštena samom GNU GDB alatu, te nema potrebe za instalacijom ili prevođenjem eksternih projekata. Sa tim u vidu se svakako dobija na uštedi korisničkog napora pri korišćenju debagera.
 
 \section{Detalji implementacije}
 
@@ -759,16 +759,80 @@ Drugi način implementacije je modifikacija \emph{libthread\_db} funkcija ekspli
 
 \section{Unapređenje GNU GDB alata prilikom čitanja/pisanja datoteke jezgra za MIPS procesorsku arhitekturu}
 
+Kako bi funkcionalnost bila moguća za svaku podržanu procesorsku arhitekturu, potrebno je da alat GNU GDB ima potpunu podršku za čitanje informacija iz datoteka jezgara. Podrška je za sve arhitekrure potpuna, ali u trenutku razvoja ove funkcionalnosti uočeno je da alat nema potpunu podršku za čitanje identifikacionog broja procesa (eng.~\emph{Process ID}) iz datoteke jezgra za MIPS arhitekture, neophodnog za dohvatanje bazičnih informacija o nitima. Kao što je napomenuto, koristeći komandu alata \texttt{gcore} moguće je kreirati datoteku jezgra i sa korisničkog nivoa, gde je takođe uočeno da alat nema potpunu podršku za ispisivanje nekih informacija o procesu za MIPS procesorsku arhitekturu. Te izmene su odrađene i prihvaćene od strane GNU zajednice. Takođe treba napomenuti da su te izmene ušle u izvršnu verziju alata.
+
+Deo izvornog koda (u fajlu \emph{bfd/elf32-mips.c}) izmene za čitanje informacija o procesu iz datoteke jezgra:
+\begin{lstlisting}
+
+case 128:                /* Linux/MIPS elf_prpsinfo */
+  elf_tdata (abfd)->core->pid
+   = bfd_get_32 (abfd, note->descdata + 16);
+  elf_tdata (abfd)->core->program
+   = _bfd_elfcore_strndup (abfd, note->descdata + 32, 16);
+\end{lstlisting}
+
+Deo izvornog koda (u fajlu \emph{bfd/elf32-mips.c}) izmene za pisanje inforamcija o procesu u datoteku jezgra:
+\begin{lstlisting}
+/* Write Linux core PRSTATUS note into core file.  */
+
+static char *
+elf32_mips_write_core_note (bfd *abfd, char *buf, int *bufsiz, int not
+e_type,
+                            ...)
+{
+  switch (note_type)
+    {
+    default:
+      return NULL;
+
+    case NT_PRPSINFO:
+      BFD_FAIL ();
+      return NULL;
+
+    case NT_PRSTATUS:
+      {
+       char data[256];
+       va_list ap;
+       long pid;
+       int cursig;
+       const void *greg;
+
+       va_start (ap, note_type);
+       memset (data, 0, 72);
+       pid = va_arg (ap, long);
+       bfd_put_32 (abfd, pid, data + 24);
+       cursig = va_arg (ap, int);
+       bfd_put_16 (abfd, cursig, data + 12);
+       greg = va_arg (ap, const void *);
+       memcpy (data + 72, greg, 180);
+       memset (data + 252, 0, 4);
+       va_end (ap);
+       return elfcore_write_note (abfd, buf, bufsiz,
+                                  "CORE", note_type, data, sizeof (data));
+      }
+    }
+}
+\end{lstlisting}
+
+Primeri izvornog koda izmena su prikazani samo za MIPS 32-bitnu verziju. Napomenimo da izmena obuhvata i MIPS 64-bitnu verziju procesorske arhitekture.
 
 \section{Testiranje}
 
+Faza testiranja je jako važan deo životnog ciklusa razvoja softvera, te je veliki značaj pridodat ovoj sekvenci. Testiranje je izvršeno na raznim verzijama platformi ARM i MIPS procesorskih arhitektura.
+
+Takođe, implementirani su \emph{DejeGNU}(REF NA DEJAGNU) testovi koji testiraju dohvatanje vrednosti TLS promenljive iz datoteka jezgara razniih arhitektura. Zbog prirode problema koji se testira datoteke jezgra su generisane na različitim platformama i kompresovane zajedno sa izvršnim fajlom u \emph{gdb/testsuite/gdb.multi/}, te se prilikom izvršavanja konkretnih testova ti fajlovi raspakuju i učitavaju u debager. Testovi obuhvataju izvršne fajlove sa TLS-om generisanih sa 2.19 i 2.22 verzijama standardne biblioteke.
+
+Pre izmene rezultati izvršavanja testova \emph{Multiarch} GNU GDB verzije alata:
+
+ 
+Posle izmene rezultati izvršavanja testova \emph{Multiarch} GNU GDB verzije alata:
+
+
+Izvršavanje samo novo kreiranih testova koji dohvataju vrednost TLS promenljive iz datoteke jezgra generisane na nekoj nedomaćinskoj platformi:
+
+
 
 \section{Upotreba alata}
-
-
-\section{Druga postojeća rešenja}
-
-Infinity
 
 % ------------------------------------------------------------------------------
 \chapter{Zaključak}
