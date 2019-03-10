@@ -52,13 +52,13 @@
 % Naslov teze na srpskom jeziku (u odabranom pismu)
 \naslov{Podrška za naprednu analizu promenljivih lokalnih za niti pomoću alata GNU GDB}
 % Godina u kojoj je teza predana komisiji
-\godina{2018}
+\godina{2019}
 % Ime i afilijacija mentora (u odabranom pismu)
-\mentor{dr Mika \textsc{Mikić}, redovan profesor\\ Univerzitet u Beogradu, Matematički fakultet}
+\mentor{dr Milena \textsc{Vujošević-Janičić}, redovan profesor\\ Univerzitet u Beogradu, Matematički fakultet}
 % Ime i afilijacija prvog člana komisije (u odabranom pismu)
-\komisijaA{dr Ana \textsc{Anić}, vanredni profesor\\ University of Disneyland, Nedođija}
+\komisijaA{dr Filip \textsc{Marić}, redovan profesor\\ Univerzitet u Beogradu, Matematički fakultet}
 % Ime i afilijacija drugog člana komisije (u odabranom pismu)
-\komisijaB{dr Laza \textsc{Lazić}, docent\\ Univerzitet u Beogradu, Matematički fakultet}
+\komisijaB{dr Miroslav \textsc{Marić}, redovan profesor\\ Univerzitet u Beogradu, Matematički fakultet}
 % Ime i afilijacija trećeg člana komisije (opciono)
 % \komisijaC{}
 % Ime i afilijacija četvrtog člana komisije (opciono)
@@ -72,7 +72,7 @@
 }
 
 % Ključne reči na srpskom jeziku (u odabranom pismu)
-\kljucnereci{analiza, geometrija, algebra, logika, računarstvo, astronomija}
+\kljucnereci{Thread Local Storage, GNU‘s Not Unix, GNU Debugger, Datoteka jezgra}
 
 \begin{document}
 % ==============================================================================
@@ -84,7 +84,7 @@
 % Strana sa podacima o mentoru i članovima komisije
 \komisija
 % Strana sa posvetom (u odabranom pismu)
-\posveta{Mami, tati i dedi}
+\posveta{Daretu}
 % Strana sa podacima o disertaciji na srpskom jeziku
 %\apstrakt
 % Sadržaj teze
@@ -98,6 +98,13 @@
 % ------------------------------------------------------------------------------
 \chapter{Uvod}
 % ------------------------------------------------------------------------------
+
+Arhitektura ugrađenih uređaja se najčešće ne poklapa sa arhitekturom ličnih računara. Poznato je da se programi koji su prevedeni za jednu arhitekturu računara ne mogu izvršavati na računarima koji poseduju drugačiju arhitekturu. Greške u programima koji se izvršavaju na ugrađenim uređajima najčešće otklanjamo koristeći alate na ličnim računarima. GNU GDB alat, između ostalog, omogućava analiziranje i otklanjanje grešaka u programima koji se izvršavaju na drugim arhitekturama. Načini kroz koje se to može ostvariti jesu korišćenje GDB servera, uz korišćenje posebnih protokola, ili korišćenje datoteka jezgara.
+Datoteka jezgra može biti kreirana iz korisničkog nivoa, npr. baš uz pomoć GDB alata, ili prilikom neregularnog prekida izvršavanja programa samo jezgro operativnog sistema može krerati istu. Ona sadrži stanje radne memorije procesa prilikom rušenja ili prekidanja na neki drugi nestandardni način. Preciznije, one sadrže informacije o vrednostima promenljivih, vrednosti procesorskih registara, programske brojače, informacije o samom procesu, informacije o nitima itd. Tako kreiranu datoteku jezgra na gostujućoj arhitekturi učitavamo u GNU GDB alat na računaru sa arhitekturom domaćina i otklanjanje grešaka i analiza mogu da počnu.
+Ovaj rad, pored implementacije poboljšanja alata, opisuje i postupak korišćenja GNU GDB alata prilikom dobijanja vrednosti TLS promenljivih, koje predstavljaju promenljive lokalne za niti. Svaka nit ima svoju kopiju TLS promenljive i prilkom analiziranja programa značajno je pročitati vrednosti iz svih niti. Ključna reč, programskih jezika C i C++, koja se dodaje ispred definicije ili deklaracije promenljive je \texttt{\_\_thread}. Jeadan od slučajeva upotrebe takve promenljive je predstavljanje jedinstvenog broja koji označava grešku koju je prijavio program, pa ima smisla da je u različitim nitima ova promenljiva imala drugačiju vrednost. Različite arhitekture mogu imati različitu implementaciju TLS-a, te je njihovo čitanje iz alata GNU GDB dodatno otežano.
+Glavni doprinos rada predstavlja omogućavanje dohvatanja vrednosti TLS promenljive za sve procesorske arhitekture podržane u GNU GDB alatu na arhitekturi domaćina, čime se proširuju dostupne informacije za analizu programa drugih arhitektura.
+Rad se pored prvog uvodnog, sastoji još iz pet poglavlja. Drugo poglavlje opisuje motivacionu ideju. Treće poglavlje pruža informacije o zahtevanim karakteristikama samog programa koji se analizira. Četvrto poglavlje prikazuje detalje implementacije. U petom poglavlju je opisan precizan postupak prevođenja GNU GDB alata, dok je u šestom poglavlju predstavljen zaključak.
+
 
 % ------------------------------------------------------------------------------
 
@@ -676,7 +683,7 @@ Ovaj model pristupa dopušta referisanje samo na one TLS promenljive koje su dos
 \chapter{Implementacija rešenja}
 \label{chp:Implementacija}
 
-Kao što je napomenuto, TLS može biti različito implementiran za različite procesorske arhitekture. Može se smeštati u posebne registre, u određene delove memorije itd. GNU GDB alat mora poznavati sve arhitekturne razlike i anulirati ih na neki način. Implementacija ovog proširenja alata se upravo i zasniva na prethodnoj pretpostavci, te upravo to i realizuje. Istražene su implementacije TLS-a raznih arhitektura, kako u funkcijama GNU C biblioteke (poznatije kao \emph{glib}) \cite{GLIBC}, tako i karakteristike koje su ABI-jem propisane. Poboljšanje alata koje je uspešno realizovano se odnosi na verziju \emph{Multiarch} GNU GDB-a. Ukoliko je program koji je učitan u \emph{Multiarch} GNU GDB alat iste arhitekture kao arhitektura domaćina, zadržava se način dohvatanja vrednosti TLS promenljive kao u slučaju GNU GDB alata arhitekture domaćina, jer je ta funkcionalnost već implementirana. Treba napomenuti da je u razvoju i alternativno rešenje od strane programera iz kompanije \emph{Red Hat}[REF NA RedHat] u vidu projekta \emph{Infinity}[REF NA INFINITY]. Taj projekat ima ideju da obuhvati rešenja za razne probleme o debagovanju niti, ne samo obradu TLS-a. Prednost rešenja koji se predstavlja u ovom master radu jeste svakako ta što je cela funkcionalnost prepuštena samom GNU GDB alatu, te nema potrebe za instalacijom ili prevođenjem eksternih projekata. Sa tim u vidu se svakako dobija na uštedi korisničkog napora pri korišćenju debagera.
+Kao što je napomenuto, TLS može biti različito implementiran za različite procesorske arhitekture. Može se smeštati u posebne registre, u određene delove memorije itd. GNU GDB alat mora poznavati sve arhitekturne razlike i anulirati ih na neki način. Implementacija ovog proširenja alata se upravo i zasniva na prethodnoj pretpostavci, te upravo to i realizuje. Istražene su implementacije TLS-a raznih arhitektura, kako u funkcijama GNU C biblioteke (poznatije kao \emph{glib}) \cite{GLIBC}, tako i karakteristike koje su ABI-jem propisane. Poboljšanje alata koje je uspešno realizovano se odnosi na verziju \emph{Multiarch} GNU GDB-a. Ukoliko je program koji je učitan u \emph{Multiarch} GNU GDB alat iste arhitekture kao arhitektura domaćina, zadržava se način dohvatanja vrednosti TLS promenljive kao u slučaju GNU GDB alata arhitekture domaćina, jer je ta funkcionalnost već implementirana. Treba napomenuti da je u razvoju i alternativno rešenje od strane programera iz kompanije \emph{Red Hat}[REF NA RedHat] u vidu projekta \emph{Infinity}[REF NA INFINITY]. Taj projekat ima ideju da obuhvati rešenja za razne probleme o debagovanju niti, ne samo obradu TLS-a. Prednost rešenja koji se predstavlja u ovom master radu jeste svakako ta što je cela funkcionalnost prepuštena samom GNU GDB alatu, te nema potrebe za instalacijom ili prevođenjem eksternih projekata. Sa tim u vidu se svakako dobija na uštedi korisničkog napora pri korišćenju debagera. Izvorni kod alata i instrukcije za prevođenje i upotrebu debagera sa pobljšanjem za dohvatanje vrednosti TLS promenljive se može pronaći na strani [REF NA MOJ GITHUB gdbtls].
 
 \section{Detalji implementacije}
 
@@ -830,13 +837,15 @@ Posle izmene rezultati izvršavanja testova \emph{Multiarch} GNU GDB verzije ala
 
 Izvršavanje samo novo kreiranih testova koji dohvataju vrednost TLS promenljive iz datoteke jezgra generisane na nekoj nedomaćinskoj platformi:
 
-
-
 \section{Upotreba alata}
+
+Kao što je i napomenuto, da bi GNU GDB uspešno koristio naprednije tehinke analize višenitnih programa, uključujući i TLS, potrebno je da mu se prosledi putanja do \emph{libthread\_db} koja pripada istoj verziji standardne biblioteke kao i program koji se debaguje. To isto važi i za \emph{Multiarch} GNU GDB verziju alata. Nakon toga potrebno je dati putanju do biblioteka koje je program koristio na tom ugrađenom uređaju na kome se program izvršavao. Primetimo da te biblioteke pripadaju toj ciljanoj platformi. Debager neće izvršavati program koji se debaguje, već će samo rekonstruisati sliku stanja tog procesa kada je neočekivano prekinuo sa radom, čitajući inforamcije iz datoteke jezgra i deljenih biblioteka.
 
 % ------------------------------------------------------------------------------
 \chapter{Zaključak}
 % ------------------------------------------------------------------------------
+
+Oba predloga implementacije su poslata GNU zajednici i u toku je pregled i analiza implementacije, čija se diskusija može videti na [REF NA diskusiju]. I prvi i drugi način imaju svoje prednosti i mane. Mana prvog načina jeste ta što svaka promena arhitekturno zavisnih vrednosti promenljivih koje učestvuju u računanju lokacije TLS promenljive u \emph{glibc}-u zahteva izmenu i u GNU GDB-u što dodatno otežava održavanje koda. Drugi način zahteva izmene i u izvornom kodu GNU GDB-a i \emph{glibc}-a, ali ukoliko želimo da na sistemima arhitekture domaćina baratamo sa programima koji su prevedeni i izvršavani na nekim ciljnim arhitektura, što je za arhitekturu domaćina neprirodno, kompromisi jesu neophodni.
 
 % ------------------------------------------------------------------------------
 % Literatura
@@ -851,6 +860,7 @@ Izvršavanje samo novo kreiranih testova koji dohvataju vrednost TLS promenljive
 % ------------------------------------------------------------------------------
 % Biografija kandidata
 \begin{biografija}
+Đorđe Todorović, (Užice, 12. Avgust 1993.) Rođen sam u Užicu. Završio sam Gimnaziju u Požegi, Informatički smer, 2012.~godine i iste godine upisao Matematički fakultet u Beogradu. 2016. godine sam završio osnovne studije Matematički fakulteta i iste upisao master studije. Položio sam sve ispite sa master studija u septembru 2018.godine. Od novembra 2015. pa do sada radim kao inženjer u Naučno-istraivačkom institutu RT-RK. Do sada sam objavio nekoliko naučnih radova iz oblasti debagera i generisanja debag informacija od strane programskih prevodilaca. Na ovu temu opisanu u master radu sam objavio rad za naučnu konferenciju TELFOR [LINK KA TELFORU]. Trenutno radim na LLVM projektu, tačnije na poboljšanju tog prevodioca prilikom generisanja debag informacija.
 \end{biografija}
 % ------------------------------------------------------------------------------
 
