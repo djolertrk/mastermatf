@@ -42,6 +42,31 @@
 
 \usepackage{listings}
 
+\lstdefinestyle{customc}{
+	belowcaptionskip=1\baselineskip,
+	breaklines=true,
+	frame=L,
+	xleftmargin=\parindent,
+	language=C,
+	showstringspaces=false,
+	basicstyle=\footnotesize\ttfamily,
+	keywordstyle=\bfseries\color{green!40!black},
+	commentstyle=\itshape\color{purple!40!black},
+	identifierstyle=\color{blue},
+	stringstyle=\color{orange},
+}
+
+\lstdefinestyle{customasm}{
+	belowcaptionskip=1\baselineskip,
+	frame=L,
+	xleftmargin=\parindent,
+	language=[x86masm]Assembler,
+	basicstyle=\footnotesize\ttfamily,
+	commentstyle=\itshape\color{purple!40!black},
+}
+
+\lstset{escapechar=@,style=customc}
+
 % Datoteka sa literaturom u BibTex tj. BibLaTeX/Biber formatu
 \bib{DjordjeTodorovicMasterRad}
 
@@ -313,25 +338,26 @@ Domaćinski GNU GDB alat je preveden za istu procesorsku arhitekturu kao i raču
 \subsubsection{Prevođenje domaćinskog GNU GDB alata}
 
 Preuzimanje izvornog koda alata se radi sledećim komandama:
-\begin{lstlisting}
+\begin{lstlisting} [style=customasm]
 mkdir gdb
 cd gdb
 git pull http://gnu.org/gnu/gdb.git
 
 \end{lstlisting}
+
 \emph{ Prva komanda pravi direktorijum u kome se izgrađuje (prevodi) alat. Druga komanda vrši pozicioniranje trenutne putanje u taj direktorijum. Trećom komandom se preuzima izvorni kod alata.}
 
 Prvi korak prevođenja je konfiguracija direktorijuma u kome se prevođenje izvršava. Ovim komandama kreiramo \texttt{Makefile}:
-\begin{lstlisting}
+\begin{lstlisting} [style=customasm]
 mkdir build
 cd build
 ../configure
 
 \end{lstlisting}
-\emph{Prva i druga komanda redom prave direktorijum u kome se izgrađuje (prevodi) alat i pozicionira trenutnu putanju u njega. Trećom komandom se kreira \texttt{Makefile}. \texttt{configure} skripte na UNIX-olikim operativnim sistemima kao ulaz parsiraju \texttt{Makefile.in} skriptu podešavajući okruženje (putanje do deljenih biblioteka, programski prevodilac, itd.~) prilikom čega je krajnji izlaz fajl \texttt{Makefile} kojim se izgrađuje (prevodi) softver.}
+\emph{Prva komanda pravi direktorijum u kome se izgrađuje (prevodi) alat. Druga komanda vrši pozicioniranje trenutne putanje u taj direktorijum. Trećom komandom se kreira \texttt{Makefile}. \texttt{configure} skripte na UNIX-olikim operativnim sistemima kao ulaz parsiraju \texttt{Makefile.in} skriptu podešavajući okruženje (putanje do deljenih biblioteka, programski prevodilac, itd.~) prilikom čega je krajnji izlaz fajl \texttt{Makefile} kojim se izgrađuje (prevodi) softver.}
 
 Nakon konfiguracije direktorijuma prevođenje alata se vrši komandom:
-\begin{lstlisting}
+\begin{lstlisting} [style=customasm]
 make
 
 \end{lstlisting}
@@ -339,7 +365,7 @@ make
 \subsubsection{Pokretanje domaćinskog GNU GDB alata}
 
 GNU GDB očekuje kao argument komandne linije program koji je preveden za istu procesorsku arhitekturu. Ukoliko je trenutna putanja pozicionirana u direktorijum gde je izgrađen alat, pokretanje alata nad programom pod imenom \emph{a.~out} se vrši sledećom komandom:
-\begin{lstlisting}
+\begin{lstlisting} [style=customasm]
 ./gdb/gdb a.out
 
 \end{lstlisting}
@@ -423,7 +449,7 @@ Sadržaj datoteke jezgra je organizovan sekvencijalno sledećim redosledom:
 
 Datoteke jezgra se generišu ukoliko dođe do nepredviđenog prekida programa. To je podrazumevana akcija prilikom pojave signala operativnog sistema koji ukazuju na prekid rada programa. Jezgra UNIX-olikih operativnih sistema podrazumevano postavljaju dužinu datoteka jezgara na 0. To je razlog zašto na našim sistemima nemamo datoteku jezgra nakon npr.~ prekidanja programa uz poruku \emph{Segmentation fault}. Da bi se datoteke jezgra generisale, potrebno je eksplicitno promeniti dužinu datoteka jezgara koristeći komandu:
 
-\begin{lstlisting}
+\begin{lstlisting} [style=customasm]
 ulimit -c unlimited
 
 \end{lstlisting}
@@ -437,14 +463,14 @@ Datoteka jezgra se može generisati i iz korisničkog nivoa koristeći GNU GDB a
 \subsection{Prevođenje \emph{Multiarch} GNU GDB}
 
 Prvi korak je pozicioniranje u direktorijum sa izvornim kodom alata:
-\begin{lstlisting}
+\begin{lstlisting} [style=customasm]
 cd gdb
 
 \end{lstlisting}
 
 Sledeći korak je konfiguracija direktorijuma u kome se prevođenje izvršava. Ovim komandama kreiramo \texttt{Makefile} kojim odobravamo debagovanje svih podržanih arhitektura u alatu GBD (kao npr.~MIPS32, MIPS64, ARM, AARCH64, x86\_64, i386, SPARC):
 
-\begin{lstlisting}
+\begin{lstlisting} [style=customasm]
 mkdir build_multi
 cd build_multi
 ../configure --enable-targets=all
@@ -455,7 +481,7 @@ cd build_multi
 \subsection{Pokretanje \emph{Multiarch} GNU GDB}
 
 Ukoliko je trenutna putanja pozicionirana u direktorijum gde je izgrađen alat, pokretanje alata \emph{Multiarch} GDB nad programom pod imenom \emph{a.~out} se vrši na isti način kao i domaćinska verzija alata komandom:
-\begin{lstlisting}
+\begin{lstlisting} [style=customasm]
 ./gdb/gdb a.out
 
 \end{lstlisting}
