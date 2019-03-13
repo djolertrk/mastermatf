@@ -844,17 +844,103 @@ Faza testiranja je jako važan deo životnog ciklusa razvoja softvera, te je vel
 
 Takođe, implementirani su \emph{DejeGNU}(REF NA DEJAGNU) testovi koji testiraju dohvatanje vrednosti TLS promenljive iz datoteka jezgara razniih arhitektura. Zbog prirode problema koji se testira datoteke jezgra su generisane na različitim platformama i kompresovane zajedno sa izvršnim fajlom u \emph{gdb/testsuite/gdb.multi/}, te se prilikom izvršavanja konkretnih testova ti fajlovi raspakuju i učitavaju u debager. Testovi obuhvataju izvršne fajlove sa TLS-om generisanih sa 2.19 i 2.22 verzijama standardne biblioteke.
 
-Pre izmene rezultati izvršavanja testova \emph{Multiarch} GNU GDB verzije alata:
+Komanda alata kojom pokrećemo testove, ukoliko smo pozicionirani u direktorijumu gde je alat izrađen:
 
+\begin{lstlisting}
+make check
+\end{lstlisting}
+
+Pre izmene koja dodaje TLS funkcionalnost, rezultati izvršavanja testova \emph{Multiarch} GNU GDB verzije alata:
+
+\begin{lstlisting}
+		# of expected passes		33715
+		# of expected failures		196
+		# of known failures		    66
+		# of unresolved testcases	5
+		# of untested testcases		67
+		# of unsupported tests		219
+\end{lstlisting}
  
-Posle izmene rezultati izvršavanja testova \emph{Multiarch} GNU GDB verzije alata:
+Posle izmene koja dodaje TLS funkcionalnost, rezultati izvršavanja testova \emph{Multiarch} GNU GDB verzije alata:
 
+\begin{lstlisting}
+		=== gdb Summary ===
+
+		# of expected passes		33718
+		# of expected failures		196
+		# of known failures		    66
+		# of unresolved testcases	5
+		# of untested testcases		67
+		# of unsupported tests		219
+\end{lstlisting}
 
 Izvršavanje samo novo kreiranih testova koji dohvataju vrednost TLS promenljive iz datoteke jezgra generisane na nekoj nedomaćinskoj platformi:
 
 \section{Upotreba alata}
 
 Kao što je i napomenuto, da bi GNU GDB uspešno koristio naprednije tehinke analize višenitnih programa, uključujući i TLS, potrebno je da mu se prosledi putanja do \emph{libthread\_db} koja pripada istoj verziji standardne biblioteke kao i program koji se debaguje. To isto važi i za \emph{Multiarch} GNU GDB verziju alata. Nakon toga potrebno je dati putanju do biblioteka koje je program koristio na tom ugrađenom uređaju na kome se program izvršavao. Primetimo da te biblioteke pripadaju toj ciljanoj platformi. Debager neće izvršavati program koji se debaguje, već će samo rekonstruisati sliku stanja tog procesa kada je neočekivano prekinuo sa radom, čitajući inforamcije iz datoteke jezgra i deljenih biblioteka.
+
+
+Izvorni kod višenitnog programa koji se debaguje u primeru je napisan u programskom jeziku C i izgleda:
+
+\begin{lstlisting}
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <pthread.h>
+
+__thread int foo=0xdeadbeef;
+pthread_t threads[5];
+
+void* thread(void *e) {
+  int *i = (int*)e;
+  foo+=*i;
+  printf("foo is %x\n", foo);
+  sleep(10);
+  return (void*)0;
+}   
+
+int main()
+{
+  printf("init %x\n", foo);
+  int i;
+  for (i=0; i<5; i++) {
+    pthread_create(&threads[i], NULL, thread, &i);
+  }
+
+  for (i=0; i<5; i++) {
+    pthread_join(threads[i], NULL);
+  }
+
+  sleep(5);
+  abort();
+}
+
+\end{lstlisting}
+
+Prikaz korišćenja alata pre implementacije dohvatanja vrednosti TLS promenljive iz datoteke jezgra generisane na nekom ugrađenom uređaju je prikazan na slici \ref{fig:koriscenje_beztls}.
+
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.5]{slike/bez_tls_koriscenje.png}
+	\end{center}
+	\caption{Korišćenje alta prikom analize TLS promenljive pre implementacije poboljšanja.}
+	\label{fig:koriscenje_beztls}
+\end{figure}
+
+\emph{Prvom i drugom komandom alata se podešavaju putanje do standardne biblioteke za debagovanje niti koja ima istu verziju kao i izvršni fajl koji se debaguje. Trećom komandom se zadaje putanja do deljenih biblioteka koje je izvršni fajl koji se debaguje korsitio na ugrađenom uređaju. Četvrta komanda učitava izvršni fajl koji se debaguje. Petom komandom se učitava datoteka jezgra koja je generisana prilikom neočekivanog prekidanja izvršavanja fajla koji se debaguje. Poslednjom komandom se pokušava čitanje vrednosti TLS promenljive.}
+
+Prikaz korišćenja alata nakon implementacije dohvatanja vrednosti TLS promenljive iz datoteke jezgra generisane na nekom ugrađenom uređaju je prikazan na slici \ref{fig:koriscenje_tls}.
+
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.5]{slike/koriscenje_tls.png}
+	\end{center}
+	\caption{Korišćenje alta prikom analize TLS promenljive nakon implementacije poboljšanja.}
+	\label{fig:koriscenje_tls}
+\end{figure}
+
+\emph{Prvom i drugom komandom alata se podešavaju putanje do standardne biblioteke za debagovanje niti koja ima istu verziju kao i izvršni fajl koji se debaguje. Trećom komandom se zadaje putanja do deljenih biblioteka koje je izvršni fajl koji se debaguje korsitio na ugrađenom uređaju. Četvrta komanda učitava izvršni fajl koji se debaguje. Petom komandom se učitava datoteka jezgra koja je generisana prilikom neočekivanog prekidanja izvršavanja fajla koji se debaguje. Poslednjom komandom se uspešno čita vrednosti TLS promenljive.}
 
 % ------------------------------------------------------------------------------
 \chapter{Zaključak}
