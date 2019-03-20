@@ -379,41 +379,80 @@ Pokažimo neke od osnovnih komandi alata GNU GDB.
 
 \item{\emph{Postavljanje tačke prekida}}
 
-Postavljanje tačke prekida na funkciju programa koji se debaguje se vrši komandom \texttt{break}. Primer korišćenja je prikazan na slici \ref{fig:break-fn}. Program koji se debaguje se zaustavlja kada dostigne do određene funkcije.
+Postavljanje tačke prekida na funkciju programa koji se debaguje se vrši komandom \texttt{break}. Program koji se debaguje se zaustavlja kada dostigne do određene funkcije. Primer korišćenja postavljanja tačke prekida na funkciju (u ovom slučaju \texttt{fn1}):
 
-\begin{figure}[h!]
-	\begin{center}
-		\includegraphics[scale=0.5]{slike/break-fn.png}
-	\end{center}
-	\caption{Primer postavljanja tačke prekida na funkciju programa.}
-	\label{fig:break-fn}
-\end{figure}
+\begin{lstlisting} [style=customasm]
+(gdb) break fn1
+Breakpoint 1 at 0x4005fe: file test.c, line 4.
+(gdb) r
+Starting program: /home/rtrk/fax/master/master_examples/x86_arch/test 
+7
+Breakpoint 1, fn1 (arg=0x7fffffffdbf4) at test.c:4
+4		(*arg)++;
+\end{lstlisting}
 
 \item{\emph{Izvršavanje programa sekvencu po sekvencu}}
 
-Izvršavanje programa sekvencu po sekvencu se radi pomoću tehnike koračanja. Komanda u okviru alata GNU GDB koja nam omogućava izvršavanje instrukciju po instrukciju je \texttt{stepi}. Primer korišćenja \texttt{stepi} komande, uz pomoć korišćenja \texttt{disassemble} komande koja nam prikazuje asemblerski kod programa koji se debaguje je prikazan na slici \ref{fig:stepi}.
+Izvršavanje programa sekvencu po sekvencu se radi pomoću tehnike koračanja. Komanda u okviru alata GNU GDB koja nam omogućava izvršavanje instrukciju po instrukciju je \texttt{stepi}. Primer korišćenja \texttt{stepi} komande, uz pomoć korišćenja \texttt{disassemble} komande koja nam prikazuje asemblerski kod programa koji se debaguje:
 
-\begin{figure}[h!]
-	\begin{center}
-		\includegraphics[scale=0.5]{slike/stepi.png}
-	\end{center}
-	\caption{Primer izvršavanja pojedinačne instrukcije programa koji se debaguje.}
-	\label{fig:stepi}
-\end{figure}
+\begin{lstlisting} [style=customasm]
+(gdb) disassemble
+Dump of assembler code for function fn1:
+0x00000000004005f6 <+0>:	push   %rbp
+0x00000000004005f7 <+1>:	mov    %rsp,%rbp
+0x00000000004005fa <+4>:	mov    %rdi,-0x8(%rbp)
+=> 0x00000000004005fe <+8>:	mov    -0x8(%rbp),%rax
+0x0000000000400602 <+12>:	mov    (%rax),%eax
+0x0000000000400604 <+14>:	lea    0x1(%rax),%edx
+0x0000000000400607 <+17>:	mov    -0x8(%rbp),%rax
+0x000000000040060b <+21>:	mov    %edx,(%rax)
+0x000000000040060d <+23>:	mov    -0x8(%rbp),%rax
+0x0000000000400611 <+27>:	mov    (%rax),%eax
+0x0000000000400613 <+29>:	cmp    $0x5,%eax
+0x0000000000400616 <+32>:	jle    0x400627 <fn1+49>
+0x0000000000400618 <+34>:	mov    -0x8(%rbp),%rax
+0x0000000000400628 <+38>:	pop    %rbp
+0x0000000000400629 <+42>:	retq   
+End of assembler dump.
+(gdb) stepi
+0x0000000000400602	4		(*arg)++;
+(gdb) disassemble 
+Dump of assembler code for function fn1:
+0x00000000004005f6 <+0>:	push   %rbp
+0x00000000004005f7 <+1>:	mov    %rsp,%rbp
+0x00000000004005fa <+4>:	mov    %rdi,-0x8(%rbp)
+0x00000000004005fe <+8>:	mov    -0x8(%rbp),%rax
+=> 0x0000000000400602 <+12>:	mov    (%rax),%eax
+0x0000000000400604 <+14>:	lea    0x1(%rax),%edx
+0x0000000000400607 <+17>:	mov    -0x8(%rbp),%rax
+0x000000000040060b <+21>:	mov    %edx,(%rax)
+0x000000000040060d <+23>:	mov    -0x8(%rbp),%rax
+0x0000000000400611 <+27>:	mov    (%rax),%eax
+0x0000000000400613 <+29>:	cmp    $0x5,%eax
+0x0000000000400616 <+32>:	jle    0x400627 <fn1+49>
+0x0000000000400618 <+34>:	mov    -0x8(%rbp),%rax
+0x0000000000400628 <+38>:	pop    %rbp
+0x0000000000400629 <+42>:	retq   
+End of assembler dump.
+\end{lstlisting}
 
-Izvršavanje sledeće linije programa se radi korišćenjem komande \texttt{next}. Na slici \ref{fig:next} je prikazan primer korišćenja \texttt{next} komande.
+Izvršavanje sledeće linije programa se radi korišćenjem komande \texttt{next}. Primer korišćenja \texttt{next} komande:
 
-\begin{figure}[h!]
-	\begin{center}
-		\includegraphics[scale=0.5]{slike/next.png}
-	\end{center}
-	\caption{Primer izvršavanja sledeće linije programa koji se debaguje.}
-	\label{fig:next}
-\end{figure}
+\begin{lstlisting} [style=customasm]
+(gdb) r
+The program being debugged has been started already.
+Start it from the beginning? (y or n) y
+Starting program: /home/rtrk/fax/master/master_examples/x86_arch/test 
+4
+Breakpoint 1, fn1 (arg=0x7fffffffdbf4) at test.c:4
+4		(*arg)++;
+(gdb) next
+5	    if ((*arg) > 5)
+\end{lstlisting}
 
 \end{description}
 
-\newpage
+
 \section{Datoteke jezgra}
 
 Datoteka jezgra (eng.~\emph{core dump file}) je snimak (eng.~\emph{snapshot}) memorije programa, registara i ostalih sistemskih informacija u trenutku neočekivanog prekida rada programa. Veoma važnu ulogu ima u procesu debagovanja programa sa ugrađenih uređaja koji često pripadaju različitoj procesorskoj arhitekturi u odnosu na lični računar. Ugrađeni uređaji obično imaju ograničene resurse, pa često na takvim platformama ne postoji debager. Najčešća procedura debagovanja ovakvih programa jeste prebacivanje datoteke jezgra i programa na lični računar na kome se analiza problema odvija koristeći debager.
@@ -486,51 +525,69 @@ Spisak komandi koje se mogu koristiti korišćenjem \emph{Multiarch} verzije ala
 
 \subsubsection{Primer učitavanja datoteke jezgra u GNU GDB alat}
 
-Na slici \ref{fig:ucitavanje_core} prikazan je primer učitavanja datoteke jezgra programa čije izvršavanje je prekinuto od strane jezgra operativnog sistema. Komandom alata \texttt{core-file} se učitava datoteka jezgra u debager.
+Na primer ispod je prikazano učitavanje datoteke jezgra programa čije izvršavanje je prekinuto od strane jezgra operativnog sistema. Komandom alata \texttt{core-file} se učitava datoteka jezgra u debager.
 
-Da bi se izazvalo generisanje datoteke jezgra u izvornom kodu programa napisanog u C ili C++ programskom jeziku može se koristiti \texttt{abort()} funkcija iz standardne C biblioteke. U primeru na slici \ref{fig:ucitavanje_core} je pozvana ta funkcija koja je izazvala prekid programa uz signal \texttt{SIGABRT}. Tom prilikom jezgro operativnog sistema je napravilo datoteku jezgra sa imenom \emph{core}.
+Da bi se izazvalo generisanje datoteke jezgra u izvornom kodu programa napisanog u C ili C++ programskom jeziku može se koristiti \texttt{abort()} funkcija iz standardne C biblioteke. U primeru ispod je pozvana ta funkcija koja je izazvala prekid programa uz signal \texttt{SIGABRT}. Tom prilikom jezgro operativnog sistema je napravilo datoteku jezgra sa imenom \emph{core}.
+\begin{lstlisting} [style=customasm]
+(gdb) core-file core
+[New LWP 20586]
+[Thread debugging using libthread_db enabled]
+Using host libthread\_db library "/lib/x86\_64-linux-gnu/libthread\_db.so.1".
+Core was generated by `./test.core'.
+Program terminated with signal SIGABRT, Aborted.
+#0  0x00007fb229164428 in raise (sig=6) at raise.c:54
+\end{lstlisting}
 
-\begin{figure}[h!]
-	\begin{center}
-		\includegraphics[scale=0.5]{slike/ucitanje_core.png}
-	\end{center}
-	\caption{Primer učitavanja datoteke jezgra u GNU GDB.}
-	\label{fig:ucitavanje_core}
-\end{figure}
 
-Na slici \ref{fig:bt_core} je prikazan primer upotrebe komande alata GNU GDB \texttt{bt}. Ona se koristi za izlistavanje pozivanih funkcija programa. Stek okviri programa koji su prikazani na primeru potvrđuju da je u funkciji \texttt{main()} došlo do poziva \texttt{abort()} funkcije. Što je izazvalo prekid rada programa.
+Na primeru ispod je prikazana upotreba komande alata GNU GDB \texttt{bt}. Ona se koristi za izlistavanje pozivanih funkcija programa. Stek okviri programa koji su prikazani na primeru potvrđuju da je u funkciji \texttt{main()} došlo do poziva \texttt{abort()} funkcije. Što je izazvalo prekid rada programa.
 
-\begin{figure}[h!]
-	\begin{center}
-		\includegraphics[scale=0.5]{slike/bt_core.png}
-	\end{center}
-	\caption{Primer izlistavanja pozivanih funkcija koristeći alat GNU GDB uz pomoć datoteke jezgra.}
-	\label{fig:bt_core}
-\end{figure}
+\begin{lstlisting} [style=customasm]
+(gdb) bt
+#0  0x00007fb229164428 in raise (sig=6) at raise.c:54
+#1  0x00007fb22916602a in abort () at abort.c:89
+#2  0x0000000000400605 in main () at tls.c:18
+\end{lstlisting}
 
 \subsubsection{Analiza datoteke jezgra}
 
-Na slici \ref{fig:core1} je prikazan primer korišćenja alata \emph{Multiarch} GNU GDB. U primeru se vrši učitavanje datoteke jezgra generisane na uređaju sa ugrađenim računarom arhitekture MIPS. Uz datoteku jezgra učitavaju se izvršni fajl i deljene biblioteke koje izvršni fajl koristi na ciljanoj platfomi.
+Na primeru ispod je prikazan primer korišćenja alata \emph{Multiarch} GNU GDB. U primeru se vrši učitavanje datoteke jezgra generisane na uređaju sa ugrađenim računarom arhitekture MIPS. Uz datoteku jezgra učitavaju se izvršni fajl i deljene biblioteke koje izvršni fajl koristi na ciljanoj platfomi.
 
-\begin{figure}[h!]
-	\begin{center}
-		\includegraphics[scale=0.4]{slike/core1_new.png}
-	\end{center}
-	\caption{Primer učitavanja datoteke jezgra generisane na platformi sa arhitekturom MIPS.}
-	\label{fig:core1}
-\end{figure}
 
-Komanda \texttt{set solib-search-path \emph{dir}} alata GNU GDB korišćena u primeru na slici \ref{fig:core1} služi za navođenje direktorijuma iz kojeg debager treba da koristi deljene biblioteke za učitani program. Ta komanda je veoma bitna za debagovanje programa sa platformi drugih arhitektura, jer ukoliko putanja nije navedena debager koristi biblioteke na domaćinskoj mašini.
+\begin{lstlisting} [style=customasm]
+(gdb) set solib-search-path ~/fax/master/master_examples/mips_arch/
+(gdb) core-file ~/fax/master/master_examples/mips_arch/core
+warning: core file may not match specified executable file.
+[New LWP 21808]
+[New LWP 21813]
+[New LWP 21810]
+[New LWP 21809]
+[New LWP 21811]
+[New LWP 21812]
+Core was generated by `example222'.
+Program terminated with signal SIGABRT, Aborted.
+#0  0x00000000 in ?? ()
+[Current thread is 1 (LWP 21808)]
+\end{lstlisting}
 
-Na primeru sa slike \ref{fig:core2} je prikazana upotreba komande \texttt{info registers}. \emph{Multiarch} GNU GDB čita informaciju o arhitekturi programa koji se debaguje iz datoteke jezgra. Nakon toga čita vrednosti registara iz nje i ispisuje ih.
+Komanda \texttt{set solib-search-path \emph{dir}} alata GNU GDB korišćena u primeru na u prethodnom primeru služi za navođenje direktorijuma iz kojeg debager treba da koristi deljene biblioteke za učitani program. Ta komanda je veoma bitna za debagovanje programa sa platformi drugih arhitektura, jer ukoliko putanja nije navedena debager koristi biblioteke na domaćinskoj mašini.
 
-\begin{figure}[h!]
-	\begin{center}
-		\includegraphics[scale=0.5]{slike/core2.png}
-	\end{center}
-	\caption{Primer čitanja vrednosti registara korišćenjem \emph{Multiarch} GNU GDB iz datoteke jezgra generisane na MIPS platformi.}
-	\label{fig:core2}
-\end{figure}
+Na primeru ispod je prikazana upotreba komande \texttt{info registers}. \emph{Multiarch} GNU GDB čita informaciju o arhitekturi programa koji se debaguje iz datoteke jezgra. Nakon toga čita vrednosti registara iz nje i ispisuje ih.
+
+\begin{lstlisting} [style=customasm]
+(gdb) info registers 
+zero       at       v0       v1       a0       a1       a2       a3
+R0   00000000 00005530 00000000 00005530 00000000 00005530 00000000 00000006 
+t0       t1       t2       t3       t4       t5       t6       t7
+R8   00000000 00000000 00000000 7fcf4ca0 00000000 00000000 00000000 771c03f8 
+s0       s1       s2       s3       s4       s5       s6       s7
+R16  00000000 7719a684 00000000 00000000 00000000 00000002 ffffffff 8013d8a8 
+t8       t9       k0       k1       gp       sp       s8       ra
+R24  00000000 00000000 00000000 771c6490 00000000 77160634 00000000 7fcf4c20 
+sr       lo       hi      bad    cause       pc
+00000000 00000000 77165000 00000000 00b24608 00000000 
+fsr      fir
+00000000 00000000
+\end{lstlisting}
 
 \chapter{TLS}
 \label{chp:TLS}
