@@ -314,13 +314,13 @@ Za čitanje vrednosti promenljivih u programu, debager pretražuje DWARF stablo 
 \chapter{Alat GNU GDB}
 \label{chp:GDB}
 
-GNU GDB je alat koji omogućava uvid u događanja unutar drugog programa koji se nalazi u fazi izvršavanja, ili u slučaju neregularnog prekida izvršavanja programa uvid u to šta se dešavalo pa je do toga došlo. GDB debager takođe omogućava uvid u to šta se dešavalo sa programima i na platformama koje imaju različitu arhitekturu od domaćinske arhitekture. Da bi se to realizovalo koriste se GDB server, što se naziva udaljeno debagovanje, ili \emph{Multiarch} GNU GDB koji koristi biblioteke namenjene ciljanim arhitekturama. Programi koji mogu biti analizirani mogu biti napisani u raznim programskim jezicima, kao što su Ada, C, C++, Objective-C, Pascal. GNU GDB alat se može pokrenuti na najpopularnijim operativnim sistemima UNIX i Microsoft Windows varijanti. U radu se podrazumeva korišćenje UNIX-olikog operativnog sistema.
+GNU GDB je alat koji omogućava uvid u događanja unutar drugog programa koji se nalazi u fazi izvršavanja, ili u slučaju neregularnog prekida izvršavanja programa uvid u to šta se dešavalo pa je do toga došlo. GDB debager takođe omogućava uvid u to šta se dešavalo sa programima i na platformama koje imaju različitu arhitekturu od domaćinske arhitekture (eng.~\emph{host architecture}). Da bi se to realizovalo koriste se GDB server, što se naziva udaljeno debagovanje, ili \emph{Multiarch} GNU GDB koji koristi biblioteke namenjene ciljanim arhitekturama. Programi koji mogu biti analizirani mogu biti napisani u raznim programskim jezicima, kao što su Ada, C, C++, Objective-C, Pascal. GNU GDB alat se može pokrenuti na najpopularnijim operativnim sistemima UNIX i Microsoft Windows varijanti. U radu se podrazumeva korišćenje UNIX-olikog operativnog sistema.
 
 \section{Istorija alata}
 
 Izvorni kod alata GDB je originalno napisan od strane Ričarda Stolmana 1986. godine kao deo GNU sistema \cite{GDBDOC}. GDB je slobodan i besplatan softver realizovan pod \emph{GNU General Public License (GPL)}. Od 1990.~do 1993.~godine alat je održavao Džon Gilmor, a trenutno za održavanje alata je zadužena \emph{GDB Steering Committee} grupa, odobrena od strane FSF (eng.~\emph{Free Software Foundation}) \cite{FSF}.
 
-Poslednja verzija GNU GDB alata koja je realizovana je 8.2.1.
+Poslednja realizovana verzija alata GNU GDB je 8.2.1.
 
 \section{Šta je \emph{arhitektura} za GNU GDB?}
 
@@ -364,9 +364,9 @@ make
 
 \subsubsection{Pokretanje domaćinskog GNU GDB alata}
 
-GNU GDB očekuje kao argument komandne linije program koji je preveden za istu procesorsku arhitekturu. Ukoliko je trenutna putanja pozicionirana u direktorijum gde je izgrađen alat, pokretanje alata nad programom pod imenom \emph{a.~out} se vrši sledećom komandom:
+GNU GDB očekuje kao argument komandne linije program koji je preveden za istu procesorsku arhitekturu. Ukoliko je trenutna putanja pozicionirana u direktorijum gde je izgrađen alat, pokretanje alata nad programom pod imenom \emph{test} se vrši sledećom komandom:
 \begin{lstlisting} [style=customasm]
-./gdb/gdb a.out
+./gdb/gdb test
 
 \end{lstlisting}
 
@@ -395,7 +395,7 @@ Izvršavanje programa sekvencu po sekvencu se radi pomoću tehnike koračanja. K
 
 \begin{figure}[h!]
 	\begin{center}
-		\includegraphics[scale=0.5]{slike/next.png}
+		\includegraphics[scale=0.5]{slike/stepi.png}
 	\end{center}
 	\caption{Primer izvršavanja pojedinačne instrukcije programa koji se debaguje.}
 	\label{fig:stepi}
@@ -405,7 +405,7 @@ Izvršavanje sledeće linije programa se radi korišćenjem komande \texttt{next
 
 \begin{figure}[h!]
 	\begin{center}
-		\includegraphics[scale=0.5]{slike/stepi.png}
+		\includegraphics[scale=0.5]{slike/next.png}
 	\end{center}
 	\caption{Primer izvršavanja sledeće linije programa koji se debaguje.}
 	\label{fig:next}
@@ -416,7 +416,7 @@ Izvršavanje sledeće linije programa se radi korišćenjem komande \texttt{next
 \newpage
 \section{Datoteke jezgra}
 
-Datoteka jezgra (eng.~\emph{core dump file}) je snimak (eng.~\emph{snapshot}) memorije programa, registara i ostalih sistemskih informacija u trenutku neočekivanog prekida rada programa. Veoma važnu ulogu ima u procesu debagovanja programa sa ugrađenih uređaja koji često pripadaju različitoj procesorskoj arhitekturi u odnosu na lični računar. Ugrađeni uređaji obično imaju ograničene resurse, pa često na takvim platformama ne postoji deabger. Najčešća procedura debagovanja ovakvih programa jeste prebacivanje datoteke jezgra i programa na lični računar na kome se analiza problema odvija koristeći debager.
+Datoteka jezgra (eng.~\emph{core dump file}) je snimak (eng.~\emph{snapshot}) memorije programa, registara i ostalih sistemskih informacija u trenutku neočekivanog prekida rada programa. Veoma važnu ulogu ima u procesu debagovanja programa sa ugrađenih uređaja koji često pripadaju različitoj procesorskoj arhitekturi u odnosu na lični računar. Ugrađeni uređaji obično imaju ograničene resurse, pa često na takvim platformama ne postoji debager. Najčešća procedura debagovanja ovakvih programa jeste prebacivanje datoteke jezgra i programa na lični računar na kome se analiza problema odvija koristeći debager.
 
 \subsection{Struktura datoteke jezgra}
 
@@ -425,40 +425,34 @@ Datoteke jezgra sadrže razne informacije iz memorije programa uključujući i v
 Sadržaj datoteke jezgra je organizovan sekvencijalno sledećim redosledom:
 
 \begin{description}
-	\item \emph{Zaglavlje}
-	
+	\item[Zaglavlje.]
 	Sadrži osnovne informacije o datoteci jezgra i pomeraje (eng.\emph{~offset}) kojima se lociraju ostale informacije iz nje.
-	\item \emph{ldinfo strukture}
-	
+	\item[\texttt{ldinfo} strukture.]   
 	Definiše informacije relevantne za dinamički loader.
-	\item \emph{mstsave strukture}
-	
+	\item[\texttt{mstsave} strukture.]
 	Definiše informacije relevantne za sistemske niti.
-	\item \emph{Korisnički stek}
-	
+	\item[Korisnički stek.]
 	Sadrži kopiju korisničkog steka u trenutku pucanja programa.
-	\item \emph{Segment podataka}
-	
+	\item[Segment podataka.]   
 	Sadrži kopiju segmenta podataka u trenutku pucanja programa.
-	\item \emph{Memorijski mapirani regioni i vm\_info strukture}
-	
+	\item[Memorijski mapirani regioni i \texttt{vm\_info} strukture.]
 	Sadrži informacije o pomerajima i dužinama mapiranih regiona.
 \end{description}
 
 \subsection{Generisanje datoteke jezgra}
 
-Datoteke jezgra se generišu ukoliko dođe do nepredviđenog prekida programa. To je podrazumevana akcija prilikom pojave signala operativnog sistema koji ukazuju na prekid rada programa. Jezgra UNIX-olikih operativnih sistema podrazumevano postavljaju dužinu datoteka jezgara na 0. To je razlog zašto na našim sistemima nemamo datoteku jezgra nakon npr.~ prekidanja programa uz poruku \emph{Segmentation fault}. Da bi se datoteke jezgra generisale, potrebno je eksplicitno promeniti dužinu datoteka jezgara koristeći komandu:
+Datoteke jezgra se generišu ukoliko dođe do nepredviđenog prekida programa. To je podrazumevana akcija prilikom pojave signala operativnog sistema koji ukazuju na prekid rada programa. Jezgra UNIX-olikih operativnih sistema podrazumevano postavljaju dužinu datoteka jezgara na 0. To je razlog zašto na našim sistemima nemamo datoteku jezgra nakon npr.~prekidanja programa uz poruku \emph{Segmentation fault}. Da bi se datoteke jezgra generisale, potrebno je eksplicitno promeniti dužinu datoteka jezgara koristeći komandu:
 
 \begin{lstlisting} [style=customasm]
 ulimit -c unlimited
 
 \end{lstlisting}
 
-Datoteka jezgra se može generisati i iz korisničkog nivoa koristeći GNU GDB alat komandom \texttt{gcore}.
+Datoteka jezgra se može generisati i iz korisničkog nivoa koristeći alat GNU GDB komandom \texttt{gcore}.
 
 \section{\emph{Multiarch} GNU GDB}
 
-\emph{Multiarch} GNU GDB je verzija alata koja može da debaguje programe sa platformi različitih arhitektura. Alat na korisničkom nivou emulira instrukcije i registre ciljanih platformi. Potrebne su mu i deljene biblioteke za tu ciljanu platformu koje koristi program koji se debaguje. Skup komandi alata je limitiran u odnosu na \emph{domaćinski} GDB.
+\emph{Multiarch} GNU GDB je verzija alata koja može da debaguje programe sa platformi različitih arhitektura. Alat na korisničkom nivou emulira instrukcije i registre ciljanih platformi. Potrebne su mu i deljene biblioteke za tu ciljanu platformu koje koristi program koji se debaguje. Skup komandi alata je limitiran u odnosu na domaćinski GDB.
 
 \subsection{Prevođenje \emph{Multiarch} GNU GDB}
 
@@ -476,13 +470,13 @@ cd build_multi
 ../configure --enable-targets=all
 
 \end{lstlisting}
-\emph{Prva komanda pravi direktorijum u kome se izgrađuje (prevodi) alat. Druga komanda vrši pozicioniranje trenutne putanje u taj direktorijum. Trećom komandom se kreira \texttt{Makefile}. Pošto je prilikom konfiguracije navedena opcija \texttt{--enable-targets=all} time je omogućeno prevođenje alata za sve podržane arhitekture. Takođe je moguće konfigurisati prevođenje za samo određene arhitekture navodeći eksplicitno opciju \texttt{--enable-targets=mips-linux-gnu, arm-linux-gnu} kojom se navode ciljane procesorske arhitekture. Osnovna razlika između \texttt{Makefile}-ova domaćinske i \texttt{Multiarch} verzije debagera je ta što je za domaćinski alat potrebno okruženje (deljene biblioteke, programski prevodilac, itd.) samo za domaćinsku arhitekturu. Za \texttt{Multiarch} verziju alata potrebno je pronaći putanje do programskog prevodioca i deljenih biblioteka za ciljane platforme navedene opcijom \texttt{--enable-targets=}. Ukoliko konfiguracione skripte ne pronađu ciljano okruženje za neku od navedenih arhitektura, ta će biti ignorisana.}
+\emph{Prva komanda pravi direktorijum u kome se izgrađuje (prevodi) alat. Druga komanda vrši pozicioniranje trenutne putanje u taj direktorijum. Trećom komandom se kreira \texttt{Makefile}. Pošto je prilikom konfiguracije navedena opcija \texttt{--enable-targets=all} time je omogućeno prevođenje alata za sve podržane arhitekture. Takođe je moguće konfigurisati prevođenje za samo određene arhitekture navodeći eksplicitno opciju kojom se navode ciljane procesorske arhitekture, npr.~\texttt{–enable-targets=mips-linux-gnu} za arhitekturu MIPS ili \texttt{–enable-targets=arm-linux-gnu} za arhitekturu ARM. Osnovna razlika između \texttt{Makefile}-ova domaćinske i \texttt{Multiarch} verzije debagera je ta što je za domaćinski alat potrebno okruženje (deljene biblioteke, programski prevodilac, itd.) samo za domaćinsku arhitekturu. Za \texttt{Multiarch} verziju alata potrebno je pronaći putanje do programskog prevodioca i deljenih biblioteka za ciljane platforme navedene opcijom \texttt{--enable-targets=}. Ukoliko konfiguracione skripte ne pronađu ciljano okruženje za neku od navedenih arhitektura, ta će biti ignorisana.}
 
 \subsection{Pokretanje \emph{Multiarch} GNU GDB}
 
-Ukoliko je trenutna putanja pozicionirana u direktorijum gde je izgrađen alat, pokretanje alata \emph{Multiarch} GDB nad programom pod imenom \emph{a.~out} se vrši na isti način kao i domaćinska verzija alata komandom:
+Ukoliko je trenutna putanja pozicionirana u direktorijum gde je izgrađen alat, pokretanje alata \emph{Multiarch} GDB nad programom pod imenom \emph{test} se vrši na isti način kao i domaćinska verzija alata komandom:
 \begin{lstlisting} [style=customasm]
-./gdb/gdb a.out
+./gdb/gdb test
 
 \end{lstlisting}
 
@@ -516,7 +510,7 @@ Na slici \ref{fig:bt_core} je prikazan primer upotrebe komande alata GNU GDB \te
 
 \subsubsection{Analiza datoteke jezgra}
 
-Na slici \ref{fig:core1} je prikazan primer koristećenja alata \emph{Multiarch} GNU GDB. U primeru se vrši učitavanje datoteke jezgra generisane na ugrađenom uređaju arhitekture MIPS. Uz datoteku jezgra učitavaju se izvršni fajl i deljene biblioteke koje izvršni fajl koristi na ciljanoj platfomi.
+Na slici \ref{fig:core1} je prikazan primer korišćenja alata \emph{Multiarch} GNU GDB. U primeru se vrši učitavanje datoteke jezgra generisane na uređaju sa ugrađenim računarom arhitekture MIPS. Uz datoteku jezgra učitavaju se izvršni fajl i deljene biblioteke koje izvršni fajl koristi na ciljanoj platfomi.
 
 \begin{figure}[h!]
 	\begin{center}
@@ -526,7 +520,7 @@ Na slici \ref{fig:core1} je prikazan primer koristećenja alata \emph{Multiarch}
 	\label{fig:core1}
 \end{figure}
 
-Komanda \texttt{set solib-search-path \emph{dir}} alata GNU GDB korišćena u primeru na sici \ref{fig:core1} služi za navođenje direktorijuma iz kojeg debager treba da koristi deljene biblioteke za učitani program. Ta komanda je veoma bitna za debagovanje programa sa platformi drugih arhitektura, jer ukoliko putanja nije navedena debager koristi biblioteke na domaćinskoj mašini.
+Komanda \texttt{set solib-search-path \emph{dir}} alata GNU GDB korišćena u primeru na slici \ref{fig:core1} služi za navođenje direktorijuma iz kojeg debager treba da koristi deljene biblioteke za učitani program. Ta komanda je veoma bitna za debagovanje programa sa platformi drugih arhitektura, jer ukoliko putanja nije navedena debager koristi biblioteke na domaćinskoj mašini.
 
 Na primeru sa slike \ref{fig:core2} je prikazana upotreba komande \texttt{info registers}. \emph{Multiarch} GNU GDB čita informaciju o arhitekturi programa koji se debaguje iz datoteke jezgra. Nakon toga čita vrednosti registara iz nje i ispisuje ih.
 
@@ -534,7 +528,7 @@ Na primeru sa slike \ref{fig:core2} je prikazana upotreba komande \texttt{info r
 	\begin{center}
 		\includegraphics[scale=0.5]{slike/core2.png}
 	\end{center}
-	\caption{Primer čitanja vrednsoti registara korišćenjem \emph{Multiarch} GNU GDB iz datoteke jezgra generisane na MIPS platformi.}
+	\caption{Primer čitanja vrednosti registara korišćenjem \emph{Multiarch} GNU GDB iz datoteke jezgra generisane na MIPS platformi.}
 	\label{fig:core2}
 \end{figure}
 
@@ -904,7 +898,7 @@ Izvršavanje samo novo kreiranih testova koji dohvataju vrednost TLS promenljive
 
 \section{Upotreba alata}
 
-Kao što je i napomenuto, da bi GNU GDB uspešno koristio naprednije tehinke analize višenitnih programa, uključujući i TLS, potrebno je da mu se prosledi putanja do \emph{libthread\_db} koja pripada istoj verziji standardne biblioteke kao i program koji se debaguje. To isto važi i za \emph{Multiarch} GNU GDB verziju alata. Nakon toga potrebno je dati putanju do biblioteka koje je program koristio na tom ugrađenom uređaju na kome se program izvršavao. Primetimo da te biblioteke pripadaju toj ciljanoj platformi. Debager neće izvršavati program koji se debaguje, već će samo rekonstruisati sliku stanja tog procesa kada je neočekivano prekinuo sa radom, čitajući inforamcije iz datoteke jezgra i deljenih biblioteka.
+Kao što je i napomenuto, da bi GNU GDB uspešno koristio naprednije tehinke analize višenitnih programa, uključujući i TLS, potrebno je da mu se prosledi putanja do \emph{libthread\_db} koja pripada istoj verziji standardne biblioteke kao i program koji se debaguje. To isto važi i za \emph{Multiarch} GNU GDB verziju alata. Nakon toga potrebno je dati putanju do biblioteka koje je program koristio na tom na uređaju sa ugrađenim računarom na kome se program izvršavao. Primetimo da te biblioteke pripadaju toj ciljanoj platformi. Debager neće izvršavati program koji se debaguje, već će samo rekonstruisati sliku stanja tog procesa kada je neočekivano prekinuo sa radom, čitajući inforamcije iz datoteke jezgra i deljenih biblioteka.
 
 
 Izvorni kod višenitnog programa koji se debaguje u primeru je napisan u programskom jeziku C i izgleda:
@@ -944,7 +938,7 @@ int main()
 
 \end{lstlisting}
 
-Prikaz korišćenja alata pre implementacije dohvatanja vrednosti TLS promenljive iz datoteke jezgra generisane na nekom ugrađenom uređaju je prikazan na slici \ref{fig:koriscenje_beztls}.
+Prikaz korišćenja alata pre implementacije dohvatanja vrednosti TLS promenljive iz datoteke jezgra generisane na nekom uređaju sa ugrađenim računarom je prikazan na slici \ref{fig:koriscenje_beztls}.
 
 \begin{figure}[h!]
 	\begin{center}
@@ -954,9 +948,9 @@ Prikaz korišćenja alata pre implementacije dohvatanja vrednosti TLS promenljiv
 	\label{fig:koriscenje_beztls}
 \end{figure}
 
-\emph{Prvom i drugom komandom alata se podešavaju putanje do standardne biblioteke za debagovanje niti koja ima istu verziju kao i izvršni fajl koji se debaguje. Trećom komandom se zadaje putanja do deljenih biblioteka koje je izvršni fajl koji se debaguje korsitio na ugrađenom uređaju. Četvrta komanda učitava izvršni fajl koji se debaguje. Petom komandom se učitava datoteka jezgra koja je generisana prilikom neočekivanog prekidanja izvršavanja fajla koji se debaguje. Poslednjom komandom se pokušava čitanje vrednosti TLS promenljive.}
+\emph{Prvom i drugom komandom alata se podešavaju putanje do standardne biblioteke za debagovanje niti koja ima istu verziju kao i izvršni fajl koji se debaguje. Trećom komandom se zadaje putanja do deljenih biblioteka koje je izvršni fajl koji se debaguje korsitio na uređaju sa ugrađenim računarom. Četvrta komanda učitava izvršni fajl koji se debaguje. Petom komandom se učitava datoteka jezgra koja je generisana prilikom neočekivanog prekidanja izvršavanja fajla koji se debaguje. Poslednjom komandom se pokušava čitanje vrednosti TLS promenljive.}
 
-Prikaz korišćenja alata nakon implementacije dohvatanja vrednosti TLS promenljive iz datoteke jezgra generisane na nekom ugrađenom uređaju je prikazan na slici \ref{fig:koriscenje_tls}.
+Prikaz korišćenja alata nakon implementacije dohvatanja vrednosti TLS promenljive iz datoteke jezgra generisane na nekom uređaju sa ugrađenim računarom je prikazan na slici \ref{fig:koriscenje_tls}.
 
 \begin{figure}[h!]
 	\begin{center}
@@ -966,7 +960,7 @@ Prikaz korišćenja alata nakon implementacije dohvatanja vrednosti TLS promenlj
 	\label{fig:koriscenje_tls}
 \end{figure}
 
-\emph{Prvom i drugom komandom alata se podešavaju putanje do standardne biblioteke za debagovanje niti koja ima istu verziju kao i izvršni fajl koji se debaguje. Trećom komandom se zadaje putanja do deljenih biblioteka koje je izvršni fajl koji se debaguje korsitio na ugrađenom uređaju. Četvrta komanda učitava izvršni fajl koji se debaguje. Petom komandom se učitava datoteka jezgra koja je generisana prilikom neočekivanog prekidanja izvršavanja fajla koji se debaguje. Poslednjom komandom se uspešno čita vrednosti TLS promenljive.}
+\emph{Prvom i drugom komandom alata se podešavaju putanje do standardne biblioteke za debagovanje niti koja ima istu verziju kao i izvršni fajl koji se debaguje. Trećom komandom se zadaje putanja do deljenih biblioteka koje je izvršni fajl koji se debaguje korsitio na uređaju sa ugrađenim računarom. Četvrta komanda učitava izvršni fajl koji se debaguje. Petom komandom se učitava datoteka jezgra koja je generisana prilikom neočekivanog prekidanja izvršavanja fajla koji se debaguje. Poslednjom komandom se uspešno čita vrednosti TLS promenljive.}
 
 % ------------------------------------------------------------------------------
 \chapter{Zaključak}
