@@ -640,8 +640,7 @@ Implementacija ovog mehanizma zahteva promenu okruženja izvršavanja programa. 
 
 \section{Definisanje novih podataka u ELF-u}
 
-Izmene u fajl formatu izvršnih fajlova, potrebne za emitovanje TLS objekata su minimalni. Umesto smeštanja promenljivih u sekcije \texttt{.data} i \texttt{.bss} za inicijalizovane i neinicijalizovane promenljive redom, TLS promenljive se smeštaju u \texttt{.tdata} i \texttt{.tbss} sekcije \cite{TLS}. Nove sekcije se od originalnih razlikuju u samo jednom dodatnom sekcijskom flegu. Sekcijaska tabela koja opisuje nove sekcije je prikazana na \ref{tab:tls_secs}. Kao što se može primetiti jedina razlika u odnosu na normalne sekcije podataka jeste fleg \texttt{SHF\_TLS}.
-
+Izmene u fajl formatu izvršnih fajlova, potrebne za emitovanje TLS objekata su minimalni. Umesto smeštanja inicijalizovanih promenljivih u sekciju \texttt{.data} ili neinicijalizovanih promenljivih u \texttt{.bss} sekciju, TLS promenljive se smeštaju u \texttt{.tdata} i \texttt{.tbss} sekcije \cite{TLS}. Nove sekcije se od originalnih razlikuju u samo jednom dodatnom sekcijskom flegu. Sekcijaska tabela koja opisuje nove sekcije je prikazana na \ref{tab:tls_secs}. Kao što se može primetiti jedina razlika u odnosu na normalne sekcije podataka jeste fleg \texttt{SHF\_TLS}.
 
 
 \begin{table}
@@ -665,9 +664,9 @@ Izmene u fajl formatu izvršnih fajlova, potrebne za emitovanje TLS objekata su 
 \end{table}
 
 
-Imena novih sekcija, kao ni ostalih u fajl formatu ELF, nisu bitna. Linker će svaku sekciju tipa \texttt{SHT\_PROGBITS} sa dodatnim flegom \texttt{SHF\_TLS} tretirati kao \texttt{.tdata}, dok će sekcije tipa \texttt{SHT\_NOBITS} sa dodatnim \texttt{SHF\_TLS} tretirati kao \texttt{.tbss} sekciju. Odgovornost proizvođača ovakvih sekcija, obično programskih prevodioca, je da pravilno generiše sva polja prikazana na slici \ref{fig:tls_secs}.
+Imena novih sekcija, kao ni ostalih u fajl formatu ELF, nisu bitna. Linker će svaku sekciju tipa \texttt{SHT\_PROGBITS} sa dodatnim flegom \texttt{SHF\_TLS} tretirati kao \texttt{.tdata}, dok će sekcije tipa \texttt{SHT\_NOBITS} sa dodatnim \texttt{SHF\_TLS} tretirati kao \texttt{.tbss} sekciju. Odgovornost proizvođača ovakvih sekcija, obično programskih prevodioca, je da pravilno generiše sva polja prikazana u tebeli \ref{tab:tls_secs}.
 
-Za razliku od normalnih \texttt{.data} sekcija program koji se izvršava ne koristi \texttt{.tdata} sekciju direktno. Ta sekcija je moguće modifikovana u vreme pokretanja programa, od strane dinamičkog punilaca. Prilikom pokretanja programa, prva akcija jeste realokaciju koju izvršava dinamički punilac. Nakon toga podaci lokalni za niti se smeštaju u deo koji se naziva inicijalizaciona slika (\emph{eng.~initialization image}) i ona se ne modifikuje više nakon toga. Za svaku nit, uključujući i inicijalnu, nova memorija se alocira gde se kopira inicijalizaciona slika. Ovim se omogućava da svaka nit ima identičan početni sadržaj. Kako ne postoji samo jedna adresa koja ukazuje na simbol TLS promenljive, normalna tabela simbola ne može biti korišćena za njih. U izvršnom fajlu polje \texttt{st\_value} ne sadrži apsolutnu adresu promenljive prilikom izvrašavanja programa, jer apsolutna adresa nije poznata prilikom prevođenja programa. Iz tog razloga  je uveden novi tip simbola (\texttt{STT\_TLS}). Svaki simbol koji referiše na TLS ima takav tip simbola. Izvršni fajlovi u polju \texttt{st\_value} imaju vrednost ofseta promenljive u TLS inicijalizacionoj slici.
+Za razliku od normalnih \texttt{.data} sekcija program koji se izvršava ne koristi \texttt{.tdata} sekciju direktno. Ta sekcija je moguće modifikovana u vreme pokretanja programa, od strane dinamičkog punilaca. Prilikom pokretanja programa, prva akcija jeste realokacija koju izvršava dinamički punilac. Nakon toga podaci lokalni za niti se smeštaju u deo koji se naziva inicijalizaciona slika (\emph{eng.~initialization image}) i ona se ne modifikuje više nakon toga. Za svaku nit, uključujući i inicijalnu, nova memorija se alocira gde se kopira inicijalizaciona slika. Ovim se omogućava da svaka nit ima identičan početni sadržaj. Kako ne postoji samo jedna adresa koja ukazuje na simbol TLS promenljive, normalna tabela simbola ne može biti iskorišćena. U izvršnom fajlu polje \texttt{st\_value} ne sadrži apsolutnu adresu promenljive prilikom izvrašavanja programa, jer apsolutna adresa nije poznata prilikom prevođenja programa. Iz tog razloga  je uveden novi tip simbola (\texttt{STT\_TLS}). Svaki simbol koji referiše na TLS ima takav tip simbola. Izvršni fajlovi u polju \texttt{st\_value} imaju vrednost pomeraja promenljive u TLS inicijalizacionoj slici.
 Nijedna realokacija ne sme pristupati simbolima tipa \texttt{STT\_TLS}, osim onih koji su uvedene za rukovanje TLS-om. Takođe, te nove realokacije ne smeju koristi simbole ostalih tipova.
 
 Da bi dinamički linker mogao da izvrši inicijalizaciju inicijalizacione slike, njena pozicija koja će biti prilkom izvršavanja programa mora biti zapisana negde. Originalno zaglavlje programa nije korisno, pa je novo zaglavlje definisano. To proširenje je prikazano u tabeli \ref{tab:tls_prheader}.
@@ -694,7 +693,7 @@ Da bi dinamički linker mogao da izvrši inicijalizaciju inicijalizacione slike,
 
 
 
-Svaka TLS promenljiva je identifikovana pomoću ofseta od početka TLS sekcije. U memoriji, \texttt{.tbss} sekcija je alocirana odmah nakon \texttt{.tdata} sekcije. Nijedna virtualna adresa ne može biti izračunata prilikom povezivanja (\emph{eng.~link time}).
+Svaka TLS promenljiva je identifikovana pomoću pomeraja od početka TLS sekcije. U memoriji, \texttt{.tbss} sekcija je alocirana odmah nakon \texttt{.tdata} sekcije. Nijedna virtualna adresa ne može biti izračunata prilikom povezivanja (\emph{eng.~link time}).
 
 \section{Rukovanje TLS-om tokom izvršavanja programa}
 
@@ -702,9 +701,9 @@ Kao što je napomenuto, obrada podataka lokalnih za niti nije prosta kao obrada 
 
 Mehanizami koji potpomažu izvršavanje programa bi trebalo da zaobiđu kreiranje podataka lokalnih za niti ako to nije neophodno. Npr.~učitani modul može biti korišćen samo od strane jedne niti, od više kreiranih koje čine taj određeni proces. Bilo bi samo uzaludno gubljenje memorije i vremena za alociranje tih podataka za sve niti. Lenji metod je poželjan za ovakve situacije.
 
-Nije samo alociranje memorije problem za korišćenje TLS-a. Pravila potrage za simbolima (\emph{eng.~symbol lookup}) u izvršnim fajlovima sa ELF formatom ne dozvoljavaju određivanje objekta koji sadrži korišćenu definiciju u vremenu povezivanja. I ako taj objekat nije poznat, ofset od te promenljive unutar prostora lokalnog za niti za taj objekat ne može biti određen takođe. Prema tome, normalan proces povezivanja ne može biti korišćen za ovakve situacije.
+Nije samo alociranje memorije problem za korišćenje TLS-a. Pravila potrage za simbolima (\emph{eng.~symbol lookup}) u izvršnim fajlovima sa ELF formatom ne dozvoljavaju određivanje objekta koji sadrži korišćenu definiciju u vremenu povezivanja. I ako taj objekat nije poznat, pomeraj od te promenljive unutar prostora lokalnog za niti za taj objekat ne može biti određen takođe. Prema tome, normalan proces povezivanja ne može biti korišćen za ovakve situacije.
 
-Promenljiva lokalna za nit je identifikovana sa referencom na objekat i ofsetom te promenljive unutar prostora lokalnog za niti. Da bi mapirali ove vrednosti u virtualne adrese, mehanizam izvršavanja programa zahteva strukture podataka koje nisu postojale do tada. One moraju biti sposobne da mapiraju referencu objekta u neku adresu u određenom prostoru lokalnog za niti. Da bi se to omogućilo definisane su dve varijante struktura podataka. Različite procesorske arhitekture mogu odabrati jedan od ova dva pristupa, ali to mora biti propisano ABI-jem za tu arhitekturu. Jedan od razloga za korišćenje druge varijante modela je istorijski. Neke arhitekture su dizajnirale sadržaj nitne memorije na koju pokazuje nitni registar tako da nisu kompatibilne za korišćenje prve varijante TLS strukture.
+Promenljiva lokalna za nit je identifikovana sa referencom na objekat i pomerajem te promenljive unutar prostora lokalnog za niti. Da bi mapirali ove vrednosti u virtualne adrese, mehanizam izvršavanja programa zahteva strukture podataka koje nisu postojale do tada. One moraju biti sposobne da mapiraju referencu objekta u neku adresu u određenom prostoru lokalnog za niti. Da bi se to omogućilo definisane su dve varijante struktura podataka. Različite procesorske arhitekture mogu odabrati jedan od ova dva pristupa, ali to mora biti propisano ABI-jem za tu arhitekturu. Jedan od razloga za korišćenje druge varijante modela je istorijski. Neke arhitekture su dizajnirale sadržaj nitne memorije na koju pokazuje nitni registar tako da nisu kompatibilne za korišćenje prve varijante TLS strukture.
 
 \begin{figure}[h!]
 	\begin{center}
@@ -714,11 +713,11 @@ Promenljiva lokalna za nit je identifikovana sa referencom na objekat i ofsetom 
 	\label{fig:tls_model1}
 \end{figure}
 
-Na slici \ref{fig:tls_model1} je prikazan primer prve varijante TLS strukture podataka. Nitni registar za nit \texttt{t} je označen sa \texttt{tpt}. On pokazuje na nitni kontrolni blok \texttt{TCB} (\emph{eng.~Thread Control Block}), koji na ofsetu nula sadrži pokazivač na nitni dinamički vektor \texttt{dtvt} za tu određenu nit.
+Na slici \ref{fig:tls_model1} je prikazan primer prve varijante TLS strukture podataka. Nitni registar za nit \texttt{t} je označen sa \texttt{$tp_t$}. On pokazuje na nitni kontrolni blok \texttt{TCB} (\emph{eng.~Thread Control Block}), koji na pomeraju nula sadrži pokazivač na nitni dinamički vektor \texttt{$dtv_t$} za tu određenu nit.
 
-Nitni dinamički vektor kao svoje prvo polje sadrži generacioni broj \texttt{gent} koji se koristi pri promeni veličine \texttt{dtvt} i alokacije TLS blokova. Ostala polja sadrže pokazivače na TLS blokove za različite učitane module. TLS blokovi za module koji se učitavaju pri pokretanju programa su smeštena direktno nakon TCB-a i stoga ima arhitekturalno specifičan, fiksni, ofset od adrese na nitni pokazivač. Za sve inicijalno dostupne module ofset svakog TLS bloka, s'tim i ofset TLS promenljive, u odnosu na TCB mora biti fiksan nakon pokretanja programa.
+Nitni dinamički vektor kao svoje prvo polje sadrži generacioni broj \texttt{$gen_t$} koji se koristi pri promeni veličine \texttt{$dtv_t$} i alokacije TLS blokova. Ostala polja sadrže pokazivače na TLS blokove za različite učitane module. TLS blokovi za module koji se učitavaju pri pokretanju programa su smeštena direktno nakon TCB-a i stoga ima arhitekturalno specifičan, fiksni pomeraj od adrese na nitni pokazivač. Za sve inicijalno dostupne module pomeraj svakog TLS bloka, s'tim i pomeraj TLS promenljive, u odnosu na TCB mora biti fiksan nakon pokretanja programa.
 
-Druga varijanta TLS strukture podataka ima sličnu strukturu kao prva. Prikazana je na slici \ref{fig:tls_model2}. Jedina razlika je ta što nitni pokazivač pokazuje na nitni kontrolni blok za koji je nepoznata veličina i sadržaj. Negde svakako taj nitni kontrolni blok sadrži pokazivač na dinamički nitni vektor, ali nije navedeno gde. To je kontrolisano od strane mehanizma za izvršavanje programa. Napomenimo da je programskim prevodiocima zabranjeno da emituju kod koji direktno pristupa elementima \texttt{dtvt} vektora.
+Druga varijanta TLS strukture podataka ima sličnu strukturu kao prva. Prikazana je na slici \ref{fig:tls_model2}. Jedina razlika je ta što nitni pokazivač pokazuje na nitni kontrolni blok za koji je nepoznata veličina i sadržaj. Negde svakako taj nitni kontrolni blok sadrži pokazivač na dinamički nitni vektor, ali nije navedeno gde. To je kontrolisano od strane mehanizma za izvršavanje programa. Napomenimo da je programskim prevodiocima zabranjeno da emituju kod koji direktno pristupa elementima \texttt{$dtv_t$} vektora.
 
 \begin{figure}[h!]
 	\begin{center}
@@ -728,55 +727,49 @@ Druga varijanta TLS strukture podataka ima sličnu strukturu kao prva. Prikazana
 	\label{fig:tls_model2}
 \end{figure}
 
-U trenutku pokretanja programa TCB, zajedno sa dinamičkim nitnim vektorom, se kreiraju za glavnu nit. Pozicija tog TLS bloka, za svaki pojedinačan modul, se računa koristeći arhitekturalno specifične formule, zasnovane na veličini i poravnanju TLS bloka propisanih ABI-jem za tu specifičnu procesorsku arhitekturu.
+U trenutku pokretanja programa TCB, zajedno sa dinamičkim nitnim vektorom, se kreira za glavnu nit. Pozicija tog TLS bloka, za svaki pojedinačan modul, se računa koristeći arhitekturalno specifične formule, zasnovane na veličini i poravnanju TLS bloka propisanih ABI-jem za tu specifičnu procesorsku arhitekturu.
 
 \section{Pokretanje i izvršavanje procesa}
 
-Za programe koji koriste TLS promenljive kod koji služi za pokretanje procesa mora podesiti memoriju za inicijalnu nit pre nego što preda kontrolu tog procesa drugim mehanizmima operativnog sistema. Podrška za TLS u statičko povezanim programima je limitirana. Neke procesorske arhitekture (kao npr.~IA-64) ne definišu uopšte statičko linkvoanje (iako je podržano to je nestandardizovano). Neke druge platforme obeshrabruju korišćenje statičkog povezivanja pružanjem samo određenog proja funkcionalnosti. U oba slučaja je dinamičko učitavanje modula u statičko povezanim programima je ozbiljno limitirano ili potpuno nemoguće. Prema tome, rukovanje TLS je prosto, zbog postojanja samo jednog modula, tj.~samo taj program.
+Za programe koji koriste TLS promenljive k\^{o}d koji služi za pokretanje procesa mora podesiti memoriju za inicijalnu nit pre nego što preda kontrolu tog procesa drugim mehanizmima operativnog sistema. Podrška za TLS u statičko povezanim programima je limitirana. Neke procesorske arhitekture (kao npr.~IA-64) ne definišu uopšte statičko linkvoanje (iako je podržano to je nestandardizovano). Neke druge platforme obeshrabruju korišćenje statičkog povezivanja pružanjem samo određenog broja funkcionalnosti. U oba slučaja dinamičko učitavanje modula u statičko povezanim programima je ozbiljno limitirano ili potpuno nemoguće. Prema tome, rukovanje TLS-om je prosto, zbog postojanja samo jednog modula, tj.~samo taj program.
 
-Zanimljiviji je slučaj rukovanja TLS-a u dinamičko povezanom kodu. U ovom slučaju dinamički povezivač mora uključiti podršku za rukovanje takvih segmenata podataka. U nastavku teksta je opisano učitavanje i pokretanje dinamičkog koda.
+Zanimljiviji je slučaj rukovanja TLS-om u dinamičko povezanom kodu. U ovom slučaju dinamički povezivač mora uključiti podršku za rukovanje takvih segmenata podataka. U nastavku teksta je opisano učitavanje i pokretanje dinamičkog koda.
 
-Da bi se podesila memorija za TLS, dinamički povezivač čita sve potrebne informacije o svakom modulu, i o njegovim TLS blokovima, iz \texttt{PT\_TLS} polja tabele TLS programskog zaglavlja prikazane na slici \ref{fig:tls_prheader}. Informacije o svim modulima moraju biti prikupljene. Ovaj proces se ostvaruje koristeći povezanu listu čiji element sadrži:
+Da bi se podesila memorija za TLS, dinamički povezivač čita sve potrebne informacije o svakom modulu, i o njegovim TLS blokovima, iz \texttt{PT\_TLS} polja tabele TLS programskog zaglavlja prikazanog u tabeli \ref{tab:tls_prheader}. Informacije o svim modulima moraju biti prikupljene. Ovaj proces se ostvaruje koristeći povezanu listu čiji element sadrži:
 
 \begin{itemize}
 	\item pokazivač na TLS inicijalizacionu sliku
 	\item veličinu TLS inicijalizacione slike
-	\item TLS ofset (\texttt{tlsoffsetm}) za module \texttt{m}
+	\item TLS pomeraj (\texttt{$tlsoffset_m$}) za module \texttt{m}
 	\item fleg koji daje informaciju o tome da li modul koristi statički TLS model
 \end{itemize}
 
 Ove informacije će biti proširene kada se učitaju dodatni dinamički moduli. Te informacije će biti korišćene od strane standardne biblioteke za rukovanje nitima kako bi podesila TLS blokove za novokreiranu nit.
 
-Kao što je napomenuto, promenljiva unutar lokalnog prostora za nit, TLS, je identifikovana po referenci na modul i ofset u okviru tog TLS bloka. Ukoliko imamo strukturu podataka dinamički nitni vektor, možemo definisati referencu na neki modul kao ceo broj (\emph{eng.~integer}), počevši od broja 1. To može biti korišćeno kao indeks u \texttt{dtvt} nizu. Identifikacione brojeve koji svaki modul dobija određuje mehanizam izvršavanja programa, obično neki modul standardne biblioteke za rukovanje nitima. Samo izvršni fajl dobija fiksan broj, 1, a svi ostali učitani moduli dobijaju različite brojeve.
+Kao što je napomenuto, promenljiva unutar lokalnog prostora za nit, TLS, je identifikovana po referenci na modul i pomeraju u okviru tog TLS bloka. Ukoliko imamo strukturu podataka dinamički nitni vektor, možemo definisati referencu na neki modul kao ceo broj (\emph{eng.~integer}), počevši od broja 1. To može biti korišćeno kao indeks u \texttt{$dtv_t$} nizu. Identifikacione brojeve koji svaki modul dobija određuje mehanizam izvršavanja programa, obično neki modul standardne biblioteke za rukovanje nitima. Samo izvršni fajl dobija fiksan broj, 1, a svi ostali učitani moduli dobijaju različite brojeve.
 
-Računanje specifične adrese neke TLS promenljive je prosta operacija koja može biti izvršena ukoliko je programski prevodilac koji je preveo kod korsitio varijantu 1 TLS strukture podataka. Ali to ne može biti tako lako odrađeno u kodu koji je generisan od strane kompajlera za procesorske arhitekture koje koriste varijatnu 2 TLS strukture podataka.
-
+Računanje specifične adrese neke TLS promenljive je prosta operacija koja može biti izvršena ukoliko je programski prevodilac koji je preveo k\^{o}d korsitio varijantu 1 TLS strukture podataka. Ali to ne može biti tako lako odrađeno u kodu koji je generisan od strane kompajlera za procesorske arhitekture koje koriste varijatnu 2 TLS strukture podataka.\newpage
 Umesto toga, definisana je funkcija \texttt{\_\_tls\_get\_addr}, koja je implementirana na sledeći način:
 
-\begin{lstlisting}
-
+\begin{lstlisting}[style=customc]
 void *
 __tls_get_addr (size_t m, size_t offset)
 {
   char *tls_block = dtv[thread_id][m];
-  
   return tls_block + offset;
 }
 
 \end{lstlisting}
 
-To kako je vektor dtv[thread\_id] smešten u memoriji je arhitekturalno specifično. \texttt{m} is identifikacioni broj modula, koji mu je dodeljen od strane dinamičkog punionca kada je učitavan. Korišćenje \texttt{\_\_tls\_get\_addr} funkcije ima i dodatne prednosti kako bi se olakšala implementacija dinamičkog modela, gde je alokacija nekog TLS bloka odložena do njegove prve upotrebe. Da bi se to podržalo potrebno je popuniti dtv[thread\_id] vektor sa specijalnom vrednošću kojom će biti prepoznate situacije kada je taj vektor trenutno prazan, tj.~da u datom trenutku određeni blok nije u upotrebi. Da bi se to podržalo, potrebna je mala promena u izvornom kodu \texttt{\_\_tls\_get\_addr} funkcije:
+To kako je vektor \texttt{dtv[thread\_id]} smešten u memoriji je arhitekturalno specifično. \texttt{m} is identifikacioni broj modula, koji mu je dodeljen od strane dinamičkog punionca kada je učitavan. Korišćenje \texttt{\_\_tls\_get\_addr} funkcije ima i dodatne prednosti kako bi se olakšala implementacija dinamičkog modela, gde je alokacija nekog TLS bloka odložena do njegove prve upotrebe. Da bi se to podržalo potrebno je popuniti \texttt{dtv[thread\_id]} vektor sa specijalnom vrednošću kojom će biti prepoznate situacije kada je taj vektor trenutno prazan, tj.~da u datom trenutku određeni blok nije u upotrebi. Da bi se to podržalo, potrebna je mala promena u izvornom kodu \texttt{\_\_tls\_get\_addr} funkcije:
 
-\begin{lstlisting}
-
+\begin{lstlisting}[style=customc]
 void *
 __tls_get_addr (size_t m, size_t offset)
 {
   char *tls_block = dtv[thread_id][m];
-
   if (tls_block == UNALLOCATED_BLOCK)
     tls_block = dtv[thread_id][m] = allocate_tls(m);
-
   return tls_block + offset;
 }
 
@@ -784,23 +777,23 @@ __tls_get_addr (size_t m, size_t offset)
 
 Funkcija \texttt{allocate\_tls} mora da odredi memorijske zahteve za TLS modula \texttt{m} i inicijalizuje ga ispravno. Kao što je i napomenuto, postoje dva tipa podataka: inicijalizovani i neinicijalizovani. Inicijalizovani podaci moraju biti kopirani iz inicijalizacione nitne slike, podešenih prilikom učitavanja modula \texttt{m}. Neinicijalizovani podaci se postavljaju na vredosti 0. Jedan primer implementacije može biti:
 
-\begin{lstlisting}
-
+\begin{lstlisting}[style=customc]
 void *
 allocate_tls (size_t m)
 {
   void *mem = malloc (tlssize[m]);
-  memset (memcpy (mem, tlsinit_img[m], tlsinit_size[m]), '\0', tlssize[m] - tlsinit_size[m]);
+  memset (memcpy (mem, tlsinit_img[m], tlsinit_size[m]), '\0',
+          tlssize[m] - tlsinit_size[m]);
   return mem;
 }
 
 \end{lstlisting}
 
-\texttt{tlssize[m]}, \texttt{tlsinit\_size[m]} i \texttt{tlsinit\_img[m]} su poznati nakon učitavanja modula \texttt{m}. Primetimo da se ista inicijalizaciona slika \texttt{tlsinit\_img[m]} koristi za sve niti modula, bilo kada da se one kreiraju. Novonapravljena nit ne nasleđuje podatke od svog oca (\emph{eng.~parent}), već dobija samo kopiju inicijalnih podataka.
+\texttt{tlssize[m]}, \texttt{tlsinit\_size[m]} i \texttt{tlsinit\_img[m]} su poznati nakon učitavanja modula \texttt{m}. Primetimo da se ista inicijalizaciona slika \texttt{tlsinit\_img[m]} koristi za sve niti modula, bilo kada da se one kreiraju. Novonapravljena nit ne nasleđuje podatke od svog roditelja (\emph{eng.~parent}), već dobija samo kopiju inicijalnih podataka.
 
 \section{TLS Modeli pristupa}
 
-Svako referisanje TLS promenljive prati jedan od dva modela pristupa: dinamički i statički. Različite arhitekture ABI-jem propisuju koji od modela pristupa će koristiti kao podrazumevani. Razni modeli pristupa se mogu sresti, ali tri najpoznatija pristupa su opisana u nastavku teksta.
+Svako referisanje TLS promenljive prati jedan od dva modela pristupa: dinamički ili statički. Različite arhitekture ABI-jem propisuju koji od modela pristupa će koristiti kao podrazumevani. Razni modeli pristupa se mogu sresti, ali tri najpoznatija pristupa su opisana u nastavku teksta.
 
 \subsection{Generalni dinamički TLS model}
 
@@ -808,17 +801,17 @@ Generalni model pristupa TLS promenljivoj dozvoljava referisanje svih TLS promen
 
 \subsection{Lokalni dinamički TLS model}
 
-Lokalni dinamički model pristupa TLS promenljivoj predstavalja optimizaciju generalnog dinamičkog modela. Programski prevodilac može odrediti da je neka promenljiva definisana samo lokalno, ili zaštićeno (\emph{eng.~protected}) u objektu koji je napravljen u programu. U tom slučaju, programski prevodilac daje instrukcije linkeru da statički poveže dinamički TLS ofset i da korsiti ovaj model. Iz tog razloga predstavlja hibridnu kombinaciju statičkog i dinamičkog modela pristupa, te prema tome predstavlja model koji diže performanse u odnosu na generalni dinamički model. Samo jedan poziv \texttt{tls\_get\_addr()} po funkciji je potreban za određivanje adrese \texttt{dtv0,m}.
+Lokalni dinamički model pristupa TLS promenljivoj predstavalja optimizaciju generalnog dinamičkog modela. Programski prevodilac može odrediti da je neka promenljiva definisana samo lokalno, ili zaštićeno (\emph{eng.~protected}) u objektu koji je napravljen u programu. U tom slučaju, programski prevodilac daje instrukcije linkeru da statički poveže dinamički TLS pomeraj i da korsiti ovaj model. Iz tog razloga predstavlja hibridnu kombinaciju statičkog i dinamičkog modela pristupa, te prema tome predstavlja model koji diže performanse u odnosu na generalni dinamički model. Samo jedan poziv \texttt{tls\_get\_addr()} po funkciji je potreban za određivanje adrese \texttt{$dtv_{0,m}$}.
 
 \subsection{Statički TLS model sa dodeljenim ofsetima}
 
-Ovaj model pristupa dopušta referisanje samo na one TLS promenljive koje su dostupne kao deo inicijalnog statičkog TLS šablona (\emph{eng.~template}). Ovaj šablon je sastavljen od svih TLS blokova koji su sačinjeni prilikom pokretanja procesa. U ovom modelu, relativni ofset pokazivač na nit date promenljive \texttt{x} je smešten u polju GOT-a (eng. Global offset table) za promenljivu \texttt{x}.
+Ovaj model pristupa dopušta referisanje samo na one TLS promenljive koje su dostupne kao deo inicijalnog statičkog TLS šablona (\emph{eng.~template}). Ovaj šablon je sastavljen od svih TLS blokova koji su sačinjeni prilikom pokretanja procesa. U ovom modelu, relativni pomeraj pokazivača na nit date promenljive \texttt{x} je smešten u polju GOT-a (\emph{eng.~Global offset table}) za promenljivu \texttt{x}.
 
 Deljene biblioteke uobičajeno koriste dinamički model pristupa, jer statičkim modelom mogu referisati samo na određeni broj TLS promenljivih.
 
 \subsection{Statički TLS model}
 
-Ovaj model pristupa dopušta referisanje samo na one TLS promenljive koje su dostupne kao deo TLS bloka od tog dinamičkog izvršnog fajla. Linker računa relativni ofset pokazivača na nit statički, bez potrebe za dinamičkim realokacijama ili dodatnih inforamcija iz GOT-a. Ovaj model pristupa ne dopušta referisanje TLS promenljivih izvan tog dinamičko povezanog izvršnog fajla.
+Ovaj model pristupa dopušta referisanje samo na one TLS promenljive koje su dostupne kao deo TLS bloka od tog dinamičkog izvršnog fajla. Linker računa relativni pomeraj pokazivača na nit statički, bez potrebe za dinamičkim realokacijama ili dodatnih inforamcija iz GOT-a. Ovaj model pristupa ne dopušta referisanje TLS promenljivih izvan tog dinamički povezanog izvršnog fajla.
 
 \chapter{Implementacija rešenja}
 \label{chp:Implementacija}
