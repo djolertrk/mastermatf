@@ -54,6 +54,8 @@
 	commentstyle=\itshape\color{purple!40!black},
 	identifierstyle=\color{blue},
 	stringstyle=\color{orange},
+	numbers=left,
+	numberstyle=\tiny,
 }
 
 \lstdefinestyle{customasm}{
@@ -613,57 +615,83 @@ R24   00000000 771c6490 00000000 77160634  00000000 7fcf4c20
 \label{chp:TLS}
 
 % ------------------------------------------------------------------------------
-Pisanje višenitnih programa predstavlja fudamentalan i neibežan koncept savremenog programiranja. Gotovo nijedan kompleksan korisnički program ne može biti napisan bez korišćenja niti. Preciznije, niti podižu performanse i brzinu programa, te se sve češće koriste u pisanju softvera. Promenljive lokalne za niti su takođe važan mehanizam koji pružaju programski jezici kao što su C i C++. Prirodno je da nekada imamo potrebu da definišemo promenljivu koja će imati različitu vrednost u svakoj niti. Jedan primer je promenljiva koja identifikuje grešku. Ona može biti izazvana u svakoj posbnoj niti iz različitog razloga, te promenljiva koja je opisuje ima različitu vrednost u svakoj niti.
+Pisanje višenitnih programa predstavlja fudamentalan i neibežan koncept savremenog programiranja. Gotovo nijedan kompleksan korisnički program ne može biti napisan bez korišćenja niti. Preciznije, niti podižu performanse i brzinu programa, te se sve češće koriste u pisanju softvera. Promenljive lokalne za niti (eng.~\emph{TLS-Thread Local Storage}) su takođe važan mehanizam koga pružaju programski jezici kao što su C i C++. Prirodno je da nekada imamo potrebu da definišemo promenljivu koja će imati različitu vrednost u svakoj niti. Jedan primer je promenljiva koja jednoznačno identifikuje grešku koja je nastala u programu. Ona može biti izazvana u svakoj posbnoj niti iz različitog razloga, te promenljiva koja je opisuje ima različitu vrednost u svakoj niti.
 
 \section{Motivacija}
 
-Povećanje korišćenja niti u programiranju dovelo je do potrebe programera za boljim načinom rukovanja podacima lokalnih za niti. POSIX \cite{POSIX}, interfejs za rukovanje nitima, definiše nove interfejse koji omogućavaju smeštanje \texttt{void *} objekata posebno za svaku nit. Taj interfejs je nezgrapan za korišćenje, pa se ispostavilo da postoji potreba za efikasnijim rešenjem. Ključ za taj objekat mora da bude alociran dinamčki u vremenu izvršavanja programa. Ako se ključ ne koristi više mora biti oslobođen. Celokupan proces zahteva dosta posla programera. Pored toga je podložan greškama. Iz tih razloga postao je ozbiljan problem kada se kombinuje sa dinamičko učitanim kodom.
+Povećanje korišćenja niti u programiranju dovelo je do potrebe programera za boljim načinom rukovanja podacima lokalnih za niti. POSIX \cite{POSIX}, skup interfejsa za rukovanje nitima, definiše nove interfejse koji omogućavaju kreiranje jednog istog \texttt{void *} objekata posebno za svaku nit. Taj interfejs je nezgrapan za korišćenje, pa se ispostavilo da postoji potreba za efikasnijim rešenjem. Ključ za taj objekat mora da bude alociran dinamčki u vremenu izvršavanja programa. Ako se ključ ne koristi više mora biti oslobođen. Celokupan proces zahteva dosta posla programera. Pored toga je podložan greškama. Iz tih razloga postao je ozbiljan problem kada se kombinuje sa dinamičko učitanim kodom.
 
 Da bi se odgovorilo na sve opisane probleme, odlučeno je da se programski jezici prošire i tako prepuste težak posao programskim prevodiocima.
 
 Za jezike C i C++ ključna reč \texttt{\_\_thread} se koristi za deklaraciju i definiciju promenljivih lokalnih za niti. Neki primeri deklaracija promenljivih lokalnih za niti:
 
-\begin{lstlisting}
+\begin{lstlisting} [style=customc]
 __thread int j;
-
 __thread struct state s;
-
 extern __thread char *p;
 
 \end{lstlisting}
 
-Prednost TLS-a nije ograničena samo na korisničke programe. Okruženje izvršavanja programa, između ostalih standardna biblioteka, takođe koristi pogodnosti ovog mehanizma. Npr.~globalne promenljive \texttt{errno}, koje jednoznačno označavaju nastalu grešku, moraju biti lokalne za niti, jer u različitim nitima može doći do različite greške. Napomenimo da navođenjem \texttt{\_\_thread} pri deklaraciji ili definiciji neke automatske promenljive nema smisla i to nije dozvoljeno, jer automatske promenljive su uvek lokalne za niti. Promenljive statičkih funkcija su takođe kandidati za korišćenje TLS promenljivih.
+Prednost TLS-a nije ograničena samo na korisničke programe. Okruženje izvršavanja programa, između ostalih standardna biblioteka, takođe koristi pogodnosti ovog mehanizma. Npr.~globalne promenljive \texttt{errno}, koje jednoznačno označavaju nastalu grešku u programu, moraju biti lokalne za niti, jer u različitim nitima može doći do različite greške. Napomenimo da navođenje \texttt{\_\_thread} pri deklaraciji ili definiciji neke automatske promenljive nema smisla i to nije dozvoljeno, jer automatske promenljive su uvek lokalne za niti. Promenljive statičkih funkcija su takođe kandidati za korišćenje TLS promenljivih.
 
-Promenljive lokalne za niti se ponašaju intuitivno. Npr.~adresni operator vraća adresu promenljive za trenutnu nit. Memorija alocirana za promenljivu lokalnu za nit u dinamički učitanom modulu se oslobađa kada se taj modul očisti iz memorije.
+Osnovne operacije nad promenljivama lokalnih za niti se ponašaju intuitivno. Npr.~adresni operator vraća adresu promenljive za trenutnu nit. Memorija alocirana za promenljivu lokalnu za nit u dinamički učitanom modulu se oslobađa kada se taj modul oslobodi iz memorije.
 
-Implementacija ovog mehanizma zahteva promenu okruženja izvršavanja programa. Format izvršnih fajlova je proširen kako bi definisao promenljive lokalne za niti odvojeno od normalnih promenljivih. Dinamički punilac (eng. dynamic loader) mora biti nadograđen kako bi ispravno inicijalizovao te nove sekcije. Takođe, standardna biblioteka koja rukuje nitima je promenjena kako bi alocirala nove podatke lokalne za niti za svaku novu nit. U nastavku poglavlja će biti opisane izmene u fajl formatu ELF i detaljniji opis izvršavanja programa koji sadrže TLS promenljive.
+Implementacija ovog mehanizma zahteva promenu okruženja izvršavanja programa. Format izvršnih fajlova je proširen kako bi definisao promenljive lokalne za niti odvojeno od normalnih promenljivih. Dinamički punilac (eng.~\emph{dynamic loader}) je nadograđen kako bi ispravno inicijalizovao te nove sekcije. Takođe, standardna biblioteka koja rukuje nitima je promenjena kako bi alocirala nove podatke lokalne za niti za svaku novu nit. U nastavku poglavlja su opisane izmene u fajl formatu ELF i detaljniji opis izvršavanja programa koji sadrže TLS promenljive.
 
 \section{Definisanje novih podataka u ELF-u}
 
-Izmene u fajl formatu izvršnih fajlova, potrebne za emitovanje TLS objekata su minimalni. Umesto smeštanja promenljivih u sekcije \texttt{.data} i \texttt{.bss} za inicijalizovane i neinicijalizovane promenljive redom, TLS promenljive se smeštaju u \texttt{.tdata} i \texttt{.tbss} sekcije \cite{TLS}. Nove sekcije se od originalnih razlikuju u samo jednom dodatnom sekcijskom flegu. Sekcijaska tabela koja opisuje nove sekcije je data slikom \ref{fig:tls_secs}. Kao što se može primetiti jedina razlika u odnosu na normalne sekcije podataka jeste fleg \texttt{SHF\_TLS}.
+Izmene u fajl formatu izvršnih fajlova, potrebne za emitovanje TLS objekata su minimalni. Umesto smeštanja promenljivih u sekcije \texttt{.data} i \texttt{.bss} za inicijalizovane i neinicijalizovane promenljive redom, TLS promenljive se smeštaju u \texttt{.tdata} i \texttt{.tbss} sekcije \cite{TLS}. Nove sekcije se od originalnih razlikuju u samo jednom dodatnom sekcijskom flegu. Sekcijaska tabela koja opisuje nove sekcije je prikazana na \ref{tab:tls_secs}. Kao što se može primetiti jedina razlika u odnosu na normalne sekcije podataka jeste fleg \texttt{SHF\_TLS}.
 
-\begin{figure}[h!]
-	\begin{center}
-		\includegraphics[scale=0.6]{slike/tabela1elfTLS.png}
+
+
+\begin{table}
+		\begin{center}
+	\begin{tabular}{ | l | p{5cm} | p{5cm} |}
+		\hline
+		\emph{Polje} & \emph{\texttt{.tbss}} & \emph{\texttt{.tdata}} \\ \hline
+		\texttt{sh\_name} & \texttt{.tbss} & \texttt{.tdata} \\ \hline
+		\texttt{sh\_type} & \texttt{SHT\_NOBITS} & \texttt{SHT\_PROGBITS} \\ \hline
+		\texttt{sh\_flags} & \texttt{SHF\_ALLOC + SHF\_WRITE + SHF\_TLS} & \texttt{SHF\_ALLOC + SHF\_WRITE + SHF\_TLS} \\ \hline
+		\texttt{sh\_addr} & Virtualna adresa sekcije & Virtualna adresa sekcije \\ \hline
+		\texttt{sh\_offset} & 0 & Pomeraj inicijalizacione slike \\ \hline
+		\texttt{sh\_size} & Veličina sekcije & Veličina sekcije \\ \hline
+		\texttt{sh\_link} & \texttt{SHN\_UNDEF} & \texttt{SHN\_UNDEF} \\ \hline
+		\texttt{sh\_info} & 0 & 0 \\ \hline
+		\texttt{sh\_addralign} & Poravnanje sekcije & Poravnanje sekcije \\ \hline
+		\texttt{sh\_entsize} & 0 & 0 \\ \hline
+	\end{tabular}
 	\end{center}
-	\caption{Tabela vrednosti ulaza koji opisuju nove TLS sekcije.}
-	\label{fig:tls_secs}
-\end{figure}
+	\caption{\label{tab:tls_secs}Tabela vrednosti polja koji opisuju nove TLS sekcije.}
+\end{table}
+
 
 Imena novih sekcija, kao ni ostalih u fajl formatu ELF, nisu bitna. Linker će svaku sekciju tipa \texttt{SHT\_PROGBITS} sa dodatnim flegom \texttt{SHF\_TLS} tretirati kao \texttt{.tdata}, dok će sekcije tipa \texttt{SHT\_NOBITS} sa dodatnim \texttt{SHF\_TLS} tretirati kao \texttt{.tbss} sekciju. Odgovornost proizvođača ovakvih sekcija, obično programskih prevodioca, je da pravilno generiše sva polja prikazana na slici \ref{fig:tls_secs}.
 
 Za razliku od normalnih \texttt{.data} sekcija program koji se izvršava ne koristi \texttt{.tdata} sekciju direktno. Ta sekcija je moguće modifikovana u vreme pokretanja programa, od strane dinamičkog punilaca. Prilikom pokretanja programa, prva akcija jeste realokaciju koju izvršava dinamički punilac. Nakon toga podaci lokalni za niti se smeštaju u deo koji se naziva inicijalizaciona slika (\emph{eng.~initialization image}) i ona se ne modifikuje više nakon toga. Za svaku nit, uključujući i inicijalnu, nova memorija se alocira gde se kopira inicijalizaciona slika. Ovim se omogućava da svaka nit ima identičan početni sadržaj. Kako ne postoji samo jedna adresa koja ukazuje na simbol TLS promenljive, normalna tabela simbola ne može biti korišćena za njih. U izvršnom fajlu polje \texttt{st\_value} ne sadrži apsolutnu adresu promenljive prilikom izvrašavanja programa, jer apsolutna adresa nije poznata prilikom prevođenja programa. Iz tog razloga  je uveden novi tip simbola (\texttt{STT\_TLS}). Svaki simbol koji referiše na TLS ima takav tip simbola. Izvršni fajlovi u polju \texttt{st\_value} imaju vrednost ofseta promenljive u TLS inicijalizacionoj slici.
 Nijedna realokacija ne sme pristupati simbolima tipa \texttt{STT\_TLS}, osim onih koji su uvedene za rukovanje TLS-om. Takođe, te nove realokacije ne smeju koristi simbole ostalih tipova.
 
-Da bi dinamički linker mogao da izvrši inicijalizaciju inicijalizacione slike, njena pozicija koja će biti prilkom izvršavanja programa mora biti zapisana negde. Originalno zaglavlje programa nije korisno, pa je novo zaglavlje definisano. To proširenje je prikazano na slici \ref{fig:tls_prheader}.
+Da bi dinamički linker mogao da izvrši inicijalizaciju inicijalizacione slike, njena pozicija koja će biti prilkom izvršavanja programa mora biti zapisana negde. Originalno zaglavlje programa nije korisno, pa je novo zaglavlje definisano. To proširenje je prikazano u tabeli \ref{tab:tls_prheader}.
 
-\begin{figure}[h!]
-	\begin{center}
-		\includegraphics[scale=0.6]{slike/tabela2ProgramTLSheader.png}
-	\end{center}
-	\caption{Tabela koja predstavlja nove vrednosti programskog zaglavlja.}
-	\label{fig:tls_prheader}
-\end{figure}
+
+
+\begin{table}
+		\begin{center}
+		\begin{tabular}{ | l | l |}
+			\hline
+			\emph{Polje} & \emph{Vrednost} \\ \hline
+			\texttt{p\_ptype} & \texttt{PT\_TLS} \\ \hline
+			\texttt{p\_offset} & Pomeraj TLS inicijalizacione slike  \\ \hline
+			\texttt{p\_vaddr} & Virtualna adresa TLS inicijalizacione slike  \\ \hline
+			\texttt{p\_paddr} & Rezervisano  \\ \hline
+			\texttt{p\_filesize} & Veličina TLS inicijalizacione slike  \\ \hline
+			\texttt{p\_memsz} & Ukupna veličina TLS šablona  \\ \hline
+			\texttt{p\_flags} & \texttt{PF\_R}  \\ \hline
+			\texttt{p\_aligment} & Poravnanje TLS šablona  \\ \hline
+		\end{tabular}
+	   \end{center}
+		\caption{\label{tab:tls_prheader}Tabela koja predstavlja nove vrednosti programskog zaglavlja.}
+\end{table}
+
 
 
 Svaka TLS promenljiva je identifikovana pomoću ofseta od početka TLS sekcije. U memoriji, \texttt{.tbss} sekcija je alocirana odmah nakon \texttt{.tdata} sekcije. Nijedna virtualna adresa ne može biti izračunata prilikom povezivanja (\emph{eng.~link time}).
@@ -1058,7 +1086,7 @@ Oba predloga implementacije su poslata GNU zajednici i u toku je pregled i anali
 % ------------------------------------------------------------------------------
 % Biografija kandidata
 \begin{biografija}
-Đorđe Todorović, (\emph{Užice, 12. Avgust 1993.}) Rođen sam u Užicu. Završio sam Gimnaziju u Požegi, Informatički smer, 2012.~godine i iste godine upisao Matematički fakultet u Beogradu. 2016. godine sam završio osnovne studije Matematički fakulteta i iste upisao master studije. Položio sam sve ispite sa master studija u septembru 2018.godine. Od novembra 2015. pa do sada radim kao inženjer u Naučno-istraivačkom institutu RT-RK. Do sada sam objavio nekoliko naučnih radova iz oblasti debagera i generisanja debag informacija od strane programskih prevodilaca. Na ovu temu opisanu u master radu sam objavio rad za naučnu konferenciju TELFOR [LINK KA TELFORU]. Trenutno radim na LLVM projektu, tačnije na poboljšanju tog prevodioca prilikom generisanja debag informacija.
+Đorđe Todorović, (\emph{Užice, 12. Avgust 1993.}) Rođen je u Užicu. Završio je Gimnaziju u Požegi, Informatički smer, 2012.~godine i iste godine upisao Matematički fakultet u Beogradu. 2016. godine je završio osnovne studije Matematičkog fakulteta i iste upisao master studije. Položio je sve ispite master studija u septembru 2018.godine. Od novembra 2015. pa do sada radi kao inženjer u Naučno-istraivačkom institutu RT-RK. Do sada je objavio nekoliko naučnih radova iz oblasti debagera i generisanja debag informacija od strane programskih prevodilaca. Na ovu temu opisanu u master radu je objavio rad za naučnu konferenciju TELFOR \cite{TELFOR}. Trenutno radi na LLVM projektu, tačnije na poboljšanju tog prevodioca prilikom generisanja debag informacija.
 \end{biografija}
 % ------------------------------------------------------------------------------
 
