@@ -65,6 +65,33 @@
 	commentstyle=\itshape\color{purple!40!black},
 }
 
+
+\lstdefinestyle{BashInputStyle}{
+	language=bash,
+	belowcaptionskip=1\baselineskip,
+	basicstyle=\small\sffamily,
+	numbers=left,
+	numberstyle=\tiny,
+	numbersep=3pt,
+	frame=tb,
+	columns=fullflexible,
+	backgroundcolor=\color{yellow!20},
+	linewidth=0.9\linewidth,
+	xleftmargin=0.1\linewidth,
+}
+
+\lstdefinestyle{custombash}{
+	belowcaptionskip=1\baselineskip,
+	frame=L,
+	xleftmargin=\parindent,
+	language=[x86masm]Assembler,
+	basicstyle=\footnotesize\ttfamily,
+	commentstyle=\itshape\color{purple!40!black},
+	backgroundcolor=\color{yellow!20},
+	numbers=left,
+	numberstyle=\tiny,
+}
+
 \lstset{escapechar=@,style=customc}
 
 % Datoteka sa literaturom u BibTex tj. BibLaTeX/Biber formatu
@@ -338,7 +365,7 @@ Domaćinski GNU GDB alat je preveden za istu procesorsku arhitekturu kao i raču
 \subsubsection{Prevođenje domaćinskog GNU GDB alata}
 
 Preuzimanje izvornog koda alata se radi sledećim komandama:
-\begin{lstlisting} [style=customasm]
+\begin{lstlisting} [style=BashInputStyle]
 mkdir gdb
 cd gdb
 git pull http://gnu.org/gnu/gdb.git
@@ -348,7 +375,7 @@ git pull http://gnu.org/gnu/gdb.git
 \emph{ Prva komanda pravi direktorijum u kome se izgrađuje (prevodi) alat. Druga komanda vrši pozicioniranje trenutne putanje u taj direktorijum. Trećom komandom se preuzima izvorni kod alata.}
 
 Prvi korak prevođenja je konfiguracija direktorijuma u kome se prevođenje izvršava. Ovim komandama kreiramo \texttt{Makefile}:
-\begin{lstlisting} [style=customasm]
+\begin{lstlisting} [style=BashInputStyle]
 mkdir build
 cd build
 ../configure
@@ -357,7 +384,7 @@ cd build
 \emph{Prva komanda pravi direktorijum u kome se izgrađuje (prevodi) alat. Druga komanda vrši pozicioniranje trenutne putanje u taj direktorijum. Trećom komandom se kreira \texttt{Makefile}. \texttt{configure} skripte na UNIX-olikim operativnim sistemima kao ulaz parsiraju \texttt{Makefile.in} skriptu podešavajući okruženje (putanje do deljenih biblioteka, programski prevodilac, itd.~) prilikom čega je krajnji izlaz fajl \texttt{Makefile} kojim se izgrađuje (prevodi) softver.}
 
 Nakon konfiguracije direktorijuma prevođenje alata se vrši komandom:
-\begin{lstlisting} [style=customasm]
+\begin{lstlisting} [style=BashInputStyle]
 make
 
 \end{lstlisting}
@@ -365,7 +392,7 @@ make
 \subsubsection{Pokretanje domaćinskog GNU GDB alata}
 
 GNU GDB očekuje kao argument komandne linije program koji je preveden za istu procesorsku arhitekturu. Ukoliko je trenutna putanja pozicionirana u direktorijum gde je izgrađen alat, pokretanje alata nad programom pod imenom \emph{test} se vrši sledećom komandom:
-\begin{lstlisting} [style=customasm]
+\begin{lstlisting} [style=BashInputStyle]
 ./gdb/gdb test
 
 \end{lstlisting}
@@ -381,11 +408,11 @@ Pokažimo neke od osnovnih komandi alata GNU GDB.
 
 Postavljanje tačke prekida na funkciju programa koji se debaguje se vrši komandom \texttt{break}. Program koji se debaguje se zaustavlja kada dostigne do određene funkcije. Primer korišćenja postavljanja tačke prekida na funkciju (u ovom slučaju \texttt{fn1}):
 
-\begin{lstlisting} [style=customasm]
+\begin{lstlisting} [style=BashInputStyle]
 (gdb) break fn1
 Breakpoint 1 at 0x4005fe: file test.c, line 4.
 (gdb) r
-Starting program: /home/rtrk/fax/master/master_examples/x86_arch/test 
+Starting program: /master_examples/x86_arch/test 
 7
 Breakpoint 1, fn1 (arg=0x7fffffffdbf4) at test.c:4
 4		(*arg)++;
@@ -395,7 +422,7 @@ Breakpoint 1, fn1 (arg=0x7fffffffdbf4) at test.c:4
 
 Izvršavanje programa sekvencu po sekvencu se radi pomoću tehnike koračanja. Komanda u okviru alata GNU GDB koja nam omogućava izvršavanje instrukciju po instrukciju je \texttt{stepi}. Primer korišćenja \texttt{stepi} komande, uz pomoć korišćenja \texttt{disassemble} komande koja nam prikazuje asemblerski kod programa koji se debaguje:
 
-\begin{lstlisting} [style=customasm]
+\begin{lstlisting} [style=BashInputStyle]
 (gdb) disassemble
 Dump of assembler code for function fn1:
 0x00000000004005f6 <+0>:	push   %rbp
@@ -407,10 +434,8 @@ Dump of assembler code for function fn1:
 0x0000000000400607 <+17>:	mov    -0x8(%rbp),%rax
 0x000000000040060b <+21>:	mov    %edx,(%rax)
 0x000000000040060d <+23>:	mov    -0x8(%rbp),%rax
-0x0000000000400611 <+27>:	mov    (%rax),%eax
 0x0000000000400613 <+29>:	cmp    $0x5,%eax
 0x0000000000400616 <+32>:	jle    0x400627 <fn1+49>
-0x0000000000400618 <+34>:	mov    -0x8(%rbp),%rax
 0x0000000000400628 <+38>:	pop    %rbp
 0x0000000000400629 <+42>:	retq   
 End of assembler dump.
@@ -427,10 +452,8 @@ Dump of assembler code for function fn1:
 0x0000000000400607 <+17>:	mov    -0x8(%rbp),%rax
 0x000000000040060b <+21>:	mov    %edx,(%rax)
 0x000000000040060d <+23>:	mov    -0x8(%rbp),%rax
-0x0000000000400611 <+27>:	mov    (%rax),%eax
 0x0000000000400613 <+29>:	cmp    $0x5,%eax
 0x0000000000400616 <+32>:	jle    0x400627 <fn1+49>
-0x0000000000400618 <+34>:	mov    -0x8(%rbp),%rax
 0x0000000000400628 <+38>:	pop    %rbp
 0x0000000000400629 <+42>:	retq   
 End of assembler dump.
@@ -438,11 +461,11 @@ End of assembler dump.
 
 Izvršavanje sledeće linije programa se radi korišćenjem komande \texttt{next}. Primer korišćenja \texttt{next} komande:
 
-\begin{lstlisting} [style=customasm]
+\begin{lstlisting} [style=BashInputStyle]
 (gdb) r
 The program being debugged has been started already.
 Start it from the beginning? (y or n) y
-Starting program: /home/rtrk/fax/master/master_examples/x86_arch/test 
+Starting program: /master_examples/x86_arch/test 
 4
 Breakpoint 1, fn1 (arg=0x7fffffffdbf4) at test.c:4
 4		(*arg)++;
@@ -482,7 +505,7 @@ Sadržaj datoteke jezgra je organizovan sekvencijalno sledećim redosledom:
 
 Datoteke jezgra se generišu ukoliko dođe do nepredviđenog prekida programa. To je podrazumevana akcija prilikom pojave signala operativnog sistema koji ukazuju na prekid rada programa. Jezgra UNIX-olikih operativnih sistema podrazumevano postavljaju dužinu datoteka jezgara na 0. To je razlog zašto na našim sistemima nemamo datoteku jezgra nakon npr.~prekidanja programa uz poruku \emph{Segmentation fault}. Da bi se datoteke jezgra generisale, potrebno je eksplicitno promeniti dužinu datoteka jezgara koristeći komandu:
 
-\begin{lstlisting} [style=customasm]
+\begin{lstlisting} [style=BashInputStyle]
 ulimit -c unlimited
 
 \end{lstlisting}
@@ -496,14 +519,14 @@ Datoteka jezgra se može generisati i iz korisničkog nivoa koristeći alat GNU 
 \subsection{Prevođenje \emph{Multiarch} GNU GDB}
 
 Prvi korak je pozicioniranje u direktorijum sa izvornim kodom alata:
-\begin{lstlisting} [style=customasm]
+\begin{lstlisting} [style=BashInputStyle]
 cd gdb
 
 \end{lstlisting}
 
 Sledeći korak je konfiguracija direktorijuma u kome se prevođenje izvršava. Ovim komandama kreiramo \texttt{Makefile} kojim odobravamo debagovanje svih podržanih arhitektura u alatu GBD (kao npr.~MIPS32, MIPS64, ARM, AARCH64, x86\_64, i386, SPARC):
 
-\begin{lstlisting} [style=customasm]
+\begin{lstlisting} [style=BashInputStyle]
 mkdir build_multi
 cd build_multi
 ../configure --enable-targets=all
@@ -514,7 +537,7 @@ cd build_multi
 \subsection{Pokretanje \emph{Multiarch} GNU GDB}
 
 Ukoliko je trenutna putanja pozicionirana u direktorijum gde je izgrađen alat, pokretanje alata \emph{Multiarch} GDB nad programom pod imenom \emph{test} se vrši na isti način kao i domaćinska verzija alata komandom:
-\begin{lstlisting} [style=customasm]
+\begin{lstlisting} [style=BashInputStyle]
 ./gdb/gdb test
 
 \end{lstlisting}
@@ -526,11 +549,11 @@ Spisak komandi koje se mogu koristiti korišćenjem \emph{Multiarch} verzije ala
 \subsubsection{Primer učitavanja datoteke jezgra u GNU GDB alat}
 
 U primeru ispod je prikazano učitavanje datoteke jezgra programa čije izvršavanje je prekinuto od strane jezgra operativnog sistema. Komandom alata \texttt{core-file} se učitava datoteka jezgra u debager. Da bi se izazvalo generisanje datoteke jezgra u izvornom kodu programa napisanog u C ili C++ programskom jeziku može se koristiti \texttt{abort()} funkcija iz standardne C biblioteke. U primeru ispod je pozvana ta funkcija koja je izazvala prekid programa uz signal \texttt{SIGABRT}. Tom prilikom jezgro operativnog sistema je napravilo datoteku jezgra sa imenom \emph{core}.
-\begin{lstlisting} [style=customasm]
+\begin{lstlisting} [style=BashInputStyle]
 (gdb) core-file core
 [New LWP 20586]
 [Thread debugging using libthread_db enabled]
-Using host libthread\_db library "/lib/x86\_64-linux-gnu/libthread\_db.so.1".
+Using host libthread\_db library "/lib/x86-linux-gnu/libthread_db.so.1".
 Core was generated by `./test.core'.
 Program terminated with signal SIGABRT, Aborted.
 #0  0x00007fb229164428 in raise (sig=6) at raise.c:54
@@ -539,7 +562,7 @@ Program terminated with signal SIGABRT, Aborted.
 
 U primeru ispod je prikazana upotreba komande alata GNU GDB \texttt{bt}. Ona se koristi za izlistavanje pozivanih funkcija programa. Stek okviri programa koji su prikazani na primeru potvrđuju da je u funkciji \texttt{main()} došlo do poziva \texttt{abort()} funkcije. Što je izazvalo prekid rada programa.
 
-\begin{lstlisting} [style=customasm]
+\begin{lstlisting} [style=BashInputStyle]
 (gdb) bt
 #0  0x00007fb229164428 in raise (sig=6) at raise.c:54
 #1  0x00007fb22916602a in abort () at abort.c:89
@@ -548,12 +571,12 @@ U primeru ispod je prikazana upotreba komande alata GNU GDB \texttt{bt}. Ona se 
 
 \subsubsection{Analiza datoteke jezgra}
 
-U primeru ispod je prikazan primer korišćenja alata \emph{Multiarch} GNU GDB. U primeru se vrši učitavanje datoteke jezgra generisane na uređaju sa ugrađenim računarom arhitekture MIPS. Uz datoteku jezgra učitavaju se izvršni fajl i deljene biblioteke koje izvršni fajl koristi na ciljanoj platfomi.
+U primeru ispod je prikazan primer korišćenja alata \emph{Multiarch} GNU GDB. Vrši učitavanje datoteke jezgra generisane na uređaju sa ugrađenim računarom arhitekture MIPS. Uz datoteku jezgra učitavaju se izvršni fajl i deljene biblioteke koje izvršni fajl koristi na ciljanoj platfomi.\newpage
 
 
-\begin{lstlisting} [style=customasm]
-(gdb) set solib-search-path ~/fax/master/master_examples/mips_arch/
-(gdb) core-file ~/fax/master/master_examples/mips_arch/core
+\begin{lstlisting} [style=BashInputStyle]
+(gdb) set solib-search-path ~/master_examples/mips_arch/
+(gdb) core-file ~/master_examples/mips_arch/core
 [New LWP 21808]
 [New LWP 21813]
 [New LWP 21810]
@@ -568,26 +591,18 @@ Program terminated with signal SIGABRT, Aborted.
 
 Komanda \texttt{set solib-search-path \emph{dir}} alata GNU GDB korišćena u prethodnom primeru služi za navođenje direktorijuma iz kojeg debager treba da koristi deljene biblioteke za učitani program. Ta komanda je veoma bitna za debagovanje programa sa platformi drugih arhitektura, jer ukoliko putanja nije navedena debager koristi biblioteke na domaćinskoj mašini.
 
-Na primeru ispod je prikazana upotreba komande \texttt{info registers}. \emph{Multiarch} GNU GDB čita informaciju o arhitekturi programa koji se debaguje iz datoteke jezgra. Nakon toga čita vrednosti registara iz nje i ispisuje ih.
+Na primeru ispod je prikazana upotreba komande \texttt{info registers}. \emph{Multiarch} GNU GDB čita informaciju o arhitekturi programa koji se debaguje iz datoteke jezgra. Nakon toga čita vrednosti registara iz datoteke i ispisuje ih na standardni izlaz.
 
-\begin{lstlisting} [style=customasm]
+\begin{lstlisting} [style=custombash]
 (gdb) info registers 
-       zero       at       v0       v1       a0       a1       
+	 zero      at       v0     v1       a0	        a1       
 R0   00000000 00005530 00000000 00005530 00000000 00005530
-       a2       a3
-     00000000 00000006
        t0       t1       t2       t3       t4       t5       
 R8   00000000 00000000 00000000 7fcf4ca0 00000000 00000000
-       t6       t7
-     00000000 771c03f8
        s0       s1       s2       s3       s4       s5       
 R16  00000000 7719a684 00000000 00000000 00000000 00000002
-       s6       s7
-     ffffffff 8013d8a8
-       t8       t9       k0       k1       gp       sp       
-R24  00000000 00000000 00000000 771c6490 00000000 77160634
-       s8       ra
-     00000000 7fcf4c20
+          k0       k1       gp       sp        s8      ra
+R24   00000000 771c6490 00000000 77160634  00000000 7fcf4c20
        sr       lo       hi      bad      cause       pc
      00000000 00000000 77165000 00000000 00b24608 00000000 
        fsr      fir
