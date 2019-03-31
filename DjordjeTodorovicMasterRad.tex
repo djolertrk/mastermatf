@@ -168,15 +168,17 @@ Rad se pored prvog uvodnog, sastoji još iz pet poglavlja. Drugo poglavlje opisu
 Greške su sastavni deo svakog rada koji obavlja čovek, te ih i programeri prave. Greške mogu biti hardverske i softverske. One mogu imati razne poslednice. Neke su manje važne, kao npr.~korisnički interfejs aplikacije ima neočekivanu boju pozadine. Postoje i greške koje mogu imati daleko veće posledice, pa čak i ugroziti živote drugih, kao npr.~greške u softveru ili hardveru uređaja i aplikacija avio industrije. Faza testiranja je veoma važna u ciklusu razvoja softvera. Nakon faze testiranja obično sledi faza analize i otklanjanja grešaka.
 
 Debager (eng.~\emph{debagger}) je softverski alat koji koriste programeri za testiranje, analizu i otklanjanje grešaka u programima. Sam proces korišćenja takvih alata nazivamo debagovanjem (eng.~\emph{debugging}).
-Debageri mogu pokrenuti rad nekog procesa ili se „nakačiti” na proces koji je već u fazi rada. U oba slučaja, debager preuzima kontrolu nad procesom. To mu mogućava da izvršava proces instrukciju po instrukciju, do postavlja tačke prekida (eng.~\emph{brakpoints}) itd. Proces izvršavanja programa od strane debagera sekvencijalno, instrukciju po instrukciju ili liniju po liniju, nazivamo koračanje. Tačke prekida su mogućnost debagera da zaustavi izvršavanje programa na određenoj tački. To može biti trenutak kada program izvrši određenu funkciju, liniju koda itd. Neki debageri imaju mogućnost izvršavanja funkcija programa koji se debaguje, uz ograničenje da program pripada istoj procesorskoj arhitekturi kao i domaćinski sistem na kojem se debager izvršava. Čak i struktura programa može biti promenjena, prateći propratne efekte.
+Debageri mogu pokrenuti rad nekog procesa ili se „nakačiti” na proces koji je već u fazi rada. U oba slučaja, debager preuzima kontrolu nad procesom. To mu mogućava da izvršava proces instrukciju po instrukciju, da postavlja tačke prekida (eng.~\emph{brakpoints}) itd. Proces izvršavanja programa od strane debagera sekvencijalno, instrukciju po instrukciju ili liniju po liniju, nazivamo koračanje. Tačke prekida su mogućnost debagera da zaustavi izvršavanje programa na određenoj tački. To može biti trenutak kada program izvrši određenu funkciju, liniju koda itd. Neki debageri imaju mogućnost izvršavanja funkcija programa koji se debaguje, uz ograničenje da program pripada istoj procesorskoj arhitekturi kao i domaćinski sistem na kojem se debager izvršava.
 
-Podršku debagerima, u opštem slučaju, daju operativni sistemi, kroz sistemske pozive koji omogućavaju tim alatima da pokrenu i preuzmu kontrolu nad nekim drugim procesom. Za neke naprednije tehnike debagovanja poželjna je podrška od strane hardvera. U radu će detaljno biti obrađen rad UNIX-olikih, posebno Linux debagera. Windows debageri i programski prevodioci ne prate standard DWARF \cite{DWARF} prilikom baratanja sa debag informacijama namenjene za taj operativni sistem. Alati za debagovanje u okviru operativnog sistema Windows koriste standard \emph{Majkrosoft CodeView}.  Više informacija o ovom standardu može se pronaći u literaturi \cite{CodeView}.
+Podršku debagerima, u opštem slučaju, daju operativni sistemi, kroz sistemske pozive koji omogućavaju tim alatima da pokrenu i preuzmu kontrolu nad nekim drugim procesom. Za neke naprednije tehnike debagovanja poželjna je podrška od strane hardvera. U radu će detaljno biti obrađen rad \emph{UNIX}-olikih, posebno \emph{Linux} debagera. \emph{Windows} debageri i programski prevodioci ne prate standard \emph{DWARF} \cite{DWARF} prilikom baratanja sa debag informacijama. Alati za debagovanje u okviru operativnog sistema \emph{Windows} koriste standard \emph{Majkrosoft CodeView}.  Više informacija o ovom standardu može se pronaći u literaturi \cite{CodeView}.
 
 \section{Prevođenje programa}
 
-Programi koji se debaguju se prevode uz pomoć odgovarajuće opcije programskih prevodioca (za prevodioce GCC i LLVM/Clang, to je opcija \texttt{-g}) koja obezbeđuje generisanje pomoćnih debag informacija. Ukoliko je program koji se analizira preveden bez optimizacija, debag informacije koje prate program su potpune. Programi koji se puštaju u produkciju, da bi bili brži i zauzimali manje memorije, se prevode uz pomoć optimizacija. Nivoi optimizacija produkcijskih programa su "-O2" i "-O3". Prilikom optimizacija se gube razne debag informacije. Neke promenljive i funkcije programa neće biti predstavljene debag informacijama. Npr.~ promenljiva programa može biti živa samo u nekim određenim delovima programa, pa programski prevodioci generišu debag informacije o njenim lokacijama samo u tim određenim delovima koda. Prilikom optimizacija na nivou mašinskog koda život promenljive može biti skraćen, pa čitanje vrednosti promenljive iz debagera u nekim sitacijama neće biti moguće, iako gledajući izvorni kod očekujemo da je ona živa u tom trenutku.
+Programi koji se debaguju se prevode uz pomoć odgovarajuće opcije programskih prevodioca (za prevodioce \emph{GCC}[REFNAGCC] i \emph{LLVM/Clang}[REFNALLVM], to je opcija \texttt{-g}) koja obezbeđuje generisanje pomoćnih debag informacija. Ukoliko je program koji se analizira preveden bez optimizacija, debag informacije koje prate program su potpune. Za programe koji se puštaju u produkciju, da bi bili brži i zauzimali manje memorije, se prilikom prevođenja koriste optimizacije. Postoje različiti nivoi optimizacija i oni se zadaju kao opcija prevodiocu prilikom prevođenja. Nivoi optimizacija produkcijskih programa su \emph{-O2} i \emph{-O3}.
+
+Prilikom optimizacija se gube razne debag informacije. Neke promenljive i funkcije programa neće biti predstavljene debag informacijama. Npr.~promenljiva programa može biti živa samo u nekim određenim delovima programa, pa programski prevodioci generišu debag informacije o njenim lokacijama samo u tim određenim delovima koda. Prilikom optimizacija na nivou mašinskog koda život promenljive može biti skraćen, pa čitanje vrednosti promenljive iz debagera u nekim sitacijama neće biti moguće, iako gledajući izvorni kod očekujemo da je ona živa u tom trenutku.
 \newpage
-\section{Fajl format DWARF}
+\section{Format DWARF}
 
 DWARF je debag fajl format koji se koristi od strane programskih prevodioca (kao npr.~GCC ili LLVM/Clang) i debagera (kao npr.~GNU GDB) da bi se omogućilo debagovanje na nivou izvornog koda. Omogućava podršku za razne programske jezike kao što su C/C++ i Fortran, ali je dizajniran tako da se lako može proširiti na ostale jezike. Arhitekturalno je nezavisan i predstavlja "most" između izvornog koda i izvršnog fajla. Trenutno je poslednji realizovani standard verzija 5 formata DWARF.
 
@@ -248,7 +250,7 @@ Contents of the .debug_loc section:
 
 %\section{Linux debageri}
 \newpage
-\section{Fajl format ELF}
+\section{Format ELF}
 
 ELF (eng.~\emph{Executable and Linkable Format}) \cite{ELF} je format izvršnih fajlova, deljenih biblioteka, objektnih fajlova i datoteka jezgara.
 
@@ -282,13 +284,15 @@ Section Headers:
 
 \section{Sistemski poziv \texttt{ptrace}}
 
-Operativni sistem GNU Linux pruža sistemski poziv \texttt{ptrace} \cite{ptrace} koji debagerima omogućava rad. Ovaj sistemski poziv omogućava jednom procesu kontrolu nad izvršavanjem nekog drugog procesa i menjanje memorije i registara istog.
+Operativni sistem \emph{Linux} pruža sistemski poziv \texttt{ptrace} \cite{ptrace} koji debagerima omogućava rad. Ovaj sistemski poziv omogućava jednom procesu kontrolu nad izvršavanjem nekog drugog procesa, uključujući i menjanje njegove memorije i sadržaja registara.
 Potpis ove funkcije je:
 \newline\newline
 \texttt{ long ptrace\newline(enum \_\_ptrace\_request request, pid\_t pid, void *addr, void *data);}
 \newline
 
-Prvi argument sistemskog poziva predstavlja informaciju kojom operativnom sistemu jedan proces, ne nužno debager, ukazuje na nameru preuzimanja kontrole drugog procesa. Ukoliko taj argument ima vrednost \texttt{PTRACE\_TRACEME} to ukazuje na nameru praćenja (eng.~\emph{tracing}) određenig procesa, \texttt{PTRACE\_PEEKDATA} i \texttt{PTRACE\_POKEDATA} redom ukazuju na nameru čitanja i pisanja  memorije, \texttt{PTRACE\_GETREGS} i \texttt{PTRACE\_SETREGS} se odnose na čitanje i pisanje registara. To su samo neki osnovni slučajevi korišćenja, za više informacija pogledati \cite{ptrace}. Drugi argument sistemskog poziva \texttt{pid} ukazuje na identifikacioni broj ciljanog procesa. Treći i četvrti argument se po potrebi koriste u zavisnosti od namere korišćenja sistemskog poziva \texttt{ptrace} za čitanje ili pisanje sa adrese datom trećim argumentom, pri tom baratajući podacima na adresi zadatoj četvrtim argumentom. To znači ukoliko se koristi \texttt{PTRACE\_TRACEME} poslednja tri argumenta sistemskog poziva se ignorišu. Ukoliko se koristi \texttt{PTRACE\_GETREGS} sa adrese \texttt{addr} se čita jedna reč iz memorije. Navodimo par osnovnih primera korišćenja \texttt{ptrace} sistemskog poziva, a u nastavku će biti navedeno još primera.
+Prvi argument sistemskog poziva predstavlja informaciju kojom operativnom sistemu jedan proces, ne nužno debager, ukazuje na nameru preuzimanja kontrole drugog procesa. Ukoliko taj argument ima vrednost \texttt{PTRACE\_TRACEME} to ukazuje na nameru praćenja (eng.~\emph{tracing}) određenig procesa, \texttt{PTRACE\_PEEKDATA} i \texttt{PTRACE\_POKEDATA} redom ukazuju na nameru čitanja i pisanja  memorije, \texttt{PTRACE\_GETREGS} i \texttt{PTRACE\_SETREGS} se odnose na čitanje i pisanje registara. To su samo neki osnovni slučajevi korišćenja, za više informacija pogledati \cite{ptrace}. Drugi argument sistemskog poziva \texttt{pid} ukazuje na identifikacioni broj ciljanog procesa. Treći i četvrti argument se po potrebi koriste u zavisnosti od namere korišćenja sistemskog poziva \texttt{ptrace} za čitanje ili pisanje sa adrese datom trećim argumentom, pri tom baratajući podacima na adresi zadatoj četvrtim argumentom. To znači ukoliko se koristi \texttt{PTRACE\_TRACEME} poslednja tri argumenta sistemskog poziva se ignorišu. Ukoliko se koristi \texttt{PTRACE\_GETREGS} sa adrese \texttt{addr} se čita jedna reč iz memorije.
+
+Navodimo par osnovnih primera korišćenja \texttt{ptrace} sistemskog poziva. Primeri 1 i 2 navode dva osnovna primera korišćenja \texttt{ptrace} sistemskog poziva. U nastavku teksta biće navedeno jos primera.
 
 \begin{primer}
 Program inicira da će biti praćen od strane roditeljskog procesa:
@@ -304,6 +308,8 @@ Program inicira da će biti praćen od strane roditeljskog procesa:
 \end{primer}
 
 \section{Realizacija osnovnih elemenata upotrebe debagera}
+
+U nastavku teksta se opisuju realizacije implementacije osnovnih elemenata upotrebe debagera.
 
 \subsection{Tačke prekida}
 
@@ -334,9 +340,9 @@ Primera radi, želimo da postavimo tačku prekida na treću po redu instrukciju 
 
 \texttt{be 04 06 40 00  mov \$0x400604, \%esi}
 
-Da bismo to uradili, menjamo prvi bajt instrukcije sa posebnom magičnom vrednošću, obično \texttt{0xcc}, i kada izvršavanje dostigne do tog dela koda ono će se zaustaviti na tom mestu.
+Da bismo to uradili, debager menja prvi bajt instrukcije sa posebnom magičnom vrednošću, obično \texttt{0xcc}, i kada izvršavanje dostigne do tog dela koda ono će se zaustaviti na tom mestu.
 
-Pošto \texttt{0xbe} menjamo sa \texttt{0xcc} i na tom mestu u kodu dobijamo instrukciju:
+Pošto \texttt{0xbe} je zamenjeno sa \texttt{0xcc} i na tom mestu u kodu dobijamo instrukciju:
 
 \texttt{cc 04 06 40 00  int3}
 
