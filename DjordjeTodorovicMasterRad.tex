@@ -39,7 +39,7 @@
 % Pomoćni paket koji generiše nasumičan tekst u kojem se javljaju sva slova
 % azbuke (nema potrebe koristiti ovo u pravim disertacijama)
 \usepackage[latinica]{pangrami}
-
+\usepackage[bottom]{footmisc}
 \usepackage{listings}
 
 \lstdefinestyle{customc}{
@@ -394,20 +394,20 @@ Na slici \ref{fig:stack} navedeni su stek okviri za dva funkcijska poziva. Pre p
 
 Za čitanje vrednosti promenljivih u programu, debager pretražuje DWARF stablo tražeći promenljivu sa zadatim imenom. U slučaju lokalnih promenljivih, traži se \texttt{DW\_TAG\_variable} element čiji \texttt{DW\_AT\_name} odgovara navedenoj promenljivoj. Kada se ista pronađe konsultuje se \texttt{DW\_AT\_location}, koji ukazuje na lokaciju gde se vrednost promenljive nalazi. Ukoliko ovaj atribut nije naveden debager će vrednost takve promenljive smatrati kao optimizovanu prijavljujući informaciju o tome \cite{GDB}.
 
-\chapter{Alat GNU GDB}
+\chapter{Debager GNU GDB}
 \label{chp:GDB}
 
-GNU GDB je alat koji omogućava uvid u događanja unutar drugog programa koji se nalazi u fazi izvršavanja, ili u slučaju neregularnog prekida izvršavanja programa uvid u to šta se dešavalo pa je do toga došlo. GDB debager takođe omogućava uvid u to šta se dešavalo sa programima i na platformama koje imaju različitu arhitekturu od domaćinske arhitekture (eng.~\emph{host architecture}). Da bi se to realizovalo koriste se GDB server, što se naziva udaljeno debagovanje, ili \emph{Multiarch} GNU GDB koji koristi biblioteke namenjene ciljanim arhitekturama. Programi koji mogu biti analizirani mogu biti napisani u raznim programskim jezicima, kao što su Ada, C, C++, Objective-C, Pascal. GNU GDB alat se može pokrenuti na najpopularnijim operativnim sistemima UNIX i Microsoft Windows varijanti. U radu se podrazumeva korišćenje UNIX-olikog operativnog sistema.
+\emph{GNU GDB} je alat koji omogućava uvid u događanja unutar drugog programa koji se nalazi u fazi izvršavanja, ili u slučaju neregularnog prekida izvršavanja programa uvid u to šta se dešavalo pa je do toga došlo. \emph{GNU GDB} debager takođe omogućava uvid u to šta se dešavalo sa programima i na platformama koje imaju različitu arhitekturu od domaćinske arhitekture (eng.~\emph{host architecture}). Da bi se to realizovalo koristi se \emph{GNU GDB} server, što se naziva udaljeno debagovanje, jer se udaljenom uređaju pristupa preko posebnih protokola. U svrhe debagovanja programa drugih procesorskih arhitektura na domaćinskim platformama se takođe upotrebljava \emph{Multiarch GNU GDB} koji koristi biblioteke namenjene ciljanim arhitekturama. Programi koji mogu biti analizirani mogu biti napisani u raznim programskim jezicima, kao što su \emph{Ada, C, C++, Objective-C, Pascal}. \emph{GNU GDB} debager se može pokrenuti na najpopularnijim operativnim sistemima \emph{UNIX} i \emph{Microsoft Windows} varijanti. U radu se podrazumeva korišćenje \emph{UNIX}-olikog operativnog sistema.
 
-\section{Istorija alata}
+\section{Istorija \emph{GNU GDB} debagera}
 
-Izvorni kod alata GDB je originalno napisan od strane Ričarda Stolmana 1986. godine kao deo GNU sistema \cite{GDBDOC}. GDB je slobodan i besplatan softver realizovan pod \emph{GNU General Public License (GPL)}. Od 1990.~do 1993.~godine alat je održavao Džon Gilmor, a trenutno za održavanje alata je zadužena \emph{GDB Steering Committee} grupa, odobrena od strane FSF (eng.~\emph{Free Software Foundation}) \cite{FSF}.
+Izvorni kod alata \emph{GNU GDB} je originalno napisan od strane Ričarda Stolmana 1986. godine kao deo \emph{GNU} sistema \cite{GDBDOC}. \emph{GNU GDB} je slobodan i besplatan softver realizovan pod \emph{GNU General Public License (GPL)}. Od 1990.~do 1993.~godine alat je održavao Džon Gilmor, a trenutno za održavanje alata je zadužena \emph{GDB Steering Committee} grupa, odobrena od strane \emph{FSF} (eng.~\emph{Free Software Foundation}) \cite{FSF}.
 
-Poslednja realizovana verzija alata GNU GDB je 8.2.1.
+Poslednja realizovana verzija alata \emph{GNU GDB} je 8.2.1.
 
 \section{Šta je \emph{arhitektura} za GNU GDB?}
 
-Za alat GNU GDB arhitektura je veoma labav koncept. Može se posmatrati kao bilo koje svojstvo programa koji se debaguje, ali obično se misli na procesorsku arhitekturu. Za debager su bitna dva svojstva procesorske arhitekture:
+Za debager \emph{GNU GDB} arhitektura je veoma labav koncept. Može se posmatrati kao bilo koje svojstvo programa koji se debaguje, ali obično se misli na procesorsku arhitekturu. Za debager su bitna dva svojstva procesorske arhitekture:
 
 \begin{itemize}
 	\item Skup instrukcija (eng.~\emph{Instruction Set Architecture - ISA}) predstavlja specifičnu kombinaciju registara i mašinskih instrukcija.
@@ -416,55 +416,68 @@ Za alat GNU GDB arhitektura je veoma labav koncept. Može se posmatrati kao bilo
 
 \subsection{Domaćinski GNU GDB}
 
-Domaćinski GNU GDB alat je preveden za istu procesorsku arhitekturu kao i računar na kome se alat izvršava. Korišćenje domaćinskog alata GNU GDB nad nekim programom ima ograničenje. Program koji se debaguje mora biti iste procesorske arhitekture kao i arhitektura domaćina.
+Domaćinski \emph{GNU GDB} je preveden za istu procesorsku arhitekturu kao i računar na kome se alat izvršava. Korišćenje domaćinskog \emph{GNU GDB} nad nekim programom ima ograničenje. Program koji se debaguje mora biti iste procesorske arhitekture kao i arhitektura domaćina.
 
-\subsubsection{Prevođenje domaćinskog GNU GDB alata}
+\subsubsection{Prevođenje domaćinskog GNU GDB debagera}
 
-Preuzimanje izvornog koda alata se radi sledećim komandama:
-\begin{lstlisting} [style=BashInputStyle]
+Preuzimanje izvornog koda debagera se vrši komandama prikazanim na \ref{lst:preuzimanje}.
+\begin{lstlisting} [style=BashInputStyle, label={lst:preuzimanje}, caption={Komande korišćene za preuzimanje izvornog koda debagera.}]
 mkdir gdb
 cd gdb
 git pull http://gnu.org/gnu/gdb.git
 
 \end{lstlisting}
 
-\emph{ Prva komanda pravi direktorijum u kome se izgrađuje (prevodi) alat. Druga komanda vrši pozicioniranje trenutne putanje u taj direktorijum. Trećom komandom se preuzima izvorni kod alata.}
+\emph{ Prva komanda pravi direktorijum u kome se izgrađuje (prevodi) alat. Druga komanda vrši pozicioniranje trenutne putanje u taj direktorijum. Trećom komandom se preuzima izvorni kod alata.}\newpage
 
-Prvi korak prevođenja je konfiguracija direktorijuma u kome se prevođenje izvršava. Ovim komandama kreiramo \texttt{Makefile}:
-\begin{lstlisting} [style=BashInputStyle]
+Prvi korak prevođenja je konfiguracija direktorijuma u kome se prevođenje izvršava. Komandama sa \ref{lst:makefile} se kreira \texttt{Makefile}.
+\begin{lstlisting} [style=BashInputStyle, label={lst:makefile}, caption={Komande korišćene za kreiranje \texttt{Makefile}.}]
 mkdir build
 cd build
 ../configure
 
 \end{lstlisting}
-\emph{Prva komanda pravi direktorijum u kome se izgrađuje (prevodi) alat. Druga komanda vrši pozicioniranje trenutne putanje u taj direktorijum. Trećom komandom se kreira \texttt{Makefile}. \texttt{configure} skripte na UNIX-olikim operativnim sistemima kao ulaz parsiraju \texttt{Makefile.in} skriptu podešavajući okruženje (putanje do deljenih biblioteka, programski prevodilac, itd.~) prilikom čega je krajnji izlaz fajl \texttt{Makefile} kojim se izgrađuje (prevodi) softver.}
+\emph{Prva komanda pravi direktorijum u kome se izgrađuje (prevodi) alat. Druga komanda vrši pozicioniranje trenutne putanje u taj direktorijum. Trećom komandom se kreira \texttt{Makefile}. Skripte \texttt{configure} kao ulaz parsiraju \texttt{Makefile.in} skriptu podešavajući okruženje (putanje do deljenih biblioteka, programski prevodilac i drugo) prilikom čega je krajnji izlaz fajl \texttt{Makefile} kojim se izgrađuje (prevodi) softver.}
 
 Nakon konfiguracije direktorijuma prevođenje alata se vrši komandom:
-\begin{lstlisting} [style=BashInputStyle]
+\begin{lstlisting} [style=BashInputStyle, label={lst:make}, caption={Izvršavanje komande \texttt{make}}.]
 make
-
 \end{lstlisting}
 
-\subsubsection{Pokretanje domaćinskog GNU GDB alata}
+\subsubsection{Pokretanje domaćinskog GNU GDB debagera}
 
-GNU GDB očekuje kao argument komandne linije program koji je preveden za istu procesorsku arhitekturu. Ukoliko je trenutna putanja pozicionirana u direktorijum gde je izgrađen alat, pokretanje alata nad programom pod imenom \emph{test} se vrši sledećom komandom:
-\begin{lstlisting} [style=BashInputStyle]
+\emph{GNU GDB} očekuje kao argument komandne linije program koji je preveden za istu procesorsku arhitekturu. Ukoliko je trenutna putanja pozicionirana u direktorijum gde je izgrađen alat, pokretanje alata nad programom pod imenom \emph{test} se vrši sledećom komandom prikazanom na \ref{lst:pokretanje}.
+\begin{lstlisting} [style=BashInputStyle, label={lst:pokretanje}, caption={Pokretanje debagera.}]
 ./gdb/gdb test
 
 \end{lstlisting}
 
 
-\subsubsection{Korišćenje domaćinskog GNU GDB alata}
+\subsubsection{Korišćenje domaćinskog GNU GDB debagera}
 
-Pokažimo neke od osnovnih komandi alata GNU GDB.
+Pokažimo neke od osnovnih komandi debagera \emph{GNU GDB}.
+
+Primer programa koji se debaguje je prikazan na \ref{lst:c_primer_dbg}.\newpage
+
+\begin{lstlisting} [style=customc, label={lst:c_primer_dbg}, caption={Primer programa u programskom jeziku C.}]
+int fn1 (int &addr) {
+  return 0;
+}
+
+int main()
+{
+  int a = 5;
+  fn1(&a);
+}
+\end{lstlisting}
 
 \begin{description}
 
 \item{\emph{Postavljanje tačke prekida}}
 
-Postavljanje tačke prekida na funkciju programa koji se debaguje se vrši komandom \texttt{break}. Program koji se debaguje se zaustavlja kada dostigne do određene funkcije. Primer korišćenja postavljanja tačke prekida na funkciju (u ovom slučaju \texttt{fn1}):
+Postavljanje tačke prekida na funkciju programa koji se debaguje se vrši komandom \texttt{break}. Program koji se debaguje se zaustavlja kada dostigne do određene funkcije. Primer korišćenja postavljanja tačke prekida na funkciju (u ovom slučaju \texttt{fn1}) je prikazan na \ref{lst:break}.
 
-\begin{lstlisting} [style=BashInputStyle]
+\begin{lstlisting} [style=BashInputStyle, label={lst:break}, caption={Primer postavljanja tačke prekida.}]
 (gdb) break fn1
 Breakpoint 1 at 0x4005fe: file test.c, line 4.
 (gdb) r
@@ -476,9 +489,9 @@ Breakpoint 1, fn1 (arg=0x7fffffffdbf4) at test.c:4
 
 \item{\emph{Izvršavanje programa sekvencu po sekvencu}}
 
-Izvršavanje programa sekvencu po sekvencu se radi pomoću tehnike koračanja. Komanda u okviru alata GNU GDB koja nam omogućava izvršavanje instrukciju po instrukciju je \texttt{stepi}. Primer korišćenja \texttt{stepi} komande, uz pomoć korišćenja \texttt{disassemble} komande koja nam prikazuje asemblerski kod programa koji se debaguje:
+Izvršavanje programa sekvencu po sekvencu se radi pomoću tehnike koračanja. Komanda u okviru debagera \emph{GNU GDB} koja nam omogućava izvršavanje instrukciju po instrukciju je \texttt{stepi}. Primer korišćenja komande \texttt{stepi}, uz pomoć korišćenja komande \texttt{disassemble} koja nam prikazuje asemblerski kod programa koji se debaguje je prikazan na \ref{lst:dis}.\newpage
 
-\begin{lstlisting} [style=BashInputStyle]
+\begin{lstlisting} [style=BashInputStyle, label={lst:dis}, caption={Primer korišćenja komande \texttt{stepi}.}]
 (gdb) disassemble
 Dump of assembler code for function fn1:
 0x00000000004005f6 <+0>:	push   %rbp
@@ -515,9 +528,9 @@ Dump of assembler code for function fn1:
 End of assembler dump.
 \end{lstlisting}
 
-Izvršavanje sledeće linije programa se radi korišćenjem komande \texttt{next}. Primer korišćenja \texttt{next} komande:
+Izvršavanje sledeće linije programa se radi korišćenjem komande \texttt{next}. Primer korišćenja \texttt{next} komande je prikazan na \ref{lst:next}.
 
-\begin{lstlisting} [style=BashInputStyle]
+\begin{lstlisting} [style=BashInputStyle, label={lst:next}, caption={Primer korišćenja komande \texttt{next}.}]
 (gdb) r
 The program being debugged has been started already.
 Start it from the beginning? (y or n) y
@@ -550,62 +563,62 @@ Sadržaj datoteke jezgra je organizovan sekvencijalno sledećim redosledom:
 	\item[\texttt{mstsave} strukture.]
 	Definiše informacije relevantne za sistemske niti.
 	\item[Korisnički stek.]
-	Sadrži kopiju korisničkog steka u trenutku pucanja programa.
+	Sadrži kopiju korisničkog steka u trenutku neregularnog prekida rada programa.
 	\item[Segment podataka.]   
 	Sadrži kopiju segmenta podataka u trenutku pucanja programa.
-	\item[Memorijski mapirani regioni i \texttt{vm\_info} strukture.]
+	\item[Memorijski mapirani regioni]\footnote{Memorija programa je podeljena u nekoliko memorijskih regiona. Maprianjem memorijskih regiona se čuvaju relacije između virtualnih i fizičkih adresa programa.} \textbf{i \texttt{vm\_info} strukture.}
 	Sadrži informacije o pomerajima i dužinama mapiranih regiona.
 \end{description}
 
 \subsection{Generisanje datoteke jezgra}
 
-Datoteke jezgra se generišu ukoliko dođe do nepredviđenog prekida programa. To je podrazumevana akcija prilikom pojave signala operativnog sistema koji ukazuju na prekid rada programa. Jezgra UNIX-olikih operativnih sistema podrazumevano postavljaju dužinu datoteka jezgara na 0. To je razlog zašto na našim sistemima nemamo datoteku jezgra nakon npr.~prekidanja programa uz poruku \emph{Segmentation fault}. Da bi se datoteke jezgra generisale, potrebno je eksplicitno promeniti dužinu datoteka jezgara koristeći komandu:
+Datoteke jezgra se generišu ukoliko dođe do neregularnog prekida programa. To je podrazumevana akcija prilikom pojave signala operativnog sistema koji ukazuju na prekid rada programa. Jezgra \emph{UNIX}-olikih operativnih sistema podrazumevano postavljaju dužinu datoteka jezgara na \texttt{0}. To je razlog zašto na našim sistemima nemamo datoteku jezgra nakon npr.~prekidanja programa uz poruku \emph{Segmentation fault}. Da bi se datoteke jezgra generisale, potrebno je eksplicitno promeniti dužinu datoteka jezgara koristeći komandu prikazanu na \ref{lst:unlimited}.
 
-\begin{lstlisting} [style=BashInputStyle]
+\begin{lstlisting} [style=BashInputStyle, label={lst:unlimited}, caption={Primer korišćenja komande \texttt{unlimited}.}]
 ulimit -c unlimited
 
 \end{lstlisting}
 
-Datoteka jezgra se može generisati i iz korisničkog nivoa koristeći alat GNU GDB komandom \texttt{gcore}.
+Datoteka jezgra se može generisati i iz korisničkog nivoa koristeći debager \emph{GNU GDB} komandom \texttt{gcore}.
 
 \section{\emph{Multiarch} GNU GDB}
 
-\emph{Multiarch} GNU GDB je verzija alata koja može da debaguje programe sa platformi različitih arhitektura. Alat na korisničkom nivou emulira instrukcije i registre ciljanih platformi. Potrebne su mu i deljene biblioteke za tu ciljanu platformu koje koristi program koji se debaguje. Skup komandi alata je limitiran u odnosu na domaćinski GDB.
+\emph{Multiarch GNU GDB} je verzija debagera koja može da debaguje programe sa platformi različitih arhitektura. Alat na korisničkom nivou emulira instrukcije i registre ciljanih platformi. Potrebne su mu i deljene biblioteke za tu ciljanu platformu koje koristi program koji se debaguje. Skup komandi alata je limitiran u odnosu na domaćinski \emph{GNU GDB}.
 
 \subsection{Prevođenje \emph{Multiarch} GNU GDB}
 
-Prvi korak je pozicioniranje u direktorijum sa izvornim kodom alata:
-\begin{lstlisting} [style=BashInputStyle]
+Prvi korak je pozicioniranje u direktorijum sa izvornim kodom debagera je prikazan na \ref{lst:cd}.
+\begin{lstlisting} [style=BashInputStyle, label={lst:cd}, caption={Pozicioniranje u direktorijum \emph{gdb}.}]
 cd gdb
 
 \end{lstlisting}
 
-Sledeći korak je konfiguracija direktorijuma u kome se prevođenje izvršava. Ovim komandama kreiramo \texttt{Makefile} kojim odobravamo debagovanje svih podržanih arhitektura u alatu GBD (kao npr.~MIPS32, MIPS64, ARM, AARCH64, x86\_64, i386, SPARC):
+Sledeći korak je konfiguracija direktorijuma u kome se prevođenje izvršava. Ovim komandama kreiramo \texttt{Makefile} kojim odobravamo debagovanje svih podržanih arhitektura u alatu GBD (kao npr.~\emph{MIPS32, MIPS64, ARM, AARCH64, x86\_64, i386, SPARC}) je prikazan na \ref{lst:mkdir}.
 
-\begin{lstlisting} [style=BashInputStyle]
+\begin{lstlisting} [style=BashInputStyle, label={lst:mkdir}, caption={Konfiguracija direktorijuma za izgradnju debagera.}]
 mkdir build_multi
 cd build_multi
 ../configure --enable-targets=all
 
 \end{lstlisting}
-\emph{Prva komanda pravi direktorijum u kome se izgrađuje (prevodi) alat. Druga komanda vrši pozicioniranje trenutne putanje u taj direktorijum. Trećom komandom se kreira \texttt{Makefile}. Pošto je prilikom konfiguracije navedena opcija \texttt{--enable-targets=all} time je omogućeno prevođenje alata za sve podržane arhitekture. Takođe je moguće konfigurisati prevođenje za samo određene arhitekture navodeći eksplicitno opciju kojom se navode ciljane procesorske arhitekture, npr.~\texttt{–enable-targets=mips-linux-gnu} za arhitekturu MIPS ili \texttt{–enable-targets=arm-linux-gnu} za arhitekturu ARM. Osnovna razlika između \texttt{Makefile}-ova domaćinske i \texttt{Multiarch} verzije debagera je ta što je za domaćinski alat potrebno okruženje (deljene biblioteke, programski prevodilac, itd.) samo za domaćinsku arhitekturu. Za \texttt{Multiarch} verziju alata potrebno je pronaći putanje do programskog prevodioca i deljenih biblioteka za ciljane platforme navedene opcijom \texttt{--enable-targets=}. Ukoliko konfiguracione skripte ne pronađu ciljano okruženje za neku od navedenih arhitektura, ta će biti ignorisana.}
+\emph{Prva komanda pravi direktorijum u kome se izgrađuje (prevodi) alat. Druga komanda vrši pozicioniranje trenutne putanje u taj direktorijum. Trećom komandom se kreira \texttt{Makefile}. Pošto je prilikom konfiguracije navedena opcija \texttt{--enable-targets=all} time je omogućeno prevođenje alata za sve podržane arhitekture. Takođe je moguće konfigurisati prevođenje za samo određene arhitekture navodeći eksplicitno opciju kojom se navode ciljane procesorske arhitekture, npr.~\texttt{–enable-targets=mips-linux-gnu} za arhitekturu \emph{MIPS} ili \texttt{–enable-targets=arm-linux-gnu} za arhitekturu \emph{ARM}. Osnovna razlika između \texttt{Makefile}-ova domaćinske i \texttt{Multiarch} verzije debagera je ta što je za domaćinski alat potrebno okruženje (deljene biblioteke, programski prevodilac, itd.) samo za domaćinsku arhitekturu. Za \texttt{Multiarch} verziju alata potrebno je pronaći putanje do programskog prevodioca i deljenih biblioteka za ciljane platforme navedene opcijom \texttt{--enable-targets=}. Ukoliko konfiguracione skripte ne pronađu ciljano okruženje za neku od navedenih arhitektura, ta će biti ignorisana.}
 
 \subsection{Pokretanje \emph{Multiarch} GNU GDB}
 
-Ukoliko je trenutna putanja pozicionirana u direktorijum gde je izgrađen alat, pokretanje alata \emph{Multiarch} GDB nad programom pod imenom \emph{test} se vrši na isti način kao i domaćinska verzija alata komandom:
-\begin{lstlisting} [style=BashInputStyle]
+Ukoliko je trenutna putanja pozicionirana u direktorijum gde je izgrađen alat, pokretanje alata \emph{Multiarch} GDB nad programom pod imenom \emph{test} se vrši na isti način kao i domaćinska verzija debagera komandom prikazanom na \ref{lst:pokretanjee}.
+\begin{lstlisting} [style=BashInputStyle, label={lst:pokretanjee}, caption={Pokretanje debagera.}]
 ./gdb/gdb test
 
 \end{lstlisting}
 
 \subsection{Korišćenje \emph{Multiarch} GNU GDB}
 
-Spisak komandi koje se mogu koristiti korišćenjem \emph{Multiarch} verzije alata GNU GDB je limitiran. To se odnosi na izvršavanje programa koji se debaguje, jer program pripada drugačijem adresnom prostoru. Neke od komandi koje mogu biti upotrebljene su izlistavanje vrednosti registara programa, izlistavanje instrukcija, analiza stek okvira pozivanih funkcija, itd. Najčešće se ova verzija alata koristi tako što se učita datoteka jezgra koja je generisana na ciljanoj platformi kada je program koji se debaguje neočekivano prekinuo sa radom. To obično prati analiza uzroka greške.
+Spisak komandi koje se mogu koristiti korišćenjem \emph{Multiarch} verzije debagera \emph{GNU GDB} je limitiran. To se odnosi na izvršavanje programa koji se debaguje, jer program pripada drugačijem adresnom prostoru. Neke od komandi koje mogu biti upotrebljene su izlistavanje vrednosti registara programa, izlistavanje instrukcija, analiza stek okvira pozivanih funkcija, itd. Najčešće se ova verzija alata koristi tako što se učita datoteka jezgra koja je generisana na ciljanoj platformi kada je program koji se debaguje neočekivano prekinuo sa radom. To obično prati analiza uzroka greške.
 
-\subsubsection{Primer učitavanja datoteke jezgra u GNU GDB alat}
+\subsubsection{Primer učitavanja datoteke jezgra u debager GNU GDB}
 
-U primeru ispod je prikazano učitavanje datoteke jezgra programa čije izvršavanje je prekinuto od strane jezgra operativnog sistema. Komandom alata \texttt{core-file} se učitava datoteka jezgra u debager. Da bi se izazvalo generisanje datoteke jezgra u izvornom kodu programa napisanog u C ili C++ programskom jeziku može se koristiti \texttt{abort()} funkcija iz standardne C biblioteke. U primeru ispod je pozvana ta funkcija koja je izazvala prekid programa uz signal \texttt{SIGABRT}. Tom prilikom jezgro operativnog sistema je napravilo datoteku jezgra sa imenom \emph{core}.
-\begin{lstlisting} [style=BashInputStyle]
+U primeru \ref{lst:core-file} je prikazano učitavanje datoteke jezgra programa čije izvršavanje je prekinuto od strane jezgra operativnog sistema. Komandom alata \texttt{core-file} se učitava datoteka jezgra u debager. Da bi se izazvalo generisanje datoteke jezgra u izvornom kodu programa napisanog u \emph{C} ili \emph{C++} programskom jeziku može se koristiti \texttt{abort()} funkcija iz standardne \emph{C} biblioteke. U primeru ispod je pozvana ta funkcija koja je izazvala prekid programa uz signal \texttt{SIGABRT}. Tom prilikom jezgro operativnog sistema je napravilo datoteku jezgra sa imenom \emph{core}.
+\begin{lstlisting} [style=BashInputStyle, label={lst:core-file}, caption={Primer korišćenja komande \texttt{core-file}.}]
 (gdb) core-file core
 [New LWP 20586]
 [Thread debugging using libthread_db enabled]
@@ -616,9 +629,9 @@ Program terminated with signal SIGABRT, Aborted.
 \end{lstlisting}
 
 
-U primeru ispod je prikazana upotreba komande alata GNU GDB \texttt{bt}. Ona se koristi za izlistavanje pozivanih funkcija programa. Stek okviri programa koji su prikazani na primeru potvrđuju da je u funkciji \texttt{main()} došlo do poziva \texttt{abort()} funkcije. Što je izazvalo prekid rada programa.
+U primeru \ref{lst:bt} je prikazana upotreba komande debagera \emph{GNU GDB} \texttt{bt}. Ona se koristi za izlistavanje pozivanih funkcija programa. Stek okviri programa koji su prikazani na primeru potvrđuju da je u funkciji \texttt{main()} došlo do poziva \texttt{abort()} funkcije. Što je izazvalo prekid rada programa.
 
-\begin{lstlisting} [style=BashInputStyle]
+\begin{lstlisting} [style=BashInputStyle, label={lst:bt}, caption={Primer korišćenja komande \texttt{bt}.}]
 (gdb) bt
 #0  0x00007fb229164428 in raise (sig=6) at raise.c:54
 #1  0x00007fb22916602a in abort () at abort.c:89
@@ -627,10 +640,10 @@ U primeru ispod je prikazana upotreba komande alata GNU GDB \texttt{bt}. Ona se 
 
 \subsubsection{Analiza datoteke jezgra}
 
-U primeru ispod je prikazan primer korišćenja alata \emph{Multiarch} GNU GDB. Vrši učitavanje datoteke jezgra generisane na uređaju sa ugrađenim računarom arhitekture MIPS. Uz datoteku jezgra učitavaju se izvršni fajl i deljene biblioteke koje izvršni fajl koristi na ciljanoj platfomi.\newpage
+U primeru \ref{lst:core2} je prikazan primer korišćenja debagera \emph{Multiarch GNU GDB} prilikom učitavanja datoteke jezgra generisane na uređaju sa ugrađenim računarom arhitekture \emph{MIPS}. Uz datoteku jezgra učitavaju se izvršni fajl i deljene biblioteke koje izvršni fajl koristi na ciljanoj platfomi.
 
 
-\begin{lstlisting} [style=BashInputStyle]
+\begin{lstlisting} [style=BashInputStyle, label={lst:core2}, caption={Primer učitavanja datoteke jezgra generisane na uređaju sa ugrađenim računarom arhitekture \emph{MIPS}.}]
 (gdb) set solib-search-path ~/master_examples/mips_arch/
 (gdb) core-file ~/master_examples/mips_arch/core
 [New LWP 21808]
@@ -645,11 +658,11 @@ Program terminated with signal SIGABRT, Aborted.
 [Current thread is 1 (LWP 21808)]
 \end{lstlisting}
 
-Komanda \texttt{set solib-search-path \emph{dir}} alata GNU GDB korišćena u prethodnom primeru služi za navođenje direktorijuma iz kojeg debager treba da koristi deljene biblioteke za učitani program. Ta komanda je veoma bitna za debagovanje programa sa platformi drugih arhitektura, jer ukoliko putanja nije navedena debager koristi biblioteke na domaćinskoj mašini.
+Komanda \texttt{set solib-search-path \emph{dir}} debagera \emph{GNU GDB} korišćena u prethodnom primeru služi za navođenje direktorijuma iz kojeg debager treba da koristi deljene biblioteke za učitani program. Ta komanda je veoma bitna za debagovanje programa sa platformi drugih arhitektura, jer ukoliko putanja nije navedena debager koristi biblioteke na domaćinskoj mašini.
 
-Na primeru ispod je prikazana upotreba komande \texttt{info registers}. \emph{Multiarch} GNU GDB čita informaciju o arhitekturi programa koji se debaguje iz datoteke jezgra. Nakon toga čita vrednosti registara iz datoteke i ispisuje ih na standardni izlaz.
+U primeru \ref{lst:inforeg} je prikazana upotreba komande \texttt{info registers}. \emph{Multiarch GNU GDB} čita informaciju o arhitekturi programa koji se debaguje iz datoteke jezgra. Nakon toga čita vrednosti registara iz datoteke i ispisuje ih na standardni izlaz.\newpage
 
-\begin{lstlisting} [style=custombash]
+\begin{lstlisting} [style=custombash, , label={lst:inforeg}, caption={Primer korišćenja komande \texttt{info registers}.}]
 (gdb) info registers 
 	 zero      at       v0     v1       a0	        a1       
 R0   00000000 00005530 00000000 00005530 00000000 00005530
