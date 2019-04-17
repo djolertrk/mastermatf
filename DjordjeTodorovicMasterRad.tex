@@ -684,7 +684,7 @@ Komanda \texttt{set solib-search-path \emph{dir}} debagera \emph{GNU GDB} koriš
 
 U primeru \ref{lst:inforeg} je prikazana upotreba komande \texttt{info registers}. \emph{Multiarch GNU GDB} čita informaciju o arhitekturi programa koji se debaguje iz datoteke jezgra. Nakon toga čita vrednosti registara iz datoteke i ispisuje ih na standardni izlaz.\newpage
 
-\begin{lstlisting} [style=custombash, , label={lst:inforeg}, caption={Primer korišćenja komande \texttt{info registers}.}]
+\begin{lstlisting} [style=custombash, label={lst:inforeg}, caption={Primer korišćenja komande \texttt{info registers}.}]
 (gdb) info registers 
 	 zero      at       v0     v1       a0	        a1       
 R0   00000000 00005530 00000000 00005530 00000000 00005530
@@ -708,7 +708,7 @@ Pisanje višenitnih programa predstavlja fudamentalan i neizbežan koncept savre
 
 \section{Motivacija}
 
-Povećanje korišćenja niti u programiranju dovelo je do potrebe programera za boljim načinom rukovanja podacima lokalnih za niti. \emph{POSIX} \cite{POSIX}, skup interfejsa za rukovanje nitima, definiše interfejse koji omogućavaju kreiranje jednog istog \texttt{void *} objekata posebno za svaku nit. Taj interfejs je nezgrapan za korišćenje, jer ključ objekata mora da bude alociran dinamčki u vremenu izvršavanja programa. Ako se ključ ne koristi više mora biti oslobođen. Celokupan proces zahteva dosta posla programera. Pored toga je podložan greškama. Zbog toga nastaje ozbiljan problem kada se kombinuje sa dinamičko učitanim kodom. Iz tih razloga postoji potreba za efikasnijim rešenjem.
+Povećanje korišćenja niti u programiranju dovelo je do potrebe programera za boljim načinom rukovanja podacima lokalnih za niti. \emph{POSIX} \cite{POSIX}, skup interfejsa za rukovanje nitima, definiše interfejse koji omogućavaju kreiranje jednog istog \texttt{void *} objekata posebno za svaku nit. Taj interfejs je nezgrapan za korišćenje, jer objekat mora biti dinamčki alociran u vremenu izvršavanja programa. Ako se objekat ne koristi više mora biti oslobođen. Celokupan proces zahteva dosta posla programera. Pored toga je podložan greškama. Zbog toga nastaje ozbiljan problem kada se kombinuje sa dinamičko učitanim kodom. Iz tih razloga postoji potreba za efikasnijim rešenjem.
 
 Da bi se odgovorilo na sve opisane probleme, odlučeno je da se programski jezici prošire i tako prepuste težak posao programskim prevodiocima.
 
@@ -726,7 +726,7 @@ Prednost korišćenja \emph{TLS} promenljivih nije ograničena samo na korisnič
 
 Osnovne operacije nad promenljivama lokalnih za niti se ponašaju intuitivno. Npr.~adresni operator vraća adresu promenljive za trenutnu nit. Memorija alocirana za promenljivu lokalnu za nit u dinamički učitanom modulu se oslobađa kada se taj modul oslobodi iz memorije.
 
-Implementacija ovog mehanizma zahteva promenu okruženja izvršavanja programa. Format izvršnih fajlova je proširen kako bi definisao promenljive lokalne za niti odvojeno od normalnih promenljivih. Dinamički punilac (eng.~\emph{dynamic loader}) je nadograđen kako bi ispravno inicijalizovao te nove sekcije. Takođe, standardna biblioteka koja rukuje nitima je promenjena kako bi alocirala nove podatke lokalne za niti za svaku novu nit. U nastavku poglavlja su opisane izmene u fajl formatu
+Implementacija ovog mehanizma zahteva promenu okruženja izvršavanja programa. Format izvršnih fajlova je proširen kako bi definisao promenljive lokalne za niti odvojeno od normalnih promenljivih. Dinamički punilac (eng.~\emph{dynamic loader}) je nadograđen kako bi ispravno inicijalizovao te nove sekcije. Standardna biblioteka koja rukuje nitima je promenjena kako bi alocirala nove podatke lokalne za niti za svaku novu nit. U nastavku poglavlja su opisane izmene u fajl formatu
 \emph{ELF} i dat je detaljan opis izvršavanja programa koji sadrže promenljive lokalne za niti.
 
 \section{Definisanje novih podataka u fajl formatu ELF}
@@ -738,7 +738,7 @@ Izmene u fajl formatu izvršnih fajlova, potrebne za emitovanje \emph{TLS} objek
 		\begin{center}
 	\begin{tabular}{ | l | p{5cm} | p{5cm} |}
 		\hline
-		\emph{Polje} & \emph{\texttt{.tbss}} & \emph{\texttt{.tdata}} \\ \hline
+		\emph{Ime polja} & \emph{Vrednosti polja u okviru \texttt{.tbss} sekcije} & \emph{Vrednosti polja u okviru \texttt{.tdata} sekcije} \\ \hline
 		\texttt{sh\_name} & \texttt{.tbss} & \texttt{.tdata} \\ \hline
 		\texttt{sh\_type} & \texttt{SHT\_NOBITS} & \texttt{SHT\_PROGBITS} \\ \hline
 		\texttt{sh\_flags} & \texttt{SHF\_ALLOC + SHF\_WRITE + SHF\_TLS} & \texttt{SHF\_ALLOC + SHF\_WRITE + SHF\_TLS} \\ \hline
@@ -759,7 +759,7 @@ Imena novih sekcija, kao ni ostalih u fajl formatu \emph{ELF}, nisu bitna. Linke
 Za razliku od normalnih \texttt{.data} sekcija, program koji se izvršava ne koristi \texttt{.tdata} sekciju direktno.  Ta sekcija može da bude modifikovana u vreme pokretanja programa, od strane dinamičkog punioca. Prilikom pokretanja programa, prva akcija jeste realokacija koju izvršava dinamički punilac. Nakon toga podaci lokalni za niti se smeštaju u deo koji se naziva inicijalizaciona slika (\emph{eng.~initialization image}) i ona se ne modifikuje više nakon toga. Za svaku nit, uključujući i inicijalnu, nova memorija se alocira na mestu gde se kopira inicijalizaciona slika. Ovim se omogućava da svaka nit ima identičan početni sadržaj. Kako ne postoji samo jedna adresa koja ukazuje na simbol \emph{TLS} promenljive, normalna tabela simbola ne može biti iskorišćena. U izvršnom fajlu polje \texttt{st\_value} ne sadrži apsolutnu adresu promenljive prilikom izvrašavanja programa, jer apsolutna adresa nije poznata prilikom prevođenja programa. Iz tog razloga  je uveden novi tip simbola (\texttt{STT\_TLS}). Svaki simbol koji referiše na \emph{TLS} ima takav tip simbola. Izvršni fajlovi u polju \texttt{st\_value} imaju vrednost pomeraja promenljive u \emph{TLS} inicijalizacionoj slici.
 Nijedna realokacija ne sme pristupati simbolima tipa \texttt{STT\_TLS}, osim onih koji su uvedene za rukovanje \emph{TLS} promenljivih. Takođe, te nove realokacije ne smeju koristi simbole ostalih tipova.
 
-Da bi dinamički linker mogao da izvrši inicijalizaciju inicijalizacione slike, njena pozicija prilkom izvršavanja programa mora biti zapisana u programskom zaglavlju.  Originalno zaglavlje programa nije moglo da bude iskorišćeno, pa je novo, prošireno, zaglavlje definisano. To proširenje je prikazano u tabeli \ref{tab:tls_prheader}.
+Da bi dinamički linker mogao da izvrši inicijalizaciju inicijalizacione slike, njena pozicija prilkom izvršavanja programa mora biti zapisana u programskom zaglavlju. Originalno zaglavlje programa nije moglo da bude iskorišćeno, pa je novo, prošireno, zaglavlje definisano. Proširenje koje opsuje \emph{TLS} inicijalizacionu sliku je prikazano u tabeli \ref{tab:tls_prheader}.
 
 \begin{table}
 		\begin{center}
@@ -835,9 +835,9 @@ Ove informacije će biti proširene kada se učitaju dodatni dinamički moduli. 
 Kao što je napomenuto, promenljiva unutar lokalnog prostora za nit, \emph{TLS}, je identifikovana po referenci na modul i pomeraju u okviru tog \emph{TLS} bloka. Ukoliko imamo strukturu podataka dinamički nitni vektor, možemo definisati referencu na neki modul kao ceo broj (\emph{eng.~integer}), počevši od broja \texttt{1}. To može biti korišćeno kao indeks u \texttt{$dtv_t$} nizu. Identifikacione brojeve koji svaki modul dobija određuje mehanizam izvršavanja programa, obično neki modul standardne biblioteke za rukovanje nitima. Samo izvršni fajl dobija fiksan broj, \texttt{1}, a svi ostali učitani moduli dobijaju različite brojeve.
 
 Računanje specifične adrese neke \emph{TLS} promenljive je prosta operacija koja može biti izvršena ukoliko je programski prevodilac koji je preveo k\^{o}d korsitio varijantu 1 \emph{TLS} strukture podataka. Ali to ne može biti tako lako odrađeno u kodu koji je generisan od strane kompajlera za procesorske arhitekture koje koriste varijatnu 2 \emph{TLS} strukture podataka.
-Umesto toga, definisana je funkcija \texttt{\_\_tls\_get\_addr}, koja je implementirana na sledeći način:
+Umesto toga, definisana je funkcija \texttt{\_\_tls\_get\_addr()}, koja je prikazana u okviru listinga \ref{lst:ex1}.
 
-\begin{lstlisting}[style=customc]
+\begin{lstlisting}[style=customc, label={lst:ex1}, caption={Implementacija funkcije \texttt{\_\_tls\_get\_addr()}.}]
 void *
 __tls_get_addr (size_t m, size_t offset)
 {
@@ -847,9 +847,9 @@ __tls_get_addr (size_t m, size_t offset)
 
 \end{lstlisting}
 
-To kako je vektor \texttt{dtv[thread\_id]} smešten u memoriji je arhitekturalno specifično. \texttt{m} is identifikacioni broj modula, koji mu je dodeljen od strane dinamičkog punionca kada je učitavan. Korišćenje \texttt{\_\_tls\_get\_addr} funkcije ima i dodatne prednosti kako bi se olakšala implementacija dinamičkog modela, gde je alokacija nekog \emph{TLS} bloka odložena do njegove prve upotrebe. Da bi se to podržalo potrebno je popuniti \texttt{dtv[thread\_id]} vektor sa specijalnom vrednošću kojom će biti prepoznate situacije kada je taj vektor trenutno prazan, tj.~da u datom trenutku određeni blok nije u upotrebi. Da bi se to podržalo, potrebna je mala promena u izvornom kodu \texttt{\_\_tls\_get\_addr} funkcije:
+To kako je vektor \texttt{dtv[thread\_id]} smešten u memoriji je arhitekturalno specifično. \texttt{m} is identifikacioni broj modula, koji mu je dodeljen od strane dinamičkog punionca kada je učitavan. Korišćenje \texttt{\_\_tls\_get\_addr()} funkcije ima i dodatne prednosti kako bi se olakšala implementacija dinamičkog modela, gde je alokacija nekog \emph{TLS} bloka odložena do njegove prve upotrebe. Da bi se to podržalo potrebno je popuniti \texttt{dtv[thread\_id]} vektor sa specijalnom vrednošću kojom će biti prepoznate situacije kada je taj vektor trenutno prazan, tj.~da u datom trenutku određeni blok nije u upotrebi. Da bi se to podržalo, potrebna je mala promena u izvornom kodu \texttt{\_\_tls\_get\_addr()} funkcije koja je prikazana u okviru listinga \ref{lst:ex2}.
 
-\begin{lstlisting}[style=customc]
+\begin{lstlisting}[style=customc, label={lst:ex2}, caption={Promena implementacije funkcije \texttt{\_\_tls\_get\_addr()}.}]
 void *
 __tls_get_addr (size_t m, size_t offset)
 {
@@ -861,9 +861,9 @@ __tls_get_addr (size_t m, size_t offset)
 
 \end{lstlisting}
 
-Funkcija \texttt{allocate\_tls} mora da odredi memorijske zahteve za \emph{TLS} modula \texttt{m} i inicijalizuje ga ispravno. Postoje dva tipa podataka: inicijalizovani i neinicijalizovani. Inicijalizovani podaci moraju biti kopirani iz inicijalizacione nitne slike, podešenih prilikom učitavanja modula \texttt{m}. Neinicijalizovani podaci se postavljaju na vredosti \texttt{0}. Jedan primer implementacije može biti:\newpage
+Funkcija \texttt{allocate\_tls()} mora da odredi memorijske zahteve za \emph{TLS} modula \texttt{m} i inicijalizuje ga ispravno. Postoje dva tipa podataka: inicijalizovani i neinicijalizovani. Inicijalizovani podaci moraju biti kopirani iz inicijalizacione nitne slike, podešenih prilikom učitavanja modula \texttt{m}. Neinicijalizovani podaci se postavljaju na vredosti \texttt{0}. Primer implementacije funkcije \texttt{allocate\_tls()} je prikazan u okviru listinga \ref{lst:exal}.
 
-\begin{lstlisting}[style=customc]
+\begin{lstlisting}[style=customc, label={lst:exal}, caption={Implementacija funkcije \texttt{allocate\_tls()}.}]
 void *
 allocate_tls (size_t m)
 {
