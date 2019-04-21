@@ -682,7 +682,7 @@ Program terminated with signal SIGABRT, Aborted.
 
 Komanda \texttt{set solib-search-path \emph{dir}} debagera \emph{GNU GDB} korišćena u prethodnom primeru služi za navođenje direktorijuma iz kojeg debager treba da koristi deljene biblioteke za učitani program. Ta komanda je veoma bitna za debagovanje programa sa platformi drugih arhitektura, jer ukoliko putanja nije navedena debager koristi biblioteke na domaćinskoj mašini.
 
-U primeru \ref{lst:inforeg} je prikazana upotreba komande \texttt{info registers}. \emph{Multiarch GNU GDB} čita informaciju o arhitekturi programa koji se debaguje iz datoteke jezgra. Nakon toga čita vrednosti registara iz datoteke i ispisuje ih na standardni izlaz.\newpage
+U primeru \ref{lst:inforeg} je prikazana upotreba komande \texttt{info registers}. \emph{Multiarch GNU GDB} čita informaciju o arhitekturi programa koji se debaguje iz datoteke jezgra. Nakon toga čita vrednosti registara iz datoteke i ispisuje ih na standardni izlaz.
 
 \begin{lstlisting} [style=custombash, label={lst:inforeg}, caption={Primer korišćenja komande \texttt{info registers}.}]
 (gdb) info registers 
@@ -700,7 +700,7 @@ R24   00000000 771c6490 00000000 77160634  00000000 7fcf4c20
      00000000 00000000
 \end{lstlisting}
 
-\chapter{TLS}
+\chapter{Promenljive lokalne za niti}
 \label{chp:TLS}
 
 % ------------------------------------------------------------------------------
@@ -722,7 +722,7 @@ __thread struct state s;
 extern __thread char *p;
 \end{lstlisting}
 
-Prednost korišćenja \emph{TLS} promenljivih nije ograničena samo na korisničke programe. Okruženje izvršavanja programa, između ostalih standardna biblioteka, takođe koristi pogodnosti ovog mehanizma. Npr.~globalne promenljive \texttt{errno}, koje jednoznačno označavaju nastalu grešku u programu, moraju biti lokalne za niti, jer u različitim nitima može doći do različitih grešaka. Napomenimo da navođenje \texttt{\_\_thread} pri deklaraciji ili definiciji neke automatske promenljive nema smisla i to nije dozvoljeno, jer automatske promenljive su uvek lokalne za niti. Promenljive statičkih funkcija su takođe kandidati za korišćenje \emph{TLS} promenljivih.
+Prednost korišćenja promenljivih lokalnih za niti nije ograničena samo na korisničke programe. Okruženje izvršavanja programa, između ostalih standardna biblioteka, takođe koristi pogodnosti ovog mehanizma. Npr.~globalne promenljive \texttt{errno}, koje jednoznačno označavaju nastalu grešku u programu, moraju biti lokalne za niti, jer u različitim nitima može doći do različitih grešaka. Napomenimo da navođenje \texttt{\_\_thread} pri deklaraciji ili definiciji neke automatske promenljive nema smisla i to nije dozvoljeno, jer automatske promenljive su uvek lokalne za niti. Promenljive statičkih funkcija su takođe kandidati za korišćenje \emph{TLS} promenljivih.
 
 Osnovne operacije nad promenljivama koje su lokalne za niti su intuitivne. Npr.~adresni operator vraća adresu promenljive za trenutnu nit. Memorija alocirana za promenljivu lokalnu za nit u dinamički učitanom modulu se oslobađa kada se taj modul oslobodi iz memorije.
 
