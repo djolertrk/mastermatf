@@ -821,22 +821,22 @@ U trenutku pokretanja programa \texttt{TCB}, zajedno sa dinamičkim nitnim vekto
 
 \section{Pokretanje i izvršavanje procesa}
 
-Za programe koji koriste \emph{TLS} promenljive k\^{o}d koji služi za pokretanje procesa mora podesiti memoriju za inicijalnu nit pre nego što preda kontrolu tog procesa drugim mehanizmima operativnog sistema. Podrška za korišćenje \emph{TLS} promenljive u statičko povezanim programima je limitirana. Neke procesorske arhitekture (kao npr.~\emph{IA-64}) ne definišu uopšte statičko linkovanje (iako je podržano to je nestandardizovano). Neke druge platforme obeshrabruju korišćenje statičkog povezivanja pružanjem samo određenog broja funkcionalnosti. U oba slučaja dinamičko učitavanje modula u statičko povezanim programima je ozbiljno limitirano ili potpuno nemoguće. Prema tome, rukovanje \emph{TLS} promenljivom je prosto, zbog postojanja samo jednog modula, tj.~samo taj program.
+Za programe koji koriste \emph{TLS} promenljive mehanizam operativnog sistema koji služi za pokretanje procesa mora podesiti memoriju za inicijalnu nit pre nego što preda kontrolu tog procesa drugim mehanizmima. Podrška za korišćenje \emph{TLS} promenljive u statičko povezanim programima je limitirana. Neke procesorske arhitekture (kao npr.~\emph{IA-64}) ne definišu uopšte statičko povezivanje (iako je podržano to je nestandardizovano). Neke druge platforme obeshrabruju korišćenje statičkog povezivanja pružanjem samo određenog broja funkcionalnosti. Rukovanje \emph{TLS} promenljivom u statičko povezanom programu je prosto, zbog postojanja samo jednog modula, tj.~samo taj program.
 
-Zanimljiviji je slučaj rukovanja \emph{TLS} promenljivom u dinamičko povezanom kodu. U ovom slučaju dinamički povezivač mora uključiti podršku za rukovanje takvih segmenata podataka. U nastavku teksta je opisano učitavanje i pokretanje dinamičkog koda.
+Zanimljiviji je slučaj rukovanja \emph{TLS} promenljivom u dinamičko povezanom programu. U ovom slučaju dinamički povezivač mora uključiti podršku za rukovanje takvih segmenata podataka. U nastavku teksta je opisano učitavanje i pokretanje dinamičkog koda.
 
-Da bi se podesila memorija za \emph{TLS}, dinamički povezivač čita sve potrebne informacije o svakom modulu, i o njegovim \emph{TLS} blokovima, iz \texttt{PT\_TLS} polja tabele \emph{TLS} programskog zaglavlja prikazanog u tabeli \ref{tab:tls_prheader}. Informacije o svim modulima moraju biti prikupljene. Ovaj proces se ostvaruje koristeći povezanu listu čiji element sadrži:
+Da bi se podesila memorija lokalna za nit, dinamički povezivač čita sve potrebne informacije o svakom modulu, i o njegovim \emph{TLS} blokovima, iz \texttt{PT\_TLS} polja tabele \emph{TLS} programskog zaglavlja prikazanog u tabeli \ref{tab:tls_prheader}. Informacije o svim modulima moraju biti prikupljene. Ovaj proces se ostvaruje koristeći povezanu listu čiji element sadrži:
 
 \begin{itemize}
-	\item pokazivač na TLS inicijalizacionu sliku
-	\item veličinu TLS inicijalizacione slike
-	\item TLS pomeraj (\texttt{$tlsoffset_m$}) za module \texttt{m}
-	\item fleg koji daje informaciju o tome da li modul koristi statički TLS model
+	\item pokazivač na \emph{TLS} inicijalizacionu sliku
+	\item veličinu \emph{TLS} inicijalizacione slike
+	\item \emph{TLS} pomeraj (\texttt{$tlsoffset_m$}) za module \texttt{m}
+	\item fleg koji daje informaciju o tome da li modul koristi statički \emph{TLS} model
 \end{itemize}
 
-Ove informacije će biti proširene kada se učitaju dodatni dinamički moduli. Te informacije će biti korišćene od strane standardne biblioteke za rukovanje nitima kako bi podesila \emph{TLS} blokove za novokreiranu nit.
+Ove informacije će biti proširene kada se učitaju dodatni dinamički moduli. Te informacije se koriste od strane standardne biblioteke za rukovanje nitima prilikom podešavanja \emph{TLS} blokova za novokreiranu nit.
 
-Kao što je napomenuto, promenljiva unutar lokalnog prostora za nit, \emph{TLS}, je identifikovana po referenci na modul i pomeraju u okviru tog \emph{TLS} bloka. Ukoliko imamo strukturu podataka dinamički nitni vektor, možemo definisati referencu na neki modul kao ceo broj (\emph{eng.~integer}), počevši od broja \texttt{1}. To može biti korišćeno kao indeks u \texttt{$dtv_t$} nizu. Identifikacione brojeve koji svaki modul dobija određuje mehanizam izvršavanja programa, obično neki modul standardne biblioteke za rukovanje nitima. Samo izvršni fajl dobija fiksan broj, \texttt{1}, a svi ostali učitani moduli dobijaju različite brojeve.
+Promenljiva unutar lokalnog prostora za nit, \emph{TLS}, je identifikovana po referenci na modul i pomeraju u okviru tog \emph{TLS} bloka. Ukoliko imamo strukturu podataka dinamički nitni vektor, možemo definisati referencu na neki modul kao ceo broj (\emph{eng.~integer}), počevši od broja \texttt{1}. To može biti korišćeno kao indeks u \texttt{$dtv_t$} nizu. Identifikacione brojeve koji svaki modul dobija određuje mehanizam izvršavanja programa, obično neki modul standardne biblioteke za rukovanje nitima. Samo izvršni fajl dobija fiksan broj, \texttt{1}, a svi ostali učitani moduli dobijaju različite brojeve.
 
 Računanje specifične adrese neke \emph{TLS} promenljive je prosta operacija koja može biti izvršena ukoliko je programski prevodilac koji je preveo k\^{o}d korsitio varijantu 1 \emph{TLS} strukture podataka. Ali to ne može biti tako lako odrađeno u kodu koji je generisan od strane kompajlera za procesorske arhitekture koje koriste varijatnu 2 \emph{TLS} strukture podataka.
 Umesto toga, definisana je funkcija \texttt{\_\_tls\_get\_addr()}, koja je prikazana u okviru listinga \ref{lst:ex1}.
@@ -851,7 +851,7 @@ __tls_get_addr (size_t m, size_t offset)
 
 \end{lstlisting}
 
-To kako je vektor \texttt{dtv[thread\_id]} smešten u memoriji je arhitekturalno specifično. \texttt{m} is identifikacioni broj modula, koji mu je dodeljen od strane dinamičkog punionca kada je učitavan. Korišćenje \texttt{\_\_tls\_get\_addr()} funkcije ima i dodatne prednosti kako bi se olakšala implementacija dinamičkog modela, gde je alokacija nekog \emph{TLS} bloka odložena do njegove prve upotrebe. Da bi se to podržalo potrebno je popuniti \texttt{dtv[thread\_id]} vektor sa specijalnom vrednošću kojom će biti prepoznate situacije kada je taj vektor trenutno prazan, tj.~da u datom trenutku određeni blok nije u upotrebi. Da bi se to podržalo, potrebna je mala promena u izvornom kodu \texttt{\_\_tls\_get\_addr()} funkcije koja je prikazana u okviru listinga \ref{lst:ex2}.
+Smeštanje vektora \texttt{dtv[thread\_id]} u memoriju je arhitekturalno specifično. Sa \texttt{m} se označava identifikacioni broj modula, koji mu je dodeljen od strane dinamičkog punionca prilikom učitavanja. Korišćenje \texttt{\_\_tls\_get\_addr()} funkcije ima i dodatne prednosti kako bi se olakšala implementacija dinamičkog modela, gde je alokacija nekog \emph{TLS} bloka odložena do njegove prve upotrebe. Da bi se to podržalo potrebno je popuniti \texttt{dtv[thread\_id]} vektor sa specijalnom vrednošću kojom će biti prepoznate situacije kada je taj vektor trenutno prazan, tj.~da u datom trenutku određeni blok nije u upotrebi. To je omogućeno malom promenom u izvornom kodu \texttt{\_\_tls\_get\_addr()} funkcije koja je prikazana u okviru listinga \ref{lst:ex2}.
 
 \begin{lstlisting}[style=customc, label={lst:ex2}, caption={Promena implementacije funkcije \texttt{\_\_tls\_get\_addr()}.}]
 void *
@@ -865,7 +865,7 @@ __tls_get_addr (size_t m, size_t offset)
 
 \end{lstlisting}
 
-Funkcija \texttt{allocate\_tls()} mora da odredi memorijske zahteve za \emph{TLS} modula \texttt{m} i inicijalizuje ga ispravno. Postoje dva tipa podataka: inicijalizovani i neinicijalizovani. Inicijalizovani podaci moraju biti kopirani iz inicijalizacione nitne slike, podešenih prilikom učitavanja modula \texttt{m}. Neinicijalizovani podaci se postavljaju na vredosti \texttt{0}. Primer implementacije funkcije \texttt{allocate\_tls()} je prikazan u okviru listinga \ref{lst:exal}.
+Funkcija \texttt{allocate\_tls()} određuje memorijske zahteve \emph{TLS} modula \texttt{m} i inicijalizuje ga ispravno. Postoje dva tipa podataka: inicijalizovani i neinicijalizovani. Inicijalizovani podaci moraju biti kopirani iz inicijalizacione nitne slike, podešenih prilikom učitavanja modula \texttt{m}. Neinicijalizovani podaci se postavljaju na vredosti \texttt{0}. Primer implementacije funkcije \texttt{allocate\_tls()} je prikazan u okviru listinga \ref{lst:exal}.
 
 \begin{lstlisting}[style=customc, label={lst:exal}, caption={Implementacija funkcije \texttt{allocate\_tls()}.}]
 void *
@@ -883,7 +883,7 @@ allocate_tls (size_t m)
 
 \section{TLS Modeli pristupa}
 
-Svako referisanje \emph{TLS} promenljive prati jedan od dva modela pristupa: dinamički ili statički. Različite arhitekture ABI-jem propisuju koji od modela pristupa će koristiti kao podrazumevani. Razni modeli pristupa se mogu sresti, ali tri najpoznatija pristupa su opisana u nastavku teksta.
+Svako referisanje \emph{TLS} promenljive prati jedan od dva modela pristupa: dinamički ili statički. Različite arhitekture ABI-jem propisuju koji od modela pristupa će koristiti kao podrazumevani. Razni modeli pristupa se mogu sresti, ali četiri najpoznatija pristupa su opisana u nastavku teksta.
 
 \subsection{Generalni dinamički TLS model}
 
@@ -895,7 +895,7 @@ Lokalni dinamički model pristupa \emph{TLS} promenljivoj predstavalja optimizac
 
 \subsection{Statički TLS model sa dodeljenim ofsetima}
 
-Ovaj model pristupa dopušta referisanje samo na one \emph{TLS} promenljive koje su dostupne kao deo inicijalnog statičkog \emph{TLS} šablona (\emph{eng.~template}). Ovaj šablon je sastavljen od svih \emph{TLS} blokova koji su sačinjeni prilikom pokretanja procesa. U ovom modelu, relativni pomeraj pokazivača na nit date promenljive \texttt{x} je smešten u polju \emph{GOT}-a (\emph{eng.~Global offset table}) za promenljivu \texttt{x}.
+Ovaj model pristupa dopušta referisanje samo na one \emph{TLS} promenljive koje su dostupne kao deo inicijalnog statičkog \emph{TLS šablona} (\emph{eng.~template}). Ovaj šablon je sastavljen od svih \emph{TLS} blokova koji su sačinjeni prilikom pokretanja procesa. U ovom modelu, relativni pomeraj pokazivača na nit date promenljive \texttt{x} je smešten u polju \emph{GOT}-a (\emph{eng.~Global offset table}) za promenljivu \texttt{x}.
 
 Deljene biblioteke uobičajeno koriste dinamički model pristupa, jer statičkim modelom mogu referisati samo na određeni broj \emph{TLS} promenljivih.
 
