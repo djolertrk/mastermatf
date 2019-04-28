@@ -789,7 +789,7 @@ Obrada podataka lokalnih za niti nije prosta kao obrada običnih podataka. Stand
 
 Mehanizami koji omogućavaju izvršavanje programa bi trebalo da zaobiđu kreiranje podataka lokalnih za niti ako to nije neophodno. Npr.~učitani modul može biti korišćen samo od strane jedne niti, od više kreiranih koje čine taj određeni proces. Dosta memorije i vremena bi se gubilo prikom alociranja tih podataka za sve niti. Za ovakve situacije je poželjan lenji metod.
 
-Nije samo alociranje memorije problem za korišćenje \emph{TLS} promenljivih. Standardna pravila pretrage simbola (\emph{eng.~symbol lookup}) u izvršnim fajlovima sa \emph{ELF} formatom ne mogu biti primenjena na simbole koji opisuju promenljive lokalne za niti. Prema tome, standardan proces povezivanja ne može biti korišćen za ovakve situacije.
+Standardna pravila pretrage simbola (\emph{eng.~symbol lookup}) u izvršnim fajlovima sa \emph{ELF} formatom ne mogu biti primenjena na simbole koji opisuju promenljive lokalne za niti. Standardan proces povezivanja ne može biti primenjen kada se u programu koriste \emph{TLS} promenljive.
 
 Promenljiva lokalna za nit se identifikuje referencom na objekat i pomerajem te promenljive unutar prostora lokalnog za tu nit. Da bi se ove vrednosti mapirale u virtualne adrese, mehanizam izvršavanja programa zahteva nove strukture podataka, tj. stukture podataka koje se ne koriste ukoliko nemamo višenitno izvršavanje i promenljive lokalne za niti. One mapiraju referencu objekta u neku adresu u određenom prostoru lokalnom za tu nit. Da bi se to omogućilo definisane su dve varijante struktura podataka. Različite arhitekture procesora mogu odabrati jedan od ova dva pristupa, ali to mora biti propisano \emph{ABI}-jem za tu arhitekturu. Arhitekture, bilo da koriste prvu ili drugu varijantu, rezervišu jedan registar koji pokazuje na prostor lokalan za niti. Takav registar nazivamo \emph{nitni registar}. Za procesorsku arhitekturu \emph{Intel x86-64} to je registar \texttt{fs}. Jedan od razloga za korišćenje druge varijante modela je istorijski. Neke arhitekture su dizajnirale sadržaj nitne memorije na koju pokazuje nitni registar tako da nisu kompatibilne za korišćenje prve varijante \emph{TLS} strukture.
 
@@ -801,7 +801,7 @@ Promenljiva lokalna za nit se identifikuje referencom na objekat i pomerajem te 
 	\label{fig:tls_model1}
 \end{figure}
 
-Na slici \ref{fig:tls_model1} je prikazan primer prve varijante \emph{TLS} strukture podataka. Nitni registar za nit \texttt{t} je označen sa \texttt{$tp_t$}. Početak memorija svake niti je određena \emph{nitnim kontrolnim blokom \texttt{TCB}} (\emph{eng.~Thread Control Block}). Nitni registar pokazuje na nitni kontrolni blok, koji na pomeraju nula sadrži pokazivač na \emph{nitni dinamički vektor} \texttt{$dtv_t$} za tu određenu nit. Nitni dinamički vektor predstavlja niz koji sadrži informacije o podacima lokalnih za niti različitih modula. Memoriju lokalnu za nit u okviru jednog modula nazivamo \emph{TLS blok}. Ukoliko je modul inicijalno dostupan, element nitnog dinamičkog vektora pokazuje na fiksni pomeraj podataka lokalnih za tu nit koje odgovaraju tom modulu. Ukoliko se modul dinamički učitava u program element dinamičkog nitnog vektora pokazuje na tu memoriju. \emph{TLS šablon} (\emph{eng.~template}) je sastavljen od svih \emph{TLS} blokova koji su sačinjeni prilikom pokretanja procesa.
+Na slici \ref{fig:tls_model1} je prikazan primer prve varijante \emph{TLS} strukture podataka. Nitni registar za nit \texttt{t} je označen sa \texttt{$tp_t$}. Početak  memorije svake niti je određen \emph{nitnim kontrolnim blokom \texttt{TCB}} (\emph{eng.~Thread Control Block}). Nitni registar pokazuje na nitni kontrolni blok, koji na pomeraju nula sadrži pokazivač na \emph{nitni dinamički vektor} \texttt{$dtv_t$} za tu određenu nit. Nitni dinamički vektor predstavlja niz koji sadrži informacije o podacima lokalnim za niti različitih učitanih modula. Memoriju lokalnu za nit u okviru jednog učitanog modula nazivamo \emph{TLS blok}. Ukoliko je modul inicijalno dostupan, tj. učitan u program prilikom pokretanja, element nitnog dinamičkog vektora pokazuje na fiksni pomeraj podataka lokalnog za tu nit. Ukoliko se modul dinamički učitava u program element dinamičkog nitnog vektora pokazuje na memoriju u okviru tog modula. \emph{TLS šablon} (\emph{eng.~template}) je sastavljen od svih \emph{TLS} blokova koji su učitani prilikom pokretanja procesa.
 
 Na slici \ref{fig:tls_model1} nitni dinamički vektor \texttt{$dtv_t$} kao svoje prvo polje sadrži generacioni broj \texttt{$gen_t$} koji se koristi pri promeni veličine nitnog dinamičkog vektora i alokacije \emph{TLS} blokova. Ostala polja sadrže pokazivače na \emph{TLS} blokove za različite učitane module. \emph{TLS} blokovi za module koji se učitavaju pri pokretanju programa su smeštena direktno nakon \texttt{TCB} bloka i stoga ima arhitekturalno specifičan, fiksni pomeraj od adrese na nitni pokazivač. Za sve inicijalno dostupne module pomeraj svakog \emph{TLS} bloka, uz to i pomeraj \emph{TLS} promenljive, u odnosu na \texttt{TCB} mora biti fiksan nakon pokretanja programa.
 
@@ -879,9 +879,9 @@ allocate_tls (size_t m)
 
 \texttt{tlssize[m]}, \texttt{tlsinit\_size[m]} i \texttt{tlsinit\_img[m]} su poznati nakon učitavanja modula \texttt{m}. Primetimo da se ista inicijalizaciona slika \texttt{tlsinit\_img[m]} koristi za sve niti modula, bilo kada da se one kreiraju. Novonapravljena nit ne nasleđuje podatke od svog roditelja (\emph{eng.~parent}), već dobija samo kopiju inicijalnih podataka.
 
-\section{TLS Modeli pristupa}
+\section{TLS modeli pristupa}
 
-Svako referisanje \emph{TLS} promenljive prati jedan od dva modela pristupa: dinamički ili statički. Različite arhitekture ABI-jem propisuju koji od modela pristupa će koristiti kao podrazumevani. Razni modeli pristupa se mogu sresti, ali četiri najpoznatija pristupa su opisana u nastavku teksta.
+Svako referisanje \emph{TLS} promenljive prati jedan od dva modela pristupa: dinamički ili statički. Različite arhitekture ABI-jem propisuju koji od modela pristupa će koristiti kao podrazumevani. Postoje različiti modeli pristupa, a četiri najpoznatija su opisana u nastavku teksta.
 
 \subsection{Generalni dinamički TLS model}
 
@@ -891,7 +891,7 @@ Generalni model pristupa \emph{TLS} promenljivoj dozvoljava referisanje svih \em
 
 Lokalni dinamički model pristupa \emph{TLS} promenljivoj predstavalja optimizaciju generalnog dinamičkog modela. Programski prevodilac može odrediti da je neka promenljiva definisana samo lokalno, ili zaštićeno (\emph{eng.~protected}) u objektu koji je napravljen u programu. U tom slučaju, programski prevodilac daje instrukcije linkeru da statički poveže dinamički \emph{TLS} pomeraj i da korsiti ovaj model. Iz tog razloga predstavlja hibridnu kombinaciju statičkog i dinamičkog modela pristupa, te prema tome predstavlja model koji diže performanse u odnosu na generalni dinamički model. Samo jedan poziv \texttt{tls\_get\_addr()} po funkciji je potreban za određivanje adrese \texttt{$dtv_{0,m}$}.
 
-\subsection{Statički TLS model sa dodeljenim ofsetima}
+\subsection{Statički TLS model sa dodeljenim pomerajima}
 
 Ovaj model pristupa dopušta referisanje samo na one \emph{TLS} promenljive koje su dostupne kao deo inicijalnog statičkog \emph{TLS} šablona. U ovom modelu, relativni pomeraj pokazivača na nit date promenljive \texttt{x} je smešten u polju globalne tabele sa pomeraijma (\emph{eng.~Global offset table-GOT}) za promenljivu \texttt{x}.
 
