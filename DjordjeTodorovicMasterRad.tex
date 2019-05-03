@@ -183,7 +183,7 @@ Podršku debagerima, u opštem slučaju, daju operativni sistemi, kroz sistemske
 Programi koji se debaguju se prevode uz pomoć odgovarajuće opcije programskih prevodioca (za prevodioce \emph{GCC} \cite{GCC} i \emph{LLVM/Clang} \cite{LLVM}, to je opcija \texttt{-g}) koja obezbeđuje generisanje pomoćnih debag informacija. Ukoliko je program koji se analizira preveden bez optimizacija, debag informacije koje prate program su potpune. Za programe koji se puštaju u produkciju, da bi bili brži i zauzimali manje memorije, se prilikom prevođenja koriste optimizacije. Postoje različiti nivoi optimizacija i oni se zadaju kao opcija prevodiocu prilikom prevođenja. Nivoi optimizacija produkcijskih programa su \emph{-O2} i \emph{-O3}.
 
 Prilikom optimizacija se gube razne debag informacije. Neke promenljive i funkcije programa neće biti predstavljene debag informacijama. Npr.~promenljiva programa može biti živa samo u nekim određenim delovima programa, pa programski prevodioci generišu debag informacije o njenim lokacijama samo u tim određenim delovima koda. Prilikom optimizacija na nivou mašinskog koda život promenljive može biti skraćen, pa čitanje vrednosti promenljive iz debagera u nekim sitacijama neće biti moguće, iako gledajući izvorni kod očekujemo da je ona živa u tom trenutku.
-\newpage
+
 \section{Format DWARF}
 
 \emph{DWARF} je debag fajl format koji se koristi od strane programskih prevodioca (kao npr.~\emph{GCC} ili \emph{LLVM/Clang}) i debagera (kao npr.~\emph{GNU GDB}) da bi se omogućilo debagovanje na nivou izvornog koda. Omogućava podršku za razne programske jezike kao što su \emph{C/C++} i \emph{Fortran}, ali je dizajniran tako da se lako može proširiti na ostale jezike. Arhitekturalno je nezavisan i predstavlja "most" između izvornog koda i izvršnog fajla. Trenutno je poslednji realizovani standard verzija 5 formata \emph{DWARF}.
@@ -203,7 +203,7 @@ int main()
 }
 \end{lstlisting}
 
-Deo \emph{DWARF} stabla za primer \ref{lst:c_kod} programa napisanog u C programskom jeziku je prikazan u primeru \ref{lst:c_dwarf_stablo}.
+Deo \emph{DWARF} stabla za primer \ref{lst:c_kod} programa napisanog u C programskom jeziku je prikazan u primeru \ref{lst:c_dwarf_stablo}.\newpage
 
 \begin{lstlisting} [style=BashInputStyle, label={lst:c_dwarf_stablo}, caption={Primer \emph{DWARF} reprezentacije.}]
  <1><73>: Abbrev Number: 4 (DW_TAG_subprogram)
@@ -340,7 +340,7 @@ Postoje dve vrste tačaka prekida (eng.~\emph{breakpoints}): softverske i hardve
 
 Osvrnimo se prvo na softverske tačke prekida. Postavljanje tačaka prekida predstavlja jednu od najkorišćenijih mogućnosti debagera, te stoga navedimo par smernica kako je ista realizovana, u opštem slučaju. Ali takođe treba napomenuti da ne postoji jedinstveni poziv nekog sistemskog poziva za postavljanje tačke prekida, već se ista obavlja kao kombinacija više mogućnosti  sistemskog poziva \texttt{ptrace}. Opišimo ceo postupak na jednostavnom primeru.
 
-Program je preveden za procesorsku arhitekturu \emph{Intel x86-64} i asemblerski k\^{o}d \texttt{main} funkcije je prikazan u primeru \ref{lst:asm}.
+Program je preveden za procesorsku arhitekturu \emph{Intel x86-64} i asemblerski k\^{o}d \texttt{main} funkcije je prikazan u primeru \ref{lst:asm}.\newpage
 \begin{lstlisting} [style=customasm, label={lst:asm}, caption={Primer funkcije \texttt{main} u asemblerskom jeziku.}]
 0000000000400450 <main>:
 400450:       48 83 ec 08          sub    $0x8,%rsp
@@ -374,7 +374,6 @@ Ukoliko korisnik želi da nastavi dalje, instrukcija prekida se zamenjuje sa ori
 Instrukcija \texttt{int3} je posebna instrukcija procesorske arhitekture \emph{Intel x86-64}, koja izazva softverski prekid. Kada registar programski brojač (eng.~\emph{CPU register pc}) stigne do \texttt{int3} instrukcije izvršavanje se zaustavalja na toj tački. Debager je već upoznat od strane korisnika da je tačka prekida postavljena te on čeka na signal koji ukazuje na to da je program dostigao do instrukcije prekida. Operativni sistem prepoznaje instrukciju \texttt{int3}, poziva se specijalni obrađivač tog signala (na \emph{Linux} sistemima \texttt{do\_int3()}), koji dalje obaveštava debager šaljući mu signal sa kodom \texttt{SIGTRAP} koji on obrađuje na željeni način. Treba napomenuti da ovo važi za procesorsku arhitekturu \emph{Intel x86-64}, instrukcija prekida za arhitekture kao što su \emph{ARM, MIPS, PPC} itd., se drugačije kodira, ali postupak implementacije tačaka prekida je isti.
 
 Ukoliko želimo da stavimo tačku prekida eksplicitno na funkciju \texttt{main}, za to koristimo posrednika u vidu \emph{DWARF} debag informacija. U tom slučaju debager traži element \emph{DWARF} stabla koji ukazuje na informacije o \texttt{main} funkciji, i odatle čita informaciju na kojoj adresi u memoriji se nalazi prva mašinska instrukcija date funkcije. Na primeru \ref{lst:main_sp} vidimo \emph{DWARF} element koji opisuje funkciju uz pomoć atributa. Debager će pročitati \texttt{DW\_AT\_low\_pc} atribut i na tu adresu postaviti \texttt{int3} instrukciju. Napomenimo da \emph{DWARF} debag simbole generišemo uz pomoć \texttt{-g} opcije kompajlera.
-\newpage
 \begin{lstlisting} [style=BashInputStyle, label={lst:main_sp}, caption={Primer \emph{DWARF} reprezentacije funkcije \texttt{main}.}]
 <1><73>: Abbrev Number: 4 (DW_TAG_subprogram)
   <74>   DW_AT_external    : 1
@@ -394,7 +393,7 @@ Hardverske tačke prekida su direktno povezane sa hardverom u vidu specijalnih r
 
 Pod procesom koračanja (eng.~\emph{stepping}) kroz program podrazumevamo izvršavanje programa sekvencu po sekvencu. Sekvenca može biti jedna procesorska instrukcija, linija koda ili pak neka funkcija programa koji se debaguje \cite{GDB}.
 
-Instrukcijsko koračanje na platformi Intel x86-64 je direktno omogućeno kroz sistemski poziv \texttt{ptrace}:\newline\newline
+Instrukcijsko koračanje na platformi Intel x86-64 je direktno omogućeno kroz sistemski poziv \texttt{ptrace}:\newline
 \texttt{ptrace(PTRACE\_SINGLESTEP, debuggee\_pid, nullptr, nullptr);}
 \newline
 
@@ -849,7 +848,7 @@ __tls_get_addr (size_t m, size_t offset)
 
 \end{lstlisting}
 
-Smeštanje vektora \texttt{dtv[thread\_id]} u memoriju je arhitekturalno specifično. Sa \texttt{m} se označava identifikacioni broj modula, koji mu je dodeljen od strane dinamičkog punionca prilikom učitavanja. Korišćenje \texttt{\_\_tls\_get\_addr()} funkcije ima i dodatne prednosti kako bi se olakšala implementacija dinamičkog modela, gde je alokacija nekog \emph{TLS} bloka odložena do njegove prve upotrebe. Da bi se to podržalo potrebno je popuniti \texttt{dtv[thread\_id]} vektor sa specijalnom vrednošću kojom će biti prepoznate situacije kada je taj vektor trenutno prazan, tj.~da u datom trenutku određeni blok nije u upotrebi. To je omogućeno malom promenom u izvornom kodu \texttt{\_\_tls\_get\_addr()} funkcije koja je prikazana u okviru listinga \ref{lst:ex2}.
+Smeštanje vektora \texttt{dtv[thread\_id]} u memoriju je arhitekturalno specifično. Sa \texttt{m} se označava identifikacioni broj modula, koji mu je dodeljen od strane dinamičkog punionca prilikom učitavanja. Korišćenje \texttt{\_\_tls\_get\_addr()} funkcije ima i dodatne prednosti kako bi se olakšala implementacija dinamičkog modela, gde je alokacija nekog \emph{TLS} bloka odložena do njegove prve upotrebe. Da bi se to podržalo potrebno je popuniti \texttt{dtv[thread\_id]} vektor sa specijalnom vrednošću kojom će biti prepoznate situacije kada je taj vektor trenutno prazan, tj.~da u datom trenutku određeni blok nije u upotrebi. To je omogućeno malom promenom u izvornom kodu \texttt{\_\_tls\_get\_addr()} funkcije koja je prikazana u okviru listinga \ref{lst:ex2}.\newpage
 
 \begin{lstlisting}[style=customc, label={lst:ex2}, caption={Promena implementacije funkcije \texttt{\_\_tls\_get\_addr()}.}]
 void *
@@ -904,7 +903,11 @@ Ovaj model pristupa dopušta referisanje samo na one \emph{TLS} promenljive koje
 \chapter{Implementacija rešenja}
 \label{chp:Implementacija}
 
-\emph{TLS} može biti različito implementiran za različite procesorske arhitekture. Može se smeštati u posebne registre, u određene delove memorije itd. \emph{GNU GDB} alat mora poznavati sve arhitekturne razlike i anulirati ih na neki način. Implementacija ovog proširenja alata se upravo i zasniva na prethodnoj pretpostavci, te upravo to i realizuje. Istražene su implementacije \emph{TLS}-a raznih arhitektura, kako u funkcijama \emph{GNU C} biblioteke (poznatije kao \emph{glibc}) \cite{GLIBC}, tako i karakteristike koje su \emph{ABI}-jem propisane. Poboljšanje alata koje je uspešno realizovano se odnosi na verziju \emph{Multiarch}. Ukoliko je program koji je učitan u \emph{Multiarch GNU GDB} alat iste arhitekture kao arhitektura domaćina, zadržava se način čitanja vrednosti \emph{TLS} promenljive kao u slučaju \emph{GNU GDB} debagera arhitekture domaćina, jer je ta funkcionalnost već implementirana. Treba napomenuti da je u razvoju i alternativno rešenje od strane programera iz kompanije \emph{Red Hat} \cite{REDHAT} u vidu projekta \emph{Infinity} \cite{Infinity}. Taj projekat ima ideju da obuhvati rešenja za razne probleme o debagovanju niti, ne samo obradu \emph{TLS}-a. Prednost rešenja koji se predstavlja u ovom master radu jeste svakako ta što je cela funkcionalnost prepuštena samom \emph{GNU GDB} debageru, te nema potrebe za instalacijom ili prevođenjem eksternih projekata. Sa tim u vidu se svakako dobija na uštedi korisničkog napora pri korišćenju debagera. Izvorni k\^{o}d alata i instrukcije za prevođenje i upotrebu debagera sa pobljšanjem za pristupanje vrednosti TLS promenljive se može pronaći na strani \cite{GITMOJ}. Rešenje obuhvata arhitekture procesora \emph{MIPS}, \emph{ARM}, \emph{AARCH64}, \emph{i386} i \emph{PowerPC}.
+\emph{TLS} mehanizam može biti različito implementiran za različite procesorske arhitekture. \emph{TLS} promenljiva se može smeštati u posebne registre, u određene delove memorije itd. \emph{GNU GDB} alat mora poznavati sve arhitekturne razlike i anulirati ih na neki način. Implementacija realizovanog rešenja za proširenje alata se upravo i zasniva na prethodnoj činjenici. Zbog toga su detaljno istražene implementacije \emph{TLS} mehanizma raznih arhitektura, kako u funkcijama \emph{GNU C} biblioteke (poznatije kao \emph{glibc}) \cite{GLIBC}, tako i karakteristike koje su \emph{ABI}-jem propisane.
+
+Poboljšanje alata koje je uspešno realizovano se odnosi na verziju \emph{Multiarch}. Izvorni k\^{o}d alata i instrukcije za prevođenje i upotrebu debagera sa pobljšanjem za pristupanje vrednosti \emph{TLS} promenljive se može pronaći na strani \cite{GITMOJ}. Ukoliko je program koji je učitan u \emph{Multiarch GNU GDB} alat iste arhitekture kao arhitektura domaćina, zadržava se način čitanja vrednosti \emph{TLS} promenljive kao u slučaju \emph{GNU GDB} debagera arhitekture domaćina, jer je ta funkcionalnost već implementirana. Rešenje obuhvata arhitekture procesora \emph{MIPS}, \emph{ARM}, \emph{AARCH64}, \emph{i386} i \emph{PowerPC}. Kao odgovor na komentare \emph{GNU} zajednice razvijeno je i alternativno rešenje koje je takođe opisano u nastavku teksta.
+
+Treba napomenuti da je u razvoju i rešenje od strane programera iz kompanije \emph{Red Hat} \cite{REDHAT} u vidu projekta \emph{Infinity} \cite{Infinity}. Taj projekat ima ideju da obuhvati rešenja za razne probleme o debagovanju niti, ne samo obradu \emph{TLS} mehanizma. Prednost rešenja koji se predstavlja u ovom master radu je što je cela funkcionalnost prepuštena samom \emph{GNU GDB} debageru, te nema potrebe za instalacijom ili prevođenjem eksternih projekata, čime se dobija na uštedi korisničkog napora pri korišćenju debagera.
 
 \section{Detalji implementacije}
 
@@ -914,7 +917,7 @@ U nastavku teksta opisani su detalji implementacije poboljšanja debagera.
 
 Fajlovi \emph{gdb/configure} i \emph{gdb/Makefile.in} su zaduženi za izgradnju alata. U najopštijem slučaju na \emph{UNIX}-olikim operativnim sistemima, \emph{configure} skripta je zadužena za pravljenje konačnog \emph{Makefile} od ulaznog \emph{gdb/Makefile.in}.
 
-Izvorni k\^{o}d koji u sebi sadrži funkcije za čitanje \emph{TLS}-a (\emph{gdb/linux-thread-db.c}) se prevodio samo za domaćinsku verziju \emph{GNU GDB} debagera, pa stoga u proširenje za \emph{Multiarch} \emph{GNU GDB} takođe treba uvrstiti izmenu u pomenutom fajlu prilikom prevođenja. Pored toga, postojeće funkcije koje su zadužene za pristupanje vrednosti \emph{TLS} promenljivih je trebalo izmeniti te je u projekat dodat direktorijum \emph{gdb/glibc-dep/} koji sadrži funkcije koje barataju sa \emph{TLS}-om različite procesorske arhitekture od arhitekture domaćina. Da bi se ti fajlovi prevodili samo u slučaju \emph{Multiarch} verzije definisan je makro pod imenom \texttt{CROSS\_GDB} koji se definiše prilikom kreiranja \emph{Makefile}. Da bi se ispratila konvencija pisanja skripti za izgradnju alata, u direktorijum \emph{gdb/config/} je dodat fajl \emph{glibc.mh} koji definiše spisak objektnih fajlova koji služe sa pristupanje vrednosti \emph{TLS} promenljive u tom slučaju i takođe u tom fajlu se definiše gore pomenuti makro \texttt{CROSS\_GDB}.
+Izvorni k\^{o}d koji u sebi sadrži funkcije za čitanje \emph{TLS} promenljive (\emph{gdb/linux-thread-db.c}) se prevodio samo za domaćinsku verziju \emph{GNU GDB} debagera, pa stoga u proširenje za \emph{Multiarch} \emph{GNU GDB} takođe treba uvrstiti izmenu u pomenutom fajlu prilikom prevođenja. Pored toga, postojeće funkcije koje su zadužene za pristupanje vrednosti \emph{TLS} promenljivih je trebalo izmeniti te je u projekat dodat direktorijum \emph{gdb/glibc-dep/} koji sadrži funkcije koje barataju sa \emph{TLS} mehanizmom različite procesorske arhitekture od arhitekture domaćina. Da bi se ti fajlovi prevodili samo u slučaju \emph{Multiarch} verzije definisan je makro pod imenom \texttt{CROSS\_GDB} koji se definiše prilikom kreiranja \emph{Makefile}. Da bi se ispratila konvencija pisanja skripti za izgradnju alata, u direktorijum \emph{gdb/config/} je dodat fajl \emph{glibc.mh} koji definiše spisak objektnih fajlova koji služe sa pristupanje vrednosti \emph{TLS} promenljive u tom slučaju i takođe u tom fajlu se definiše gore pomenuti makro \texttt{CROSS\_GDB}.
 
 Sadržaj \emph{gdb/config/glibc.mh} fajla je prikazan na listingu \ref{lst:conf2}.
 \begin{lstlisting}[label={lst:conf2}, caption={Sadržaj \emph{gdb/config/glibc.mh} fajla.}]
@@ -926,7 +929,8 @@ GLIBCFILES = td_symbol_list.o \
 INTERNAL_CFLAGS += -DCROSS_GDB
 \end{lstlisting}
 
-Da bi sadržaj iz novokreiranog \emph{gdb/config/glibc.mh} fajla bio ispisan u krajnji \emph{Makefile} trebalo je uvesti promenljivu koja proverava da li je u prilikom navođenja opcija \emph{gdb/configure} skripti navedena opcija \emph{--enable\_targets}, koja zapravo označava da korisnik ima nameru da alat prevede kao \emph{Multiarch} verziju. Vrednost promenljive \texttt{cross\_makefile\_frag} u \emph{gdb/configure} skripti postaje putanja do \emph{gdb/config/glibc.mh} fajla ukoliko je pomenuta opcija navedena, a u suprotnom ona ostaje prazna.\newpage
+Da bi sadržaj iz novokreiranog \emph{gdb/config/glibc.mh} fajla bio ispisan u krajnji \emph{Makefile} trebalo je uvesti promenljivu koja proverava da li je u prilikom navođenja opcija \emph{gdb/configure} skripti navedena opcija \emph{--enable\_targets}, koja zapravo označava da korisnik ima nameru da alat prevede kao \emph{Multiarch} verziju. Vrednost promenljive \texttt{cross\_makefile\_frag} u \emph{gdb/configure} skripti postaje putanja do \emph{gdb/config/glibc.mh} fajla ukoliko je pomenuta opcija navedena, a u suprotnom ona ostaje prazna.
+
 Deo koda u \emph{gdb/configure} skripti kojim se to postiže je prikazan na listingu \ref{lst:conf}.
 \begin{lstlisting}[label={lst:conf}, caption={Izmena \emph{gdb/configure} fajla.}]
 if test "${gdb_native}" = "no" ||
@@ -939,12 +943,12 @@ fi
 
 \subsection{Implementacija funkcija za pristupanje TLS promenljivoj}
 
-U direktorijumu \emph{gdb/glibc-dep/} se nalazi srž funkcionalnosti čitanja vrednosti \emph{TLS} promenljive iz datoteke jezgara sa platformi drugih procesorskih arhitektura. Kako standardna C biblioteka već ima implementirane svaku arhitekturalnu zavisnost u vezi \emph{TLS}-a za svaku procesorsku arhitekturu podržanu u alatu \emph{GNU GDB}, potrebno je na neki način izopštiti tu funkcionalnost iz same biblioteke unutar alata. Preciznije, za baratanjem nitima \emph{GNU GDB} koristi \emph{libthread\_db} biblioteku iz standardne biblioteke. Funkcije \texttt{td\_ta\_new()}, \texttt{td\_thr\_tls\_get\_addr()} i \texttt{td\_th\_tlsbase()}, koje se služe za pristupanje \emph{TLS} promenljivama, očekuju da se na arhitekturi domaćina prirodno barata sa programima iste arhitekture. Izbegavanje modifikacije \emph{libthread\_db} biblioteke moguće je tako što se pomenute funkcije implementiraju u \emph{GNU GDB}-u, na isti način kao u \emph{glibc} biblioteci, prilikom čega se sve arhitekturno zavisne vrednosti promenljivih i makroa koje primaju te funkcije postave na vrednosti koje bi trebalo da imaju u slučaju da je ta ciljna arhitektura zapravo arhitektura domaćina.
+U direktorijumu \emph{gdb/glibc-dep/} se nalazi srž funkcionalnosti čitanja vrednosti \emph{TLS} promenljive iz datoteke jezgara sa platformi drugih procesorskih arhitektura. Kako standardna C biblioteka već ima implementirane svaku arhitekturalnu zavisnost u vezi \emph{TLS} mehanizma za svaku procesorsku arhitekturu podržanu u alatu \emph{GNU GDB}, potrebno je na neki način izopštiti tu funkcionalnost iz same biblioteke unutar alata. Preciznije, za baratanjem nitima \emph{GNU GDB} koristi \emph{libthread\_db} biblioteku iz standardne biblioteke. Funkcije \texttt{td\_ta\_new()}, \texttt{td\_thr\_tls\_get\_addr()} i \texttt{td\_th\_tlsbase()}, koje se služe za pristupanje \emph{TLS} promenljivama, očekuju da se na arhitekturi domaćina prirodno barata sa programima iste arhitekture. Izbegavanje modifikacije \emph{libthread\_db} biblioteke moguće je tako što se pomenute funkcije implementiraju u \emph{GNU GDB}-u, na isti način kao u \emph{glibc} biblioteci, prilikom čega se sve arhitekturno zavisne vrednosti promenljivih i makroa koje primaju te funkcije postave na vrednosti koje bi trebalo da imaju u slučaju da je ta ciljna arhitektura zapravo arhitektura domaćina.
 
-Prvi korak ovog dela implementacije je izmeštanje funkcija iz standardne biblioteke unutar GDB projekta. Unutar \emph{gdb/glibc-dep/} je kreiran direktorijum \emph{nptl\_db} koji sadrži pomenute funkcije. Zapravo, ukoliko alat koristi bilo koju verziju standardne biblioteke do \emph{2.22} funkcije iz \emph{nptl\_db} nisu ni potrebne za pristupanje vrednosti \emph{TLS} promenljive. Sve potrebne informacije za pristupanje vrednosti \emph{TLS} promenljive se mogu pročitati iz same datoteke jezgra. Ukoliko alat koristi verziju standardne biblioteke 2.22 i ili veću, funckcije iz \emph{nptl\_db} direktorijuma su neophodne kako bi se anulirale novonastale izmene prilikom baratanja \emph{TLS}-om. Ta funkcionalnost je dodata u funkciji \texttt{gdb\_td\_thr\_tlsbase()} koja je dodata u fajl \texttt{gdb/glibc-dep/nptl\_db/td\_thr\_tlsbase.c}.
-Sve funkcije koje bi trebalo da emuliraju ponašanje \emph{TLS} funkcija standardne biblioteke koje su dodate u projekat \emph{GNU GDB} imaju prefiks u imenu \texttt{gdb\_}. Npr.~GDB pandam funckiji \texttt{td\_ta\_new()} je \texttt{gdb\_td\_ta\_new()}. Pomenuta funkcija je promenjena da bi alat \emph{GNU GDB} imao inforamciju o tačnoj verziji standardne biblioteke koju je program koji se debaguje koristio na platformi na kojoj se izvršavao, jer kao što je napomenuto od verzije 2.22 \emph{TLS} se drugačije čita. Nije novo da za debagovanje višenitnih programa \emph{GNU GDB} debagerom, čak i upotrebom domaćinske verzije, je neophodno da \emph{GNU GDB} koristi istu veriziju \emph{libthread\_db} biblioteke kao i program koji se debaguje. To znači ako je program preveden sa verzijom \emph{2.x} standardnom bibliotekom, alat mora korsiti istu verziju \emph{2.x} tokom svog debagovanja. To se postiže eksplicitnim navođenjem putanje do \emph{libthread\_db} biblioteke komandom \texttt{set libthread-db-search-path}. Ukoliko se verzije \emph{libthread\_db} biblioteke ne poklapaju debager će ispisati upozorenje.
+Prvi korak ovog dela implementacije je izmeštanje funkcija iz standardne biblioteke unutar GDB projekta. Unutar \emph{gdb/glibc-dep/} je kreiran direktorijum \emph{nptl\_db} koji sadrži pomenute funkcije. Zapravo, ukoliko alat koristi bilo koju verziju standardne biblioteke do \emph{2.22} funkcije iz \emph{nptl\_db} nisu ni potrebne za pristupanje vrednosti \emph{TLS} promenljive. Sve potrebne informacije za pristupanje vrednosti \emph{TLS} promenljive se mogu pročitati iz same datoteke jezgra. Ukoliko alat koristi verziju standardne biblioteke 2.22 i ili veću, funckcije iz \emph{nptl\_db} direktorijuma su neophodne kako bi se anulirale novonastale izmene prilikom baratanja \emph{TLS} mehanizmom. Ta funkcionalnost je dodata u funkciji \texttt{gdb\_td\_thr\_tlsbase()} koja je dodata u fajl \texttt{gdb/glibc-dep/nptl\_db/td\_thr\_tlsbase.c}.
+Sve funkcije koje bi trebalo da emuliraju ponašanje \emph{TLS} funkcija standardne biblioteke koje su dodate u projekat \emph{GNU GDB} imaju prefiks u imenu \texttt{gdb\_}. Npr.~GDB pandam funckiji \texttt{td\_ta\_new()} je \texttt{gdb\_td\_ta\_new()}. Pomenuta funkcija je promenjena da bi alat \emph{GNU GDB} imao inforamciju o tačnoj verziji standardne biblioteke koju je program koji se debaguje koristio na platformi na kojoj se izvršavao, jer kao što je napomenuto od verzije 2.22 \emph{TLS} promenljiva se drugačije čita. Nije novo da za debagovanje višenitnih programa \emph{GNU GDB} debagerom, čak i upotrebom domaćinske verzije, je neophodno da \emph{GNU GDB} koristi istu veriziju \emph{libthread\_db} biblioteke kao i program koji se debaguje. To znači ako je program preveden sa verzijom \emph{2.x} standardnom bibliotekom, alat mora korsiti istu verziju \emph{2.x} tokom svog debagovanja. To se postiže eksplicitnim navođenjem putanje do \emph{libthread\_db} biblioteke komandom \texttt{set libthread-db-search-path}. Ukoliko se verzije \emph{libthread\_db} biblioteke ne poklapaju debager će ispisati upozorenje.
 
-Takođe u \texttt{gdb\_td\_ta\_new()} funkiji se poziva funkija \texttt{init\_target\_dep\_constants()}, zadužena za inicijalizaciju arhitekturalno zavisnih osobina o \emph{TLS}-u.
+Takođe u \texttt{gdb\_td\_ta\_new()} funkiji se poziva funkija \texttt{init\_target\_dep\_constants()}, zadužena za inicijalizaciju arhitekturalno zavisnih osobina o \emph{TLS} mehanizmu.
 
 Deo kojim se različite osobine inicijalizuju za arhitekture \emph{MIPS} i \emph{ARM} u funkciji \texttt{init\_target\_dep\_constants()} je prikazan na listingu \ref{lst:izmenaBFD}.
 \begin{lstlisting} [style=customc, label={lst:izmenaBFD}, caption={Inicijalizacija arhitekturalno yavisnih osobina o TLS.}]
@@ -963,7 +967,7 @@ case bfd_arch_arm:
   tcb_alignment = 0;
   break;
 \end{lstlisting}
-U ovom konkretnom slučaju sve \emph{TLS} osobine su identične, osim poravnanja nitnog kontrolnog bloka.
+U ovom konkretnom slučaju sve osobine \emph{TLS} mehanizma su identične, osim poravnanja nitnog kontrolnog bloka.
 
 Funkcija \texttt{native\_check()} definisana u fajlu \emph{gdb/glibc-dep/native-check.c} daje informaciju da li se \emph{Multiarch} verzijom alata debaguje program domaćinske arhitekture. Ako je to slučaj, pristupanje vrednosti \emph{TLS} promenljive se vrši kao do sada uz pomoć funkcija iz standardne C biblioteke. Ukoliko to nije slučaj, pozovaju se novokreirane funkcije iz direktorijuma \emph{gdb/glibc-dep/}.
 
@@ -985,17 +989,17 @@ Deo koda koji implementira pomenutu funkcionalnost je prikazan na listingu \ref{
   TDB_DLSYM (info, td_thr_tlsbase);
 #endif
 \end{lstlisting}
-Iako je u pitanju \emph{Multiarch} verzija alata, ako je datoteka jezgra kreirana na domaćinskoj platformi zadržava se normalno pristupanje \emph{TLS}-a.
+Iako je u pitanju \emph{Multiarch} verzija alata, ako je datoteka jezgra kreirana na domaćinskoj platformi zadržava se normalno pristupanje \emph{TLS} mehanizma.
 
 \section{Alternativno rešenje}
 
 Drugi način implementacije je modifikacija \emph{libthread\_db} funkcija eksplicitno u standardnoj biblioteci, modifikujući ih tako da rade sa različitim arhitekturama. Naime, formula koja služi za pristupanje \emph{TLS} promenljive se računala u vremenu prevođenja biblioteke, sada bi se računala u vremenu izvršavanja programa, i u zavisnosti od arhitekture promenljive koje učestvuju u pomenutoj formuli će dobiti odgovarajuće vrednosti. Ukoliko se radi o programu arhitekture domaćina u funkciji  \texttt{td\_ta\_new()} promenljive dobijaju vrednosti koje odgovaraju arhitekturi domaćina, dok ako se radi o programu ciljne arhitekture, tj. različite od arhitekture domaćina, iz \emph{GNU GDB}-a će biti pozvana nova funckija u standardnoj biblioteci \texttt{td\_ta\_init\_target\_consts()} koja će postaviti vrednosti promenljivih koje odgovaraju ciljnoj arhitekturi. Ideja je upisati ove vrednosti u datoteku jezgra na ciljnoj arhitekturi i kasnije ih pročitati na arhitekturi domaćina korišćenjem \emph{GNU GDB} debagera. U ovom slučaju izmena u samom \emph{GNU GDB}-u bi bila minorna, te zahteva samo proveru da li je učitani program arhitekture domaćina ili ne, i u zavisnosti od toga se poziva \texttt{td\_ta\_init\_target\_consts()} ili ne. Ovo rešenje je nastalo kao odgovor na komentare \emph{GNU} zajednice na predhodno rešenje. Izmena standardne biblioteke se može pronaći na strani \cite{GLIBCPATCH}.
 
-\section{Unapređenje alata GNU GDB prilikom čitanja/pisanja datoteke jezgra za procesorsku arhitekturu MIPS}
+\section{Čitanje/pisanje datoteke jezgra za procesorsku arhitekturu MIPS}
 
-Kako bi funkcionalnost bila moguća za svaku podržanu procesorsku arhitekturu, potrebno je da alat \emph{GNU GDB} ima potpunu podršku za čitanje informacija iz datoteka jezgara. Podrška je za sve arhitekrure potpuna, ali u trenutku razvoja ove funkcionalnosti uočeno je da alat nema potpunu podršku za čitanje identifikacionog broja procesa (eng.~\emph{Process ID}) iz datoteke jezgra za \emph{MIPS} arhitekture, neophodnog za pristupanje bazičnih informacija o nitima. Koristeći komandu alata \texttt{gcore} moguće je kreirati datoteku jezgra i sa korisničkog nivoa, gde je takođe uočeno da alat nema potpunu podršku za ispisivanje nekih informacija o procesu za \emph{MIPS} procesorsku arhitekturu. Da bi podrška za \emph{TLS} promenljive bila potpuna i za arhitekturu \emph{MIPS}, implementirani su i uočeni nedostaci. Ova implementacija je privaćena od strane \emph{GNU} zajednice i ušla je u izvršnu verziju alata 8.0.0.
+Kako bi funkcionalnost bila moguća za svaku podržanu procesorsku arhitekturu, potrebno je da alat \emph{GNU GDB} ima potpunu podršku za čitanje informacija iz datoteka jezgara. Podrška je za sve arhitekrure potpuna, ali u trenutku razvoja ove funkcionalnosti uočeno je da alat nema potpunu podršku za čitanje identifikacionog broja procesa (eng.~\emph{Process ID}) iz datoteke jezgra za arhitekture \emph{MIPS}, neophodnog za pristupanje bazičnih informacija o nitima. Koristeći komandu alata \texttt{gcore} moguće je kreirati datoteku jezgra i sa korisničkog nivoa, gde je takođe uočeno da alat nema potpunu podršku za ispisivanje nekih informacija o procesu za procesorsku arhitekturu \emph{MIPS}. Da bi podrška za \emph{TLS} promenljive bila potpuna i za arhitekturu \emph{MIPS}, implementirani su i uočeni nedostaci. Ova implementacija je privaćena od strane \emph{GNU} zajednice i ušla je u izvršnu verziju alata 8.0.0.
 
-Deo izvornog koda (u fajlu \emph{bfd/elf32-mips.c}) izmene za čitanje informacija o procesu iz datoteke jezgra je prikazan na listinigu \ref{lst:izmenaBFD2}.
+Deo izvornog koda (u fajlu \emph{bfd/elf32-mips.c}) izmene za čitanje informacija o procesu iz datoteke jezgra je prikazan na listinigu \ref{lst:izmenaBFD2}. Bitna informacija za čitanje vrednosti \emph{TLS} promenljive je identifikacioni broj procesa. Bez izmene prikazane u listingu \ref{lst:izmenaBFD2} to ne bi bilo moguće. \newpage
 \begin{lstlisting} [style=customc, label={lst:izmenaBFD2}, caption={Deo izmene za čitanje informacija o procesu iz datoteke jezgra.}]
 
 case 128:                /* Linux/MIPS elf_prpsinfo */
@@ -1003,14 +1007,11 @@ case 128:                /* Linux/MIPS elf_prpsinfo */
    = bfd_get_32 (abfd, note->descdata + 16);
   elf_tdata (abfd)->core->program
    = _bfd_elfcore_strndup (abfd, note->descdata + 32, 16);
-\end{lstlisting}\newpage
-Deo izvornog koda (u fajlu \emph{bfd/elf32-mips.c}) izmene za pisanje informacija o procesu u datoteku jezgra je prikazan na listinigu \ref{lst:izmenaBFD3}
+\end{lstlisting}
+
+Ukoliko se koristi datoteka jezgra generisana iz korisničkog nivoa koristeći debager, bez upisivanja u nju informacija o procesu (kao npr.~identifikacioni broj procesa) čitanje vrednosti \emph{TLS} promenljive nije moguće. Deo izvornog koda (u fajlu \emph{bfd/elf32-mips.c}) izmene za pisanje informacija o procesu u datoteku jezgra je prikazan na listinigu \ref{lst:izmenaBFD3}.
 \begin{lstlisting} [style=customc, label={lst:izmenaBFD3}, caption={Deo izmene za pisanje informacija o procesu u datoteku jezgra.}]
   ...
-    case NT_PRPSINFO:
-      BFD_FAIL ();
-      return NULL;
-
     case NT_PRSTATUS:
       {
        char data[256];
@@ -1035,13 +1036,13 @@ Deo izvornog koda (u fajlu \emph{bfd/elf32-mips.c}) izmene za pisanje informacij
   ...
 \end{lstlisting}
 
-Primeri izvornog koda izmena su prikazani samo za \emph{MIPS} 32-bitnu verziju. Napomenimo da izmena obuhvata i \emph{MIPS} 64-bitnu verziju procesorske arhitekture.
+Primeri izvornog koda izmena su prikazani samo za 32-bitnu verziju arhitekture \emph{MIPS}. Napomenimo da izmena obuhvata i 64-bitnu verziju procesorske arhitekture \emph{MIPS}.
 
 \section{Testiranje}
 
 Faza testiranja je jako važan deo životnog ciklusa razvoja softvera, te je veliki značaj dat ovoj sekvenci. Testiranje je izvršeno na raznim verzijama procesorskih arhitektura \emph{ARM} i \emph{MIPS}.
 
-Takođe, implementirani su \emph{DejeGNU} \cite{DejaGNU} testovi koji testiraju pristupanje vrednosti \emph{TLS} promenljive iz datoteka jezgara razniih arhitektura. Zbog prirode problema koji se testira datoteke jezgra su generisane na različitim platformama i kompresovane zajedno sa izvršnim fajlom u \emph{gdb/testsuite/gdb.multi/}, te se prilikom izvršavanja konkretnih testova ti fajlovi raspakuju i učitavaju u debager. Testovi obuhvataju izvršne fajlove sa \emph{TLS}-om generisanih sa \emph{2.19} i \emph{2.22} verzijama standardne biblioteke.
+Takođe, implementirani su \emph{DejeGNU} \cite{DejaGNU} testovi koji testiraju pristupanje vrednosti \emph{TLS} promenljive iz datoteka jezgara raznih arhitektura. Zbog prirode problema koji se testira datoteke jezgra su generisane na različitim platformama i kompresovane zajedno sa izvršnim fajlom u \emph{gdb/testsuite/gdb.multi/}, te se prilikom izvršavanja konkretnih testova ti fajlovi raspakuju i učitavaju u debager. Testovi obuhvataju izvršne fajlove sa \emph{TLS} mehanizmom generisanih koristeći \emph{2.19} i \emph{2.22} verzije standardne biblioteke.
 
 Komanda alata kojom pokrećemo testove, ukoliko smo pozicionirani u direktorijumu gde je alat izrađen je prikazana na listingu \ref{lst:makec}.
 
@@ -1065,7 +1066,6 @@ Posle izmene koja dodaje \emph{TLS} funkcionalnost, rezultati izvršavanja testo
 
 \begin{lstlisting} [style=BashInputStyle, label={lst:tst2}, caption={Rezultati izvršavanja testova.}]
 		=== gdb Summary ===
-
 		# of expected passes		33718
 		# of expected failures		196
 		# of known failures		    66
@@ -1074,12 +1074,14 @@ Posle izmene koja dodaje \emph{TLS} funkcionalnost, rezultati izvršavanja testo
 		# of unsupported tests		219
 \end{lstlisting}
 
+Rezultati testiranja prikazani u listinzima \ref{lst:tst} i \ref{lst:tst2} pokazuju da nema regresije prilikom testiranja alata. Tri testa koja dodatno prolaze jesu testovi koji su dodati izmenama koji se opisuju u ovom radu. Dodati testovi sadrže primere čitanja vrednosti \emph{TLS} promenljive, koji se mogu naći u realnoj upotrebi.
+
 \section{Upotreba alata}
 
-Da bi \emph{GNU GDB} uspešno koristio naprednije tehinke analize višenitnih programa, uključujući i analizu \emph{TLS}-a, potrebno je da mu se prosledi putanja do \emph{libthread\_db} biblioteke koja pripada istoj verziji standardne biblioteke kao i program koji se debaguje. To isto važi i za \emph{Multiarch GNU GDB} verziju alata. Nakon toga potrebno je zadati putanju do biblioteka koje je program koristio na tom uređaju sa ugrađenim računarom na kome se program izvršavao. Primetimo da te biblioteke pripadaju toj ciljanoj platformi. Debager neće izvršavati program koji se debaguje, već će samo rekonstruisati sliku stanja tog procesa kada je neočekivano prekinuo sa radom, čitajući informacije iz datoteke jezgra i deljenih biblioteka.
+Da bi \emph{GNU GDB} uspešno koristio naprednije tehinke analize višenitnih programa, uključujući i analizu \emph{TLS} mehanizma, potrebno je da mu se prosledi putanja do \emph{libthread\_db} biblioteke koja pripada istoj verziji standardne biblioteke kao i program koji se debaguje. To isto važi i za \emph{Multiarch GNU GDB} verziju alata. Nakon toga potrebno je zadati putanju do biblioteka koje je program koristio na tom uređaju sa ugrađenim računarom na kome se program izvršavao. Primetimo da te biblioteke pripadaju toj ciljanoj platformi. Debager neće izvršavati program koji se debaguje, već će samo rekonstruisati sliku stanja tog procesa kada je neočekivano prekinuo sa radom, čitajući informacije iz datoteke jezgra i deljenih biblioteka.
 
 
-Izvorni kod višenitnog programa koji se debaguje u primeru je napisan u programskom jeziku \emph{C} i prikazan je na listingu \ref{lst:ctst}.
+Izvorni kod višenitnog programa koji se debaguje u primeru je napisan u programskom jeziku \emph{C} i prikazan je na listingu \ref{lst:ctst}.\newpage
 
 \begin{lstlisting} [style=customc, label={lst:ctst}, caption={Višenitni test primer napisan u C kodu.}]
 #include <stdio.h>
@@ -1116,7 +1118,7 @@ int main()
 
 \end{lstlisting}
 
-Korišćenje debagera pre implementacije čitanja vrednosti \emph{TLS} promenljive iz datoteke jezgra generisane na nekom uređaju sa ugrađenim računarom je prikazano na listingu \ref{lst:gdbkom}.
+Korišćenje debagera pre implementacije čitanja vrednosti \emph{TLS} promenljive iz datoteke jezgra generisane na uređaju sa ugrađenim računarom arhitekture \emph{MIPS} je prikazano na listingu \ref{lst:gdbkom}.\newpage
 
 \begin{lstlisting} [style=BashInputStyle, label={lst:gdbkom}, caption={Korišćenja debagera pre implementacije.}]
 (gdb) add-auto-load-safe-path /home/glibc/build_22/INSTALL/lib
@@ -1141,9 +1143,9 @@ Program terminated with signal SIGABRT, Aborted.
 Cannot find user-level thread for LWP 21808: generic error
 \end{lstlisting}
 
-\emph{Prvom i drugom komandom alata se podešavaju putanje do standardne biblioteke za debagovanje niti koja ima istu verziju kao i izvršni fajl koji se debaguje. Trećom komandom se zadaje putanja do deljenih biblioteka koje je izvršni fajl koji se debaguje korsitio na uređaju sa ugrađenim računarom. Četvrta komanda učitava izvršni fajl koji se debaguje. Petom komandom se učitava datoteka jezgra koja je generisana prilikom neočekivanog prekidanja izvršavanja fajla koji se debaguje. Poslednjom komandom se pokušava čitanje vrednosti \emph{TLS} promenljive.}
+\emph{Prvom i drugom komandom alata (linije 1 i 2) se podešavaju putanje do standardne biblioteke za debagovanje niti koja ima istu verziju kao i izvršni fajl koji se debaguje. Trećom komandom (linija 3) se zadaje putanja do deljenih biblioteka koje je izvršni fajl koji se debaguje korsitio na uređaju sa ugrađenim računarom. Četvrta komanda (linija 4) učitava izvršni fajl koji se debaguje. Petom komandom (linija 6) se učitava datoteka jezgra koja je generisana prilikom neočekivanog prekidanja izvršavanja fajla koji se debaguje. Poslednjom komandom (linija 19) se bezuspešno pokušava čitanje vrednosti \emph{TLS} promenljive.}
 
-Korišćenje debagera nakon implementacije čitanja vrednosti \emph{TLS} promenljive iz datoteke jezgra generisane na nekom uređaju sa ugrađenim računarom je prikazano na listingu \ref{lst:gdbkom2}.
+Korišćenje debagera nakon implementacije čitanja vrednosti \emph{TLS} promenljive iz datoteke jezgra generisane na nekom uređaju sa ugrađenim računarom je prikazano na listingu \ref{lst:gdbkom2}.\newpage
 
 \begin{lstlisting} [style=BashInputStyle, label={lst:gdbkom2}, caption={Korišćenja debagera posle implementacije.}]
 (gdb) add-auto-load-safe-path /home/glibc/build_22/INSTALL/lib
@@ -1168,7 +1170,7 @@ Program terminated with signal SIGABRT, Aborted.
 $1 = 0xdeadbeef
 \end{lstlisting}
 
-\emph{Prvom i drugom komandom alata se podešavaju putanje do standardne biblioteke za debagovanje niti koja ima istu verziju kao i izvršni fajl koji se debaguje. Trećom komandom se zadaje putanja do deljenih biblioteka koje je izvršni fajl koji se debaguje korsitio na uređaju sa ugrađenim računarom. Četvrta komanda učitava izvršni fajl koji se debaguje. Petom komandom se učitava datoteka jezgra koja je generisana prilikom neočekivanog prekidanja izvršavanja fajla koji se debaguje. Poslednjom komandom se uspešno čita vrednosti \emph{TLS} promenljive.}
+\emph{Prvom i drugom komandom alata (linije 1 i 2) se podešavaju putanje do standardne biblioteke za debagovanje niti koja ima istu verziju kao i izvršni fajl koji se debaguje. Trećom komandom (linija 3) se zadaje putanja do deljenih biblioteka koje je izvršni fajl koji se debaguje korsitio na uređaju sa ugrađenim računarom. Četvrta komanda (linija 4) učitava izvršni fajl koji se debaguje. Petom komandom (linija 6) se učitava datoteka jezgra koja je generisana prilikom neočekivanog prekidanja izvršavanja fajla koji se debaguje. Poslednjom komandom (linija 19) se uspešno čita vrednosti \emph{TLS} promenljive.}
 
 % ------------------------------------------------------------------------------
 \chapter{Zaključak}
