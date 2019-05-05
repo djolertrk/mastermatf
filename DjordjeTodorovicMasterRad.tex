@@ -723,14 +723,14 @@ __thread struct state s;
 extern __thread char *p;
 \end{lstlisting}
 
-Prednost korišćenja promenljivih lokalnih za niti nije ograničena samo na korisničke programe. Okruženje izvršavanja programa, između ostalih standardna biblioteka, takođe koristi pogodnosti ovog mehanizma. Npr.~globalne promenljive \texttt{errno}, koje jednoznačno označavaju nastalu grešku u programu, moraju biti lokalne za niti, jer u različitim nitima može doći do različitih grešaka. Napomenimo da navođenje \texttt{\_\_thread} pri deklaraciji ili definiciji neke automatske promenljive nema smisla i to nije dozvoljeno, jer automatske promenljive su uvek lokalne za niti. Promenljive statičkih funkcija su takođe kandidati za korišćenje \emph{TLS} promenljivih.
+Prednost korišćenja promenljivih lokalnih za niti nije ograničena samo na korisničke programe. Okruženje izvršavanja programa, između ostalih standardna biblioteka, takođe koristi pogodnosti ovog mehanizma. Npr.~globalne promenljive \texttt{errno}, koje jednoznačno označavaju nastalu grešku u programu, moraju biti lokalne za niti, jer u različitim nitima može doći do različitih grešaka. Napomenimo da navođenje \texttt{\_\_thread} pri deklaraciji ili definiciji neke automatske promenljive nema smisla i to nije dozvoljeno, jer automatske promenljive su uvek lokalne za niti.  Statičke promenljive funkcija su takođe kandidati za korišćenje \emph{TLS} promenljivih.
 
 Osnovne operacije nad promenljivama koje su lokalne za niti su intuitivne. Npr.~adresni operator vraća adresu promenljive za trenutnu nit. Memorija alocirana za promenljivu lokalnu za nit u dinamički učitanom modulu se oslobađa kada se taj modul oslobodi iz memorije.
 
-Implementacija ovog mehanizma zahteva promenu okruženja izvršavanja programa. Format izvršnih fajlova je proširen kako bi definisao promenljive lokalne za niti odvojeno od standardnih promenljivih. Dinamički punilac (eng.~\emph{dynamic loader}) je nadograđen kako bi ispravno inicijalizovao te nove sekcije. Standardna biblioteka koja rukuje nitima je promenjena kako bi alocirala nove podatke lokalne za niti za svaku novu nit. U nastavku poglavlja su opisane izmene u fajl formatu
-\emph{ELF} i dat je detaljan opis izvršavanja programa koji sadrže promenljive lokalne za niti.
+Implementacija ovog mehanizma zahteva promenu okruženja izvršavanja programa. Format izvršnih fajlova je proširen kako bi definisao promenljive lokalne za niti odvojeno od standardnih promenljivih, što je opisano u okviru poglavlja \ref{sec:defElfTls}. Dinamički punilac (eng.~\emph{dynamic loader}) je nadograđen kako bi ispravno inicijalizovao te nove sekcije. Standardna biblioteka koja rukuje nitima je promenjena kako bi alocirala nove podatke lokalne za niti za svaku novu nit. U okviru poglavlja \ref{sec:izvrTls} je dat detaljan opis izvršavanja programa koji sadrže promenljive lokalne za niti. Poglavlje \ref{sec:tlsmodeli} opisuje najpoznatije modele pristupa \emph{TLS} promenljivoj.
 
 \section{Definisanje novih podataka u fajl formatu ELF}
+\label{sec:defElfTls}
 
 Izmene u fajl formatu izvršnih fajlova, potrebne za emitovanje \emph{TLS} objekata su minimalne. Umesto smeštanja inicijalizovanih promenljivih u sekciju \texttt{.data} ili neinicijalizovanih promenljivih u \texttt{.bss} sekciju, \emph{TLS} promenljive se smeštaju u \texttt{.tdata} i \texttt{.tbss} sekcije \cite{TLS}. Nove sekcije se od originalnih razlikuju u samo jednom dodatnom sekcijskom flegu. Tabela \ref{tab:tls_secs} prikazuje nove sekcije. Jedina razlika u odnosu na sekcije podataka koje ne koriste višenitno okruženje jeste fleg \texttt{SHF\_TLS}.
 
@@ -783,6 +783,7 @@ Da bi dinamički linker mogao da izvrši inicijalizaciju inicijalizacione slike,
 Svaka \emph{TLS} promenljiva je identifikovana pomoću pomeraja od početka \emph{TLS} sekcije. U memoriji, \texttt{.tbss} sekcija je alocirana odmah nakon \texttt{.tdata} sekcije. Nijedna virtualna adresa ne može biti izračunata prilikom povezivanja (\emph{eng.~link time}).
 
 \section{Rukovanje TLS promenljivom tokom izvršavanja programa}
+\label{sec:izvrTls}
 
 Obrada podataka lokalnih za niti nije prosta kao obrada običnih podataka. Standardni pristup kreiranja i korišćenja segmenta podataka od strane procesa se ne može iskoristiti. Umesto toga, nekoliko kopija jednog istog podatka mora biti kreirano, svi inicijalizovani iz iste inicijalizacione slike.
 
@@ -879,8 +880,9 @@ allocate_tls (size_t m)
 \texttt{tlssize[m]}, \texttt{tlsinit\_size[m]} i \texttt{tlsinit\_img[m]} su poznati nakon učitavanja modula \texttt{m}. Primetimo da se ista inicijalizaciona slika \texttt{tlsinit\_img[m]} koristi za sve niti modula, bilo kada da se one kreiraju. Novonapravljena nit ne nasleđuje podatke od svog roditelja (\emph{eng.~parent}), već dobija samo kopiju inicijalnih podataka.
 
 \section{TLS modeli pristupa}
+\label{sec:tlsmodeli}
 
-Svako referisanje \emph{TLS} promenljive prati jedan od dva modela pristupa: dinamički ili statički. Različite arhitekture ABI-jem propisuju koji od modela pristupa će koristiti kao podrazumevani. Postoje različiti modeli pristupa, a četiri najpoznatija su opisana u nastavku teksta.
+Svako referisanje \emph{TLS} promenljive prati jedan od modela pristupa. Modeli pristupa se dele na dva tipa: dinamički i statički. Različite arhitekture \emph{ABI}-jem propisuju koji od modela pristupa će koristiti kao podrazumevani. Postoje različiti modeli pristupa, a četiri najpoznatija su opisana u nastavku teksta.
 
 \subsection{Generalni dinamički TLS model}
 
