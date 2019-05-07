@@ -110,9 +110,9 @@
 % Ime i afilijacija mentora (u odabranom pismu)
 \mentor{dr Milena \textsc{Vujošević-Janičić}, redovan profesor\\ Univerzitet u Beogradu, Matematički fakultet}
 % Ime i afilijacija prvog člana komisije (u odabranom pismu)
-\komisijaA{dr Filip \textsc{Marić}, redovan profesor\\ Univerzitet u Beogradu, Matematički fakultet}
+\komisijaA{dr Filip \textsc{Marić}, vanredni profesor\\ Univerzitet u Beogradu, Matematički fakultet}
 % Ime i afilijacija drugog člana komisije (u odabranom pismu)
-\komisijaB{dr Miroslav \textsc{Marić}, redovan profesor\\ Univerzitet u Beogradu, Matematički fakultet}
+\komisijaB{dr Miroslav \textsc{Marić}, vanredni profesor\\ Univerzitet u Beogradu, Matematički fakultet}
 % Ime i afilijacija trećeg člana komisije (opciono)
 % \komisijaC{}
 % Ime i afilijacija četvrtog člana komisije (opciono)
@@ -122,11 +122,15 @@
 
 % Apstrakt na srpskom jeziku (u odabranom pismu)
 \apstr{%
-
+  Potreba za razvojom softvera raste svakodnevno. Softver je svuda oko nas. Da bi se podigla efikasnost programera dolazi do potrebe za raznim alatima koji služe za pronalaženje i otklanjanje grešaka. Jedan takav alat je debager \emph{GNU GDB}.
+  
+  Višenitni softver je veoma prisutan, ponekad i neizbežan u softveru na uređajima sa ugrađenim računarom. Često takvi uređaji nemaju debager, pa je analiza programa moguća samo na ličnim računarima. Jedan način analize grešaka u programima sa takvih uređaja je učitavanje datoteke jezgra u debager.
+  
+  Koriščenje \emph{GNU GDB} alata na arhitekturi domaćina prilikom analize datoteka jezgara koje su generisane na ugrađenim uređajima drugih arhitektura je bilo uskraćeno za čitanje vrednosti \emph{TLS} (eng. \emph{Thread Local Storage}) promenljivih. Ovaj rad opisuje unapređenje alata radi dodavanja tog ponašanja.
 }
 
 % Ključne reči na srpskom jeziku (u odabranom pismu)
-\kljucnereci{Thread Local Storage, GNU‘s Not Unix, GNU Debugger, Datoteka jezgra}
+\kljucnereci{Thread Local Storage, TLS, GNU‘s Not Unix, GNU Debugger, GNU GDB, Datoteka jezgra}
 
 \begin{document}
 % ==============================================================================
@@ -140,7 +144,7 @@
 % Strana sa posvetom (u odabranom pismu)
 \posveta{Daretu}
 % Strana sa podacima o disertaciji na srpskom jeziku
-%\apstrakt
+\apstrakt
 % Sadržaj teze
 \tableofcontents*
 
@@ -727,7 +731,7 @@ Prednost korišćenja promenljivih lokalnih za niti nije ograničena samo na kor
 
 Osnovne operacije nad promenljivama koje su lokalne za niti su intuitivne. Npr.~adresni operator vraća adresu promenljive za trenutnu nit. Memorija alocirana za promenljivu lokalnu za nit u dinamički učitanom modulu se oslobađa kada se taj modul oslobodi iz memorije.
 
-Implementacija ovog mehanizma zahteva promenu okruženja izvršavanja programa. Format izvršnih fajlova je proširen kako bi definisao promenljive lokalne za niti odvojeno od standardnih promenljivih, što je opisano u okviru poglavlja \ref{sec:defElfTls}. Dinamički punilac (eng.~\emph{dynamic loader}) je nadograđen kako bi ispravno inicijalizovao te nove sekcije. Standardna biblioteka koja rukuje nitima je promenjena kako bi alocirala nove podatke lokalne za niti za svaku novu nit. U okviru poglavlja \ref{sec:izvrTls} je dat detaljan opis izvršavanja programa koji sadrže promenljive lokalne za niti. Poglavlje \ref{sec:tlsmodeli} opisuje najpoznatije modele pristupa \emph{TLS} promenljivoj.
+Implementacija ovog mehanizma zahteva promenu okruženja izvršavanja programa. Format izvršnih fajlova je proširen kako bi definisao promenljive lokalne za niti odvojeno od standardnih promenljivih, što je opisano u okviru poglavlja \ref{sec:defElfTls}. Dinamički punilac (eng.~\emph{dynamic loader}) je nadograđen kako bi ispravno inicijalizovao te nove sekcije. Standardna biblioteka koja rukuje nitima je promenjena kako bi alocirala nove podatke lokalne za niti za svaku novu nit. U okviru poglavlja \ref{sec:izvrTls} je dat detaljan opis izvršavanja programa koji sadrže promenljive lokalne za niti. Pokretanje i priprema izvršavanja procesa koji sadrže \emph{TLS} promenljive su opisani u poglavlju \ref{sec:pokrTLS}. Referisanje \emph{TLS} promenljive se ne odvija na standardan način, već koristeći \emph{TLS} modele pristupa opisane u poglavlju \ref{sec:tlsmodeli}.
 
 \section{Definisanje novih podataka u fajl formatu ELF}
 \label{sec:defElfTls}
@@ -818,6 +822,7 @@ Druga varijanta \emph{TLS} strukture podataka ima sličnu strukturu kao prva. Pr
 U trenutku pokretanja programa \texttt{TCB}, zajedno sa dinamičkim nitnim vektorom, se kreira za glavnu nit. Pozicija tog \emph{TLS} bloka, za svaki pojedinačan modul, se računa koristeći arhitekturalno specifične formule, zasnovane na veličini i poravnanju \emph{TLS} bloka propisanih \emph{ABI}-jem za tu specifičnu procesorsku arhitekturu.
 
 \section{Pokretanje i izvršavanje procesa}
+\label{sec:pokrTLS}
 
 Za programe koji koriste \emph{TLS} promenljive mehanizam operativnog sistema koji služi za pokretanje procesa mora podesiti memoriju za inicijalnu nit pre nego što preda kontrolu tog procesa drugim mehanizmima. Podrška za korišćenje \emph{TLS} promenljive u statičko povezanim programima je limitirana. Neke procesorske arhitekture (kao npr.~\emph{IA-64}) ne definišu uopšte statičko povezivanje. Neke druge platforme obeshrabruju korišćenje statičkog povezivanja pružanjem samo određenog broja funkcionalnosti. Rukovanje \emph{TLS} promenljivom u statičko povezanom programu je prosto, zbog postojanja samo jednog modula, tj.~samo taj program.
 
@@ -890,7 +895,7 @@ Generalni model pristupa \emph{TLS} promenljivoj dozvoljava referisanje svih \em
 
 \subsection{Lokalni dinamički TLS model}
 
-Lokalni dinamički model pristupa \emph{TLS} promenljivoj predstavalja optimizaciju generalnog dinamičkog modela. Programski prevodilac može odrediti da je neka promenljiva definisana samo lokalno, ili zaštićeno (\emph{eng.~protected}) u objektu koji je napravljen u programu. U tom slučaju, programski prevodilac daje instrukcije linkeru da statički poveže dinamički \emph{TLS} pomeraj i da korsiti ovaj model. Iz tog razloga predstavlja hibridnu kombinaciju statičkog i dinamičkog modela pristupa, te prema tome predstavlja model koji diže performanse u odnosu na generalni dinamički model. Samo jedan poziv \texttt{tls\_get\_addr()} po funkciji je potreban za određivanje adrese \texttt{$dtv_{0,m}$}.
+Lokalni dinamički model pristupa \emph{TLS} promenljivoj predstavalja optimizaciju generalnog dinamičkog modela. Programski prevodilac može odrediti da je neka promenljiva definisana samo lokalno, ili zaštićeno (\emph{eng.~protected}) u objektu koji je napravljen u programu. U tom slučaju, programski prevodilac daje instrukcije linkeru da statički poveže dinamički \emph{TLS} pomeraj i da korsiti ovaj model. Iz tog razloga predstavlja hibridnu kombinaciju statičkog i dinamičkog modela pristupa, te prema tome predstavlja model koji diže performanse u odnosu na generalni dinamički model. Samo jedan poziv \texttt{tls\_get\_addr()} po funkciji je potreban za određivanje adrese \texttt{$dtv_{0,m}$}\footnote{Prvi broj (\texttt{0}) ukazuje na identifikacioni broj niti, a drugi broj (\texttt{m}) ukazuje na identifikacioni broj modula.}.
 
 \subsection{Statički TLS model sa dodeljenim pomerajima}
 
