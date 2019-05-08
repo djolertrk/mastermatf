@@ -122,11 +122,7 @@
 
 % Apstrakt na srpskom jeziku (u odabranom pismu)
 \apstr{%
-  Potreba za razvojom softvera raste svakodnevno. Softver je svuda oko nas. Da bi se podigla efikasnost programera dolazi do potrebe za raznim alatima koji služe za pronalaženje i otklanjanje grešaka. Jedan takav alat je debager \emph{GNU GDB}.
-  
-  Višenitni softver je veoma prisutan, ponekad i neizbežan u softveru na uređajima sa ugrađenim računarom. Često takvi uređaji nemaju debager, pa je analiza programa moguća samo na ličnim računarima. Jedan način analize grešaka u programima sa takvih uređaja je učitavanje datoteke jezgra u debager.
-  
-  Koriščenje \emph{GNU GDB} alata na arhitekturi domaćina prilikom analize datoteka jezgara koje su generisane na ugrađenim uređajima drugih arhitektura je bilo uskraćeno za čitanje vrednosti \emph{TLS} (eng. \emph{Thread Local Storage}) promenljivih. Ovaj rad opisuje unapređenje alata radi dodavanja tog ponašanja.
+  Potreba za razvojom softvera raste svakodnevno. Da bi se podigla efikasnost programera potrebno je razvijati alate koji služe za pronalaženje i otklanjanje grešaka. Jedan takav alat je debager \emph{GNU GDB}. Taj debager se može koristiti na razne načine. Jedan od načina korišćenja debagera je učitavanje datoteke jezgra što je veoma važno u situacijama kada se analizira program drugačijih arhitektura procesora. Višenitno programiranje je veoma prisutno, ponekad i neizbežno prilikom razvoja softvera za uređaje sa ugrađenim računarom. Često takvi uređaji nemaju debager, pa je analiza programa moguća samo na ličnim računarima. Jedna od važnih mogućnosti prilikom debagovanja višenitnih aplikacija je čitanje vrednosti promenljive koje su lokalne za niti (eng. \emph{TLS-Thread Local Storage}). Ovaj rad opisuje unapređenje alata prilikom čitanja vrednosti \emph{TLS} promenljive iz datoteke jezgra generisane na uređaju sa ugrađenim računarom.
 }
 
 % Ključne reči na srpskom jeziku (u odabranom pismu)
