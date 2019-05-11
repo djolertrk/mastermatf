@@ -430,7 +430,7 @@ Za čitanje vrednosti promenljivih u programu, debager pretražuje DWARF stablo 
 
 Izvorni kod alata \emph{GNU GDB} je originalno napisan od strane Ričarda Stolmana 1986. godine kao deo \emph{GNU} sistema \cite{GDBDOC}. \emph{GNU GDB} je slobodan i besplatan softver realizovan pod \emph{GNU General Public License (GPL)}. Od 1990.~do 1993.~godine alat je održavao Džon Gilmor, a trenutno za održavanje alata je zadužena \emph{GDB Steering Committee} grupa, odobrena od strane \emph{FSF} (eng.~\emph{Free Software Foundation}) \cite{FSF}.
 
-Poslednja realizovana verzija alata \emph{GNU GDB} je 8.2.1.
+Poslednja realizovana verzija alata \emph{GNU GDB} je 8.3.
 
 \section{Šta je \emph{arhitektura} za GNU GDB?}
 
@@ -574,7 +574,7 @@ Breakpoint 1, fn1 (arg=0x7fffffffdbf4) at test.c:4
 
 \section{Datoteke jezgra}
 
-Datoteka jezgra (eng.~\emph{core dump file}) je snimak (eng.~\emph{snapshot}) memorije programa, registara i ostalih sistemskih informacija u trenutku neočekivanog prekida rada programa. Veoma važnu ulogu ima u procesu debagovanja programa sa uređaja sa ugrađenim računarom koji često pripadaju različitoj procesorskoj arhitekturi u odnosu na lični računar. Ugrađeni uređaji obično imaju ograničene resurse, pa često na takvim platformama ne postoji debager. Najčešća procedura debagovanja ovakvih programa jeste prebacivanje datoteke jezgra i programa na lični računar na kome se analiza problema odvija koristeći debager.
+Datoteka jezgra (eng.~\emph{core dump file}) je snimak (eng.~\emph{snapshot}) memorije programa, registara i ostalih sistemskih informacija u trenutku neočekivanog prekida rada programa. Veoma važnu ulogu ima u procesu debagovanja programa sa uređaja sa ugrađenim računarom koji često pripadaju različitoj procesorskoj arhitekturi u odnosu na lični računar. Uređaji sa ugrađenim računarom obično imaju ograničene resurse, pa često na takvim platformama ne postoji debager. Najčešća procedura debagovanja ovakvih programa jeste prebacivanje datoteke jezgra i programa na lični računar na kome se analiza problema odvija koristeći debager.
 
 \subsection{Struktura datoteke jezgra}
 
