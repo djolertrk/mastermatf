@@ -189,7 +189,7 @@ Prilikom optimizacija se gube razne debag informacije. Neke promenljive i funkci
 \emph{DWARF} je debag fajl format koji se koristi od strane programskih prevodioca (kao npr.~\emph{GCC} ili \emph{LLVM/Clang}) i debagera (kao npr.~\emph{GNU GDB}) da bi se omogućilo debagovanje na nivou izvornog koda. Omogućava podršku za razne programske jezike kao što su \emph{C/C++} i \emph{Fortran}, ali je dizajniran tako da se lako može proširiti na ostale jezike. Arhitekturalno je nezavisan i predstavlja "most" između izvornog koda i izvršnog fajla. Trenutno je poslednji realizovani standard verzija 5 formata \emph{DWARF}.
 
 Debag fajl format \emph{DWARF} na \emph{UNIX}-olike operativne sisteme, kao što su \emph{Linux} i \emph{MacOS}. Generisane debag informacije, prateći \emph{DWARF} standard, su podeljene u nekoliko sekcija sa prefiksom \texttt{.debug\_}. Neke od njih su \texttt{.debug\_line}, \texttt{.debug\_loc} i \texttt{.debug\_info} koje redom predstavljaju informacije o linijama izvornog koda, lokacijama promenljivih i ključna debag sekcija koja sadrži debag informacije koje referišu na informacije iz ostalih debag sekcija.
-\emph{DWARF} je predstavljen kao drvolika struktura, smeštena u \texttt{.debug\_info} sekciju,  koja razne entitete programskog jezika opisuje osnovnom debag jedinicom \emph{DIE} (eng.~\emph{Debug Info Entry}). Osnovna debag jedinica može opisivati lokalnu promenljivu programa, formalni parametar, funkciju itd. Svaka od njih je identifikovana \emph{DWARF} tagom koji predstavalja informaciju o toj jedinici, gde je npr.~tag za lokalne promenljive predstavljen sa \texttt{DW\_TAG\_local\_variable}, ili tag za funkciju je obeležen sa \texttt{DW\_TAG\_subprogram}. Svaka debag jedinica je opisana određenim \emph{DWARF} atributima sa prefikosm \texttt{DW\_AT\_}. Oni mogu ukazivati na razne informacije o entitetu kao sto su ime promenljive ili funkcije, liniju deklaracije, itd. Koren svakog \emph{DWARF} stabla je predstavljen debag jedinicom, sa tagom  \texttt{DW\_TAG\_compile\_unit}, koja predstavlja kompilacionu jedinicu, tj. izvorni kod programa.
+\emph{DWARF} je predstavljen kao drvolika struktura, smeštena u \texttt{.debug\_info} sekciju,  koja razne entitete programskog jezika opisuje osnovnom debag jedinicom \emph{DIE} (eng.~\emph{Debug Info Entry}). Osnovna debag jedinica može opisivati lokalnu promenljivu programa, formalni parametar, funkciju itd. Svaka od njih je identifikovana \emph{DWARF} tagom koji predstavalja informaciju o toj jedinici, gde je npr.~tag za lokalne promenljive predstavljen sa \texttt{DW\_TAG\_local\_variable}, ili tag za funkciju je obeležen sa \texttt{DW\_TAG\_subprogram}. Svaka debag jedinica je opisana određenim \emph{DWARF} atributima sa prefikosm \texttt{DW\_AT\_}. Oni mogu ukazivati na razne informacije o entitetu kao što su ime promenljive ili funkcije, liniju deklaracije, itd. Koren svakog \emph{DWARF} stabla je predstavljen debag jedinicom, sa tagom  \texttt{DW\_TAG\_compile\_unit}, koja predstavlja kompilacionu jedinicu, tj. izvorni kod programa.
 
 \begin{lstlisting} [style=customc, label={lst:c_kod}, caption={Primer programa napisanog u \emph{C} programskom jeziku.}]
 #include <stdio.h>
@@ -256,7 +256,7 @@ Contents of the .debug_loc section:
 
 \emph{ELF} (eng.~\emph{Executable and Linkable Format}) \cite{ELF} je format izvršnih fajlova, deljenih biblioteka, objektnih fajlova i datoteka jezgara.
 
-\emph{ELF} sadrži razne informacije o samom fajlu. Podeljen je u dva dela: \emph{ELF} zaglavlje i podaci fajla. \emph{ELF} zaglavlje sadrži informacije o arhitekturi za koju je program preveden i definiše da li program koristi 32-bitni ili 64-bitni adresni prostor. Zaglavlje 32-bitnih programa je dužine 52 bajta, dok kod 64-bitnih programa zaglavlje je dužine 64 bajta. Podaci fajla mogu sadržati programsku tabelu zaglavlja (eng.~\emph{Program header table}), sekcijsku tabelu zaglavlja (eng.~\emph{Section header table}) i ulazne tačke prethodne dve tabele. Primer \ref{lst:elf} prikazuje \emph{ELF} fajl format počitan alatom \emph{readelf}:
+\emph{ELF} sadrži razne informacije o samom fajlu. Podeljen je u dva dela: \emph{ELF} zaglavlje i podaci fajla. \emph{ELF} zaglavlje sadrži informacije o arhitekturi za koju je program preveden i definiše da li program koristi 32-bitni ili 64-bitni adresni prostor. Zaglavlje 32-bitnih programa je dužine 52 bajta, dok kod 64-bitnih programa zaglavlje je dužine 64 bajta. Podaci fajla mogu sadržati programsku tabelu zaglavlja (eng.~\emph{Program header table}), sekcijsku tabelu zaglavlja (eng.~\emph{Section header table}) i ulazne tačke prethodne dve tabele. Primer u listingu \ref{lst:elf} prikazuje fajl format \emph{ELF} počitan alatom \emph{readelf}.
 
 \begin{lstlisting} [style=BashInputStyle, label={lst:elf}, caption={Primer \emph{ELF} zaglavlja.}]
 ELF Header:
@@ -393,19 +393,19 @@ Hardverske tačke prekida su direktno povezane sa hardverom u vidu specijalnih r
 
 Pod procesom koračanja (eng.~\emph{stepping}) kroz program podrazumevamo izvršavanje programa sekvencu po sekvencu. Sekvenca može biti jedna procesorska instrukcija, linija koda ili pak neka funkcija programa koji se debaguje \cite{GDB}.
 
-Instrukcijsko koračanje na platformi Intel x86-64 je direktno omogućeno kroz sistemski poziv \texttt{ptrace}:\newline
+Instrukcijsko koračanje na platformi sa \emph{Intel x86-64} arhitekturom procesora je direktno omogućeno kroz sistemski poziv \texttt{ptrace}:\newline
 \texttt{ptrace(PTRACE\_SINGLESTEP, debuggee\_pid, nullptr, nullptr);}
 \newline
 
 Operativni sistem će poslati debageru signal \texttt{SIGTRAP} kada je korak izvršen.
 
-Pored instrukcijkog koračanja pomenućemo još jednu vrstu koračanja u neku funkciju koja je pozvana \texttt{call} ili \texttt{jump} instrukcijom. Komanda debagara \emph{GNU GDB} koja nam to omogućava jeste \texttt{step in}.
+Pored instrukcijkog koračanja pomenućemo još jednu vrstu koračanja u funkciju koja je pozvana \texttt{call} ili \texttt{jump} instrukcijom. Komanda debagara \emph{GNU GDB} koja nam to omogućava jeste \texttt{step in}.
 
 Treba napomenuti da postoje arhitekture za koje ovo ne važi, kao npr. platforma \emph{ARM}, koja nema hardversku podršku za instrukcijsko koračanje i za njih se koračanje implementira na drugačiji način, uz pomoć emulacije instrukcija, ali u ovom radu neće biti reči o tome.
 
 \subsection{Izlistavanje pozivanih funkcija}
 
-Objasnimo komandu izlistavanje pozivanih funkcija (eng.~\emph{backtrace}) posmatrajući organizaciju stek okvira (eng.~\emph{stack frames}) na platformi Intel x86-64 \cite{GDB}.
+Objasnimo komandu izlistavanje pozivanih funkcija (eng.~\emph{backtrace}) posmatrajući organizaciju stek okvira (eng.~\emph{stack frames}) na platformi sa \emph{Intel x86-64} arhitekturom procesora \cite{GDB}.
 
 \begin{figure}[h!]
 	\begin{center}
@@ -419,7 +419,7 @@ Na slici \ref{fig:stack} navedeni su stek okviri za dva funkcijska poziva. Pre p
 
 \subsection{Čitanje vrednosti promenljivih}
 
-Za čitanje vrednosti promenljivih u programu, debager pretražuje DWARF stablo tražeći promenljivu sa zadatim imenom. U slučaju lokalnih promenljivih, traži se \texttt{DW\_TAG\_variable} element čiji \texttt{DW\_AT\_name} odgovara navedenoj promenljivoj. Kada se ista pronađe konsultuje se \texttt{DW\_AT\_location}, koji ukazuje na lokaciju gde se vrednost promenljive nalazi. Ukoliko ovaj atribut nije naveden debager će vrednost takve promenljive smatrati kao optimizovanu prijavljujući informaciju o tome \cite{GDB}.
+Za čitanje vrednosti promenljivih u programu, debager pretražuje DWARF stablo tražeći promenljivu sa zadatim imenom. U slučaju lokalnih promenljivih, traži se \texttt{DW\_TAG\_variable} element čiji \texttt{DW\_AT\_name} odgovara navedenoj promenljivoj. Kada se ta promenljiva pronađe konsultuje se \texttt{DW\_AT\_location}, koji ukazuje na lokaciju gde se vrednost promenljive nalazi. Ukoliko ovaj atribut nije naveden debager će vrednost takve promenljive smatrati kao optimizovanu prijavljujući informaciju o tome \cite{GDB}.
 
 \chapter{Debager GNU GDB}
 \label{chp:GDB}
