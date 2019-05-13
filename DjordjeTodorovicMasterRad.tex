@@ -40,6 +40,8 @@
 % azbuke (nema potrebe koristiti ovo u pravim disertacijama)
 \usepackage[latinica]{pangrami}
 \usepackage[bottom]{footmisc}
+\usepackage{float}
+\restylefloat{table}
 \usepackage{listings}
 
 \lstdefinestyle{customc}{
@@ -726,8 +728,7 @@ Implementacija ovog mehanizma zahteva promenu okruženja izvršavanja programa. 
 
 Izmene u fajl formatu izvršnih fajlova, potrebne za emitovanje \emph{TLS} objekata su minimalne. Umesto smeštanja inicijalizovanih promenljivih u sekciju \texttt{.data} ili neinicijalizovanih promenljivih u \texttt{.bss} sekciju, \emph{TLS} promenljive se smeštaju u \texttt{.tdata} i \texttt{.tbss} sekcije \cite{TLS}. Nove sekcije se od originalnih razlikuju u samo jednom dodatnom sekcijskom flegu. Tabela \ref{tab:tls_secs} prikazuje nove sekcije. Jedina razlika u odnosu na sekcije podataka koje ne koriste višenitno okruženje jeste fleg \texttt{SHF\_TLS}.
 
-
-\begin{table}
+\begin{table}[H]
 		\begin{center}
 	\begin{tabular}{ | l | p{5cm} | p{5cm} |}
 		\hline
