@@ -170,30 +170,30 @@ Rad se pored prvog uvodnog, sastoji još iz pet poglavlja. Drugo poglavlje opisu
 
 % ------------------------------------------------------------------------------
 
-\chapter{Kako rade debageri?}
+\chapter{Debageri}
 \label{chp:debageri}
 
-Greške su sastavni deo svakog rada koji obavlja čovek, te ih i programeri prave. Greške mogu biti hardverske i softverske. One mogu imati razne poslednice. Neke su manje važne, kao npr.~korisnički interfejs aplikacije ima neočekivanu boju pozadine. Postoje i greške koje mogu imati daleko veće posledice, pa čak i ugroziti živote drugih, kao npr.~greške u softveru ili hardveru uređaja i aplikacija avio industrije. Faza testiranja je veoma važna u ciklusu razvoja softvera. Nakon faze testiranja obično sledi faza analize i otklanjanja grešaka.
+Greške su sastavni deo svakog rada koji obavlja čovek, te ih i programeri prave. Greške mogu biti hardverske i softverske. One mogu imati razne poslednice. Neke greške su manje važne, kao npr.~greška u korisničkom interfejsu neke kompijuterske igrice. Postoje i greške koje mogu imati daleko veće posledice, pa čak i ugroziti živote drugih, kao npr.~greške u softveru ili hardveru uređaja i aplikacija avio industrije. Faza testiranja je veoma važna u ciklusu razvoja softvera. Nakon faze testiranja obično sledi faza analize i otklanjanja grešaka.
 
 Debager (eng.~\emph{debagger}) je softverski alat koji koriste programeri za testiranje, analizu i otklanjanje grešaka u programima. Sam proces korišćenja takvih alata nazivamo debagovanjem (eng.~\emph{debugging}).
-Debageri mogu pokrenuti rad nekog procesa ili se „nakačiti” na proces koji je već u fazi rada. U oba slučaja, debager preuzima kontrolu nad procesom. To mu mogućava da izvršava proces instrukciju po instrukciju, da postavlja tačke prekida (eng.~\emph{brakpoints}) itd. Proces izvršavanja programa od strane debagera sekvencijalno, instrukciju po instrukciju ili liniju po liniju, nazivamo koračanje. Tačke prekida su mogućnost debagera da zaustavi izvršavanje programa na određenoj tački. To može biti trenutak kada program izvrši određenu funkciju, liniju koda itd. Neki debageri imaju mogućnost izvršavanja funkcija programa koji se debaguje, uz ograničenje da program pripada istoj procesorskoj arhitekturi kao i domaćinski sistem na kojem se debager izvršava.
+Debageri mogu pokrenuti rad nekog procesa ili preuzeti kontrolu izvršavanja procesa koji je već u fazi rada. U oba slučaja, debager preuzima kontrolu nad procesom. To mu mogućava da izvršava proces instrukciju po instrukciju, da postavlja tačke prekida (eng.~\emph{brakpoints}) itd. Proces izvršavanja programa od strane debagera sekvencijalno, instrukciju po instrukciju ili liniju po liniju, nazivamo koračanje. Tačke prekida su mogućnost debagera da zaustavi izvršavanje programa na određenoj tački. To može biti trenutak kada program izvrši određenu funkciju, liniju koda itd. Neki debageri imaju mogućnost izvršavanja funkcija programa koji se debaguje, uz ograničenje da program pripada istoj procesorskoj arhitekturi kao i domaćinski sistem na kojem se debager izvršava.
 
-Podršku debagerima, u opštem slučaju, daju operativni sistemi, kroz sistemske pozive koji omogućavaju tim alatima da pokrenu i preuzmu kontrolu nad nekim drugim procesom. Za neke naprednije tehnike debagovanja poželjna je podrška od strane hardvera. U radu će detaljno biti obrađen rad \emph{UNIX}-olikih, posebno \emph{Linux} debagera. \emph{Windows} debageri i programski prevodioci ne prate standard \emph{DWARF} \cite{DWARF} prilikom baratanja sa debag informacijama. Alati za debagovanje u okviru operativnog sistema \emph{Windows} koriste standard \emph{Majkrosoft CodeView}.  Više informacija o ovom standardu može se pronaći u literaturi \cite{CodeView}.
+Podršku debagerima, u opštem slučaju, daju operativni sistemi, kroz sistemske pozive koji omogućavaju tim alatima da pokrenu i preuzmu kontrolu nad nekim drugim procesom. Za neke naprednije tehnike debagovanja poželjna je podrška od strane hardvera. U radu će detaljno biti obrađen rad \emph{UNIX}-olikih, posebno \emph{Linux} debagera. \emph{Windows} debageri i programski prevodioci ne prate standard \emph{DWARF} \cite{DWARF} prilikom baratanja pomoćnim informacijama za otklanjanje i analizu grešaka (eng.~\emph{Debug Information}). Alati za debagovanje u okviru operativnog sistema \emph{Windows} koriste standard \emph{Majkrosoft CodeView}.  Više informacija o ovom standardu može se pronaći u literaturi \cite{CodeView}.
 
 \section{Prevođenje programa}
 
-Programi koji se debaguju se prevode uz pomoć odgovarajuće opcije programskih prevodioca (za prevodioce \emph{GCC} \cite{GCC} i \emph{LLVM/Clang} \cite{LLVM}, to je opcija \texttt{-g}) koja obezbeđuje generisanje pomoćnih debag informacija. Ukoliko je program koji se analizira preveden bez optimizacija, debag informacije koje prate program su potpune. Za programe koji se puštaju u produkciju, da bi bili brži i zauzimali manje memorije, se prilikom prevođenja koriste optimizacije. Postoje različiti nivoi optimizacija i oni se zadaju kao opcija prevodiocu prilikom prevođenja. Nivoi optimizacija produkcijskih programa su \emph{-O2} i \emph{-O3}.
+Programi koji se debaguju se prevode uz pomoć odgovarajuće opcije programskih prevodioca (za prevodioce \emph{GCC} \cite{GCC} i \emph{LLVM/Clang} \cite{LLVM}, to je opcija \texttt{-g}) koja obezbeđuje generisanje pomoćnih informacija za otklanjanje i analizu grešaka. Ukoliko je program koji se analizira preveden bez optimizacija, pomoćne informacije za otklanjanje i analizu grešaka koje prate program su potpune. Za programe koji se puštaju u produkciju, da bi bili brži i zauzimali manje memorije, se prilikom prevođenja koriste optimizacije. Postoje različiti nivoi optimizacija i oni se zadaju kao opcija prevodiocu prilikom prevođenja. Nivoi optimizacija produkcijskih programa su \emph{-O2} i \emph{-O3}.
 
-Prilikom optimizacija se gube razne debag informacije. Neke promenljive i funkcije programa neće biti predstavljene debag informacijama. Npr.~promenljiva programa može biti živa samo u nekim određenim delovima programa, pa programski prevodioci generišu debag informacije o njenim lokacijama samo u tim određenim delovima koda. Prilikom optimizacija na nivou mašinskog koda život promenljive može biti skraćen, pa čitanje vrednosti promenljive iz debagera u nekim sitacijama neće biti moguće, iako gledajući izvorni kod očekujemo da je ona živa u tom trenutku.
+Prilikom optimizacija se gube razne pomoćne informacije za otklanjanje i analizu grešaka. Neke promenljive i funkcije programa neće biti predstavljene pomoćnim informacijama za otklanjanje i analizu grešaka. Npr.~promenljiva programa može biti živa samo u nekim određenim delovima programa, pa programski prevodioci generišu pomoćne informacije za otklanjanje i analizu grešaka o njenim lokacijama samo u tim određenim delovima koda. Prilikom optimizacija na nivou mašinskog koda život promenljive može biti skraćen, pa čitanje vrednosti promenljive iz debagera u nekim sitacijama neće biti moguće, iako gledajući izvorni kod očekujemo da je ona živa u tom trenutku.
 
 \section{Format DWARF}
 
-\emph{DWARF} je debag fajl format koji se koristi od strane programskih prevodioca (kao npr.~\emph{GCC} ili \emph{LLVM/Clang}) i debagera (kao npr.~\emph{GNU GDB}) da bi se omogućilo debagovanje na nivou izvornog koda. Omogućava podršku za razne programske jezike kao što su \emph{C/C++} i \emph{Fortran}, ali je dizajniran tako da se lako može proširiti na ostale jezike. Arhitekturalno je nezavisan i predstavlja "most" između izvornog koda i izvršnog fajla. Trenutno je poslednji realizovani standard verzija 5 formata \emph{DWARF}.
+\emph{DWARF} je fajl format za predstavljanje pomoćnih informacija za otklanjanje i analizu grešaka, koji se koristi od strane programskih prevodioca (kao npr.~\emph{GCC} ili \emph{LLVM/Clang}) i debagera (kao npr.~\emph{GNU GDB}) da bi se omogućilo debagovanje na nivou izvornog koda. Omogućava podršku za razne programske jezike kao što su \emph{C/C++} i \emph{Fortran}, ali je dizajniran tako da se lako može proširiti na ostale jezike. Arhitekturalno je nezavisan i predstavlja "most" između izvornog koda i izvršnog fajla. Trenutno je poslednji realizovani standard verzija 5 formata \emph{DWARF}.
 
-Debag fajl format \emph{DWARF} se primenjuje na programe \emph{UNIX}-olikih operativnih sistema, kao što su \emph{Linux} i \emph{MacOS}. Generisane debag informacije, prateći \emph{DWARF} standard, su podeljene u nekoliko sekcija sa prefiksom \texttt{.debug\_}. Neke od njih su \texttt{.debug\_line}, \texttt{.debug\_loc} i \texttt{.debug\_info} koje redom predstavljaju informacije o linijama izvornog koda, lokacijama promenljivih i ključna debag sekcija koja sadrži debag informacije koje referišu na informacije iz ostalih debag sekcija.
-\emph{DWARF} je predstavljen kao drvolika struktura, smeštena u \texttt{.debug\_info} sekciju,  koja razne entitete programskog jezika opisuje osnovnom debag jedinicom \emph{DIE} (eng.~\emph{Debug Info Entry}). Osnovna debag jedinica može opisivati lokalnu promenljivu programa, formalni parametar, funkciju itd. Svaka od njih je identifikovana \emph{DWARF} tagom koji predstavalja informaciju o toj jedinici, gde je npr.~tag za lokalne promenljive predstavljen sa \texttt{DW\_TAG\_local\_variable}, ili tag za funkciju je obeležen sa \texttt{DW\_TAG\_subprogram}. Svaka debag jedinica je opisana određenim \emph{DWARF} atributima sa prefikosm \texttt{DW\_AT\_}. Oni mogu ukazivati na razne informacije o entitetu kao što su ime promenljive ili funkcije, liniju deklaracije, itd. Koren svakog \emph{DWARF} stabla je predstavljen debag jedinicom, sa tagom  \texttt{DW\_TAG\_compile\_unit}, koja predstavlja kompilacionu jedinicu, tj. izvorni kod programa.
+Fajl format \emph{DWARF} se primenjuje na programe \emph{UNIX}-olikih operativnih sistema, kao što su \emph{Linux} i \emph{MacOS}. Generisane pomoćne informacije za otklanjanje i analizu grešaka, prateći \emph{DWARF} standard, su podeljene u nekoliko sekcija sa prefiksom \texttt{.debug\_}. Neke od njih su \texttt{.debug\_line}, \texttt{.debug\_loc} i \texttt{.debug\_info} koje redom predstavljaju informacije o linijama izvornog koda, lokacijama promenljivih i ključna pomoćna sekcija koja sadrži pomoćne informacije za otklanjanje i analizu grešaka koje referišu na pomoćne informacije iz ostalih sekcija koje takođe sadrže pomoćne informacije.
+\emph{DWARF} je predstavljen kao drvolika struktura, smeštena u \texttt{.debug\_info} sekciju,  koja razne entitete programskog jezika opisuje osnovnom jedinicom koja predstavlja pomoćnu informaciju za otklanjanje i analizu grešaka \emph{DIE} (eng.~\emph{Debug Info Entry}). Ta osnovna jedinica može opisivati lokalnu promenljivu programa, formalni parametar, funkciju itd. Svaka od njih je identifikovana \emph{DWARF} tagom koji predstavalja informaciju o toj jedinici, gde je npr.~tag za lokalne promenljive predstavljen sa \texttt{DW\_TAG\_local\_variable}, ili tag za funkciju je obeležen sa \texttt{DW\_TAG\_subprogram}. Svaka osnovna jedinica je opisana određenim \emph{DWARF} atributima sa prefikosm \texttt{DW\_AT\_}. Oni mogu ukazivati na razne informacije o entitetu kao što su ime promenljive ili funkcije, liniju deklaracije, itd. Koren svakog \emph{DWARF} stabla je predstavljen osnovnom jedinicom, sa oznakom (eng.~\emph{tag})  \texttt{DW\_TAG\_compile\_unit}, koja predstavlja kompilacionu jedinicu, tj. izvorni kod programa.
 
-\begin{lstlisting} [style=customc, label={lst:c_kod}, caption={Primer programa napisanog u \emph{C} programskom jeziku.}]
+\begin{lstlisting} [style=customc, label={lst:c_kod}, caption={Primer programa napisanog u \emph{C} programskom jeziku}]
 #include <stdio.h>
 
 int main()
@@ -206,7 +206,7 @@ int main()
 \end{lstlisting}
 
 Deo \emph{DWARF} stabla za primer programa napisanog u programskom jeziku \emph{C} koji je zadat listingom \ref{lst:c_kod} je prikazan u okviru listinga \ref{lst:c_dwarf_stablo}.\newpage
-\begin{lstlisting} [style=BashInputStyle, label={lst:c_dwarf_stablo}, caption={Primer \emph{DWARF} reprezentacije.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:c_dwarf_stablo}, caption={Primer \emph{DWARF} reprezentacije}]
  <1><73>: Abbrev Number: 4 (DW_TAG_subprogram)
    <74>   DW_AT_external    : 1
    <74>   DW_AT_name        : (indirect string, offset: 0x68): main
@@ -225,15 +225,15 @@ Deo \emph{DWARF} stabla za primer programa napisanog u programskom jeziku \emph{
    <99>   DW_AT_location    : 2 byte block: 91 6c      (DW_OP_fbreg: -20)
 \end{lstlisting}
 
-Funkcija \texttt{main} je predstavljena \emph{DWARF} tagom \texttt{DW\_TAG\_subprogram}. Atribut te debag jedinice predstavljen sa \texttt{DW\_AT\_name} ima vrednost imena funkcije. Atributi \texttt{DW\_AT\_low\_pc} i \texttt{DW\_AT\_high\_pc} redom predstavljaju adresu prve mašinske instrukcije te funkcije u memoriji programa i pomeraj na kojem se nalazi poslednja mašinska instrukcija te funkcije. Sledeći čvor drveta predstavlja promenljivu \texttt{x} istog test primera. Ta debag jedinica je dete čvora koji predstavlja funkciju \texttt{main} i ukazuje da se promenljiva \texttt{x} nalazi unutar funkcije \texttt{main}. Promenljiva \texttt{x} je predstavljena \emph{DWARF} tagom \texttt{DW\_TAG\_variable}. Atribut \texttt{DW\_AT\_name} predstavlja ime promenljive, \texttt{DW\_AT\_type} referiše na debag jedinicu koja predstavlja tip promenljive, dok \texttt{DW\_AT\_location} atribut predstavlja lokaciju promenljive u memoriji programa. 
+Funkcija \texttt{main} je predstavljena \emph{DWARF} tagom \texttt{DW\_TAG\_subprogram}. Atribut te osnovne jedinice predstavljen sa \texttt{DW\_AT\_name} ima vrednost imena funkcije. Atributi \texttt{DW\_AT\_low\_pc} i \texttt{DW\_AT\_high\_pc} redom predstavljaju adresu prve mašinske instrukcije te funkcije u memoriji programa i pomeraj na kojem se nalazi poslednja mašinska instrukcija te funkcije. Sledeći čvor drveta predstavlja promenljivu \texttt{x} istog test primera. Ta osnovna jedinica je dete čvora koji predstavlja funkciju \texttt{main} i ukazuje da se promenljiva \texttt{x} nalazi unutar funkcije \texttt{main}. Promenljiva \texttt{x} je predstavljena \emph{DWARF} tagom \texttt{DW\_TAG\_variable}. Atribut \texttt{DW\_AT\_name} predstavlja ime promenljive, \texttt{DW\_AT\_type} referiše na osnovnu jedinicu koja predstavlja tip promenljive, dok \texttt{DW\_AT\_location} atribut predstavlja lokaciju promenljive u memoriji programa. 
 
 \subsection{Debag promenljive}
 
-Svaka promenljiva programa prevedenog sa debag informacijama, ukoliko se ne radi o optimizovanom programu, je predstavljena \emph{DWARF} tagom \texttt{DW\_TAG\_variable}. Atribut \texttt{DW\_AT\_location} ukazuje na lokaciju promenljive. Lokacija može biti predstavljena \emph{DWARF} izrazom, kao npr.~lokacija promenljive \texttt{x} prikazana primerom u okviru listinga \ref{lst:dwarf_var}. \emph{DWARF} izraz te promenljive ukazuje da se ona nalazi na pomeraju \texttt{-20} trenutnog stek okvira \texttt{main} funkcije. U neoptimizovanom kodu sve promenljive imaju lokacije zadate \emph{DWARF} izrazom. Njihove vrednosti su dostupne debagerima u bilo kom delu koda u kom su definisane.
+Svaka promenljiva programa prevedenog sa pomoćnim informacijama za otklanjanje i analizu grešaka, ukoliko se ne radi o optimizovanom programu, je predstavljena \emph{DWARF} oznakom \texttt{DW\_TAG\_variable}. Atribut \texttt{DW\_AT\_location} ukazuje na lokaciju promenljive. Lokacija može biti predstavljena \emph{DWARF} izrazom, kao npr.~lokacija promenljive \texttt{x} prikazana primerom u okviru listinga \ref{lst:dwarf_var}. \emph{DWARF} izraz te promenljive ukazuje da se ona nalazi na pomeraju \texttt{-20} trenutnog stek okvira \texttt{main} funkcije. U neoptimizovanom kodu sve promenljive imaju lokacije zadate \emph{DWARF} izrazom. Njihove vrednosti su dostupne debagerima u bilo kom delu koda u kom su definisane.
 
 U optimizovanom kodu lokacija promenljive može sadržati referencu na informaciju o lokaciji u \texttt{.debug\_loc} sekciji. Lokacije u toj sekciji su predstavljene listama lokacija. Jedna promenljiva u optimizovanom kodu može biti smeštena na raznim memorijskim lokacijama ili registrima. Elementi liste opisuju lokacije promenljive na mestima u kodu gde je ona živa. Ukoliko promenljiva nije živa u nekom delu koda, programski prevodioci u optimizovanom kodu neće pratiti njenu lokaciju. Naredni primer zadat u okviru listinga \ref{lst:dwarf_var} predstavlja lokaciju promenljive u optimizovanom kodu.
 
-\begin{lstlisting} [style=BashInputStyle, label={lst:dwarf_var}, caption={Primer \emph{DWARF} reprezentacije promenljive.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:dwarf_var}, caption={Primer \emph{DWARF} reprezentacije promenljive}]
 <2><90>: Abbrev Number: 5 (DW_TAG_variable)
 <91>   DW_AT_name        : x
 <93>   DW_AT_decl_file   : 1
@@ -244,7 +244,7 @@ U optimizovanom kodu lokacija promenljive može sadržati referencu na informaci
 
 Lokacijska lista promenljive \texttt{x} je predstavljena primerom zadatog u okviru listinga \ref{lst:dwarf_loc}. U ovom konkretnom primeru, promenljiva živi samo na jednom mestu. Potencijalno je mogla imati još elemenata lokacijske liste. \texttt{Offset} predstavlja informaciju gde se lokacijska lista određene promenljive nalazi u \texttt{.debug\_loc} sekciji. \texttt{Begin} i \texttt{End} predstavljaju informaciju od koje do koje adrese u programu važi data lokacija, tj.~od koje do koje instrukcije je određena promenljiva živa. \texttt{Expression} predstavlja \emph{DWARF} izraz koji opisuje lokaciju promenljive.
 
-\begin{lstlisting} [style=BashInputStyle, label={lst:dwarf_loc}, caption={Primer \emph{DWARF} reprezentacije lokacijske liste.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:dwarf_loc}, caption={Primer \emph{DWARF} reprezentacije lokacijske liste}]
 Contents of the .debug_loc section:
 	Offset   Begin   End    Expression
 	00000000 400450 40046a (DW_OP_fbreg: -20)
@@ -255,11 +255,11 @@ Contents of the .debug_loc section:
 
 \section{Format ELF}
 
-\emph{ELF} (eng.~\emph{Executable and Linkable Format}) \cite{ELF} je format izvršnih fajlova, deljenih biblioteka, objektnih fajlova i datoteka jezgara.
+\emph{ELF} (eng.~\emph{Executable and Linkable Format}) je format izvršnih fajlova, deljenih biblioteka, objektnih fajlova i datoteka jezgara \cite{ELF}.
 
 \emph{ELF} sadrži razne informacije o samom fajlu. Podeljen je u dva dela: \emph{ELF} zaglavlje i podaci fajla. \emph{ELF} zaglavlje sadrži informacije o arhitekturi za koju je program preveden i definiše da li program koristi 32-bitni ili 64-bitni adresni prostor. Zaglavlje 32-bitnih programa je dužine 52 bajta, dok kod 64-bitnih programa zaglavlje je dužine 64 bajta. Podaci fajla mogu sadržati programsku tabelu zaglavlja (eng.~\emph{Program header table}), sekcijsku tabelu zaglavlja (eng.~\emph{Section header table}) i ulazne tačke prethodne dve tabele. Primer u listingu \ref{lst:elf} prikazuje fajl format \emph{ELF} pročitan alatom \emph{readelf}.
 
-\begin{lstlisting} [style=BashInputStyle, label={lst:elf}, caption={Primer \emph{ELF} zaglavlja.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:elf}, caption={Primer \emph{ELF} zaglavlja}]
 ELF Header:
 Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
 Class:                             ELF64
@@ -303,7 +303,7 @@ U fajl formatu \emph{ELF} definisan je segment podataka koji sadrži informacije
 			\texttt{sh\_entsize} & 0 & 0 \\ \hline
 		\end{tabular}
 	\end{center}
-	\caption{\label{tab:elf_secs}Tabela vrednosti polja koji opisuju sekcije podataka.}
+	\caption{\label{tab:elf_secs}Tabela vrednosti polja koji opisuju sekcije podataka}
 \end{table}
 
 \section{Sistemski poziv \texttt{ptrace}}
@@ -342,7 +342,7 @@ Postoje dve vrste tačaka prekida (eng.~\emph{breakpoints}): softverske i hardve
 Osvrnimo se prvo na softverske tačke prekida. Postavljanje tačaka prekida predstavlja jednu od najkorišćenijih mogućnosti debagera, te stoga navedimo par smernica kako je ista realizovana, u opštem slučaju. Ali takođe treba napomenuti da ne postoji jedinstveni poziv nekog sistemskog poziva za postavljanje tačke prekida, već se ista obavlja kao kombinacija više mogućnosti  sistemskog poziva \texttt{ptrace}. Opišimo ceo postupak na jednostavnom primeru.
 
 Program je preveden za procesorsku arhitekturu \emph{Intel x86-64} i asemblerski k\^{o}d \texttt{main} funkcije je prikazan u okviru listinga \ref{lst:asm}.\newpage
-\begin{lstlisting} [style=customasm, label={lst:asm}, caption={Primer funkcije \texttt{main} u asemblerskom jeziku.}]
+\begin{lstlisting} [style=customasm, label={lst:asm}, caption={Primer funkcije \texttt{main} u asemblerskom jeziku}]
 0000000000400450 <main>:
 400450:       48 83 ec 08          sub    $0x8,%rsp
 400454:       ba 05 00 00 00       mov    $0x5,%edx
@@ -370,8 +370,8 @@ Pošto \texttt{0xbe} je zamenjeno sa \texttt{0xcc} i na tom mestu u kodu dobijam
 Ukoliko korisnik želi da nastavi dalje, instrukcija prekida se zamenjuje sa originalnom instrukcijom koja se izvršava i nastavlja se sa radom programa.
 Instrukcija \texttt{int3} je posebna instrukcija procesorske arhitekture \emph{Intel x86-64}, koja izazva softverski prekid. Kada registar programski brojač (eng.~\emph{CPU register pc}) stigne do \texttt{int3} instrukcije izvršavanje se zaustavalja na toj tački. Debager je već upoznat od strane korisnika da je tačka prekida postavljena te on čeka na signal koji ukazuje na to da je program dostigao do instrukcije prekida. Operativni sistem prepoznaje instrukciju \texttt{int3}, poziva se specijalni obrađivač tog signala (na \emph{Linux} sistemima \texttt{do\_int3()}), koji dalje obaveštava debager šaljući mu signal sa kodom \texttt{SIGTRAP} koji on obrađuje na željeni način. Treba napomenuti da ovo važi za procesorsku arhitekturu \emph{Intel x86-64}, instrukcija prekida za arhitekture kao što su \emph{ARM, MIPS, PPC} itd., se drugačije kodira, ali postupak implementacije tačaka prekida je isti.
 
-Ukoliko želimo da stavimo tačku prekida eksplicitno na funkciju \texttt{main}, za to koristimo posrednika u vidu \emph{DWARF} debag informacija. U tom slučaju debager traži element \emph{DWARF} stabla koji ukazuje na informacije o \texttt{main} funkciji, i odatle čita informaciju na kojoj adresi u memoriji se nalazi prva mašinska instrukcija date funkcije. Na listingu \ref{lst:main_sp} vidimo \emph{DWARF} element koji opisuje funkciju uz pomoć atributa. Debager će pročitati \texttt{DW\_AT\_low\_pc} atribut i na tu adresu postaviti \texttt{int3} instrukciju. Kao što je već rečeno, \emph{DWARF} debag simbole generišemo uz pomoć \texttt{-g} opcije kompajlera.
-\begin{lstlisting} [style=BashInputStyle, label={lst:main_sp}, caption={Primer \emph{DWARF} reprezentacije funkcije \texttt{main}.}]
+Ukoliko želimo da stavimo tačku prekida eksplicitno na funkciju \texttt{main}, za to koristimo posrednika u vidu \emph{DWARF} pomoćnih informacija. U tom slučaju debager traži element \emph{DWARF} stabla koji ukazuje na informacije o \texttt{main} funkciji, i odatle čita informaciju na kojoj adresi u memoriji se nalazi prva mašinska instrukcija date funkcije. Na listingu \ref{lst:main_sp} vidimo \emph{DWARF} element koji opisuje funkciju uz pomoć atributa. Debager će pročitati \texttt{DW\_AT\_low\_pc} atribut i na tu adresu postaviti \texttt{int3} instrukciju. Kao što je već rečeno, \emph{DWARF} pomoćne simbole generišemo uz pomoć \texttt{-g} opcije kompajlera.
+\begin{lstlisting} [style=BashInputStyle, label={lst:main_sp}, caption={Primer \emph{DWARF} reprezentacije funkcije \texttt{main}}]
 <1><73>: Abbrev Number: 4 (DW_TAG_subprogram)
   <74>   DW_AT_external    : 1
   <74>   DW_AT_name        : (indirect string, offset: 0x68): main
@@ -408,11 +408,11 @@ Objasnimo komandu izlistavanje pozivanih funkcija (eng.~\emph{backtrace}) posmat
 	\begin{center}
 		\includegraphics[scale=0.6]{slike/stack_frame.png}
 	\end{center}
-	\caption{Primer ređanja stek okvira na x86-64 platformi.}
+	\caption{Primer ređanja stek okvira na platformi sa \emph{Intel x86-64} arhitekturom procesora}
 	\label{fig:stack}
 \end{figure}
 
-Na slici \ref{fig:stack} navedeni su stek okviri za dva funkcijska poziva. Pre povratne vrednosti funkcije obično se ređaju argumenti funkcije. Sačuvana adresa u registru \texttt{RBP} jeste adresa stek okvira svog pozivaoca. Prateći sve okvire kao elemente povezane liste dolazimo do svih pozivanih funkcija do zadate tačke. Ako se pitamo kako debager ima informaciju o imenu funkcije odgovor je u tome što pretražuje DWARF stablo sa debag informacijama, tražeći \texttt{DW\_TAG\_subprogram} sa odgovarajućom povratnom adresom, pritom čitajući \texttt{DW\_AT\_name} atribut tog elementa.
+Na slici \ref{fig:stack} navedeni su stek okviri za dva funkcijska poziva. Pre povratne vrednosti funkcije obično se ređaju argumenti funkcije. Sačuvana adresa u registru \texttt{RBP} jeste adresa stek okvira svog pozivaoca. Prateći sve okvire kao elemente povezane liste dolazimo do svih pozivanih funkcija do zadate tačke. Ako se pitamo kako debager ima informaciju o imenu funkcije odgovor je u tome što pretražuje \emph{DWARF} stablo sa pomoćnim informacijama za otklanjanje i analizu grešaka, tražeći \texttt{DW\_TAG\_subprogram} sa odgovarajućom povratnom adresom, pritom čitajući \texttt{DW\_AT\_name} atribut tog elementa.
 
 \subsection{Čitanje vrednosti promenljivih}
 
@@ -429,7 +429,7 @@ Izvorni kod alata \emph{GNU GDB} je originalno napisan od strane Ričarda Stolma
 
 Poslednja realizovana verzija alata \emph{GNU GDB} je 8.3.
 
-\section{Šta je \emph{arhitektura} za GNU GDB?}
+\section{Pojam \emph{arhitektura} za debager GNU GDB}
 
 Za debager \emph{GNU GDB} arhitektura je veoma labav koncept. Može se posmatrati kao bilo koje svojstvo programa koji se debaguje, ali obično se misli na procesorsku arhitekturu. Za debager su bitna dva svojstva procesorske arhitekture:
 
@@ -445,7 +445,7 @@ Domaćinski \emph{GNU GDB} je preveden za istu procesorsku arhitekturu kao i ra�
 \subsubsection{Prevođenje domaćinskog GNU GDB debagera}
 
 Preuzimanje izvornog koda debagera se vrši komandama prikazanim na listingu \ref{lst:preuzimanje}.
-\begin{lstlisting} [style=BashInputStyle, label={lst:preuzimanje}, caption={Komande korišćene za preuzimanje izvornog koda debagera.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:preuzimanje}, caption={Komande korišćene za preuzimanje izvornog koda debagera}]
 mkdir gdb
 cd gdb
 git pull http://gnu.org/gnu/gdb.git
@@ -455,7 +455,7 @@ git pull http://gnu.org/gnu/gdb.git
 \emph{ Prva komanda pravi direktorijum u kome se izgrađuje (prevodi) alat. Druga komanda vrši pozicioniranje trenutne putanje u taj direktorijum. Trećom komandom se preuzima izvorni kod alata.}\newpage
 
 Prvi korak prevođenja je konfiguracija direktorijuma u kome se prevođenje izvršava. Komandama iz listinga \ref{lst:makefile} se kreira \texttt{Makefile}.
-\begin{lstlisting} [style=BashInputStyle, label={lst:makefile}, caption={Komande korišćene za kreiranje \texttt{Makefile}.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:makefile}, caption={Komande korišćene za kreiranje \texttt{Makefile}}]
 mkdir build
 cd build
 ../configure
@@ -464,14 +464,14 @@ cd build
 \emph{Prva komanda pravi direktorijum u kome se izgrađuje (prevodi) alat. Druga komanda vrši pozicioniranje trenutne putanje u taj direktorijum. Trećom komandom se kreira \texttt{Makefile}. Skripte \texttt{configure} kao ulaz parsiraju \texttt{Makefile.in} skriptu podešavajući okruženje (putanje do deljenih biblioteka, programski prevodilac i drugo) prilikom čega je krajnji izlaz fajl \texttt{Makefile} kojim se izgrađuje (prevodi) softver.}
 
 Nakon konfiguracije direktorijuma prevođenje alata se vrši komandom \texttt{make} (listing \ref{lst:make}).
-\begin{lstlisting} [style=BashInputStyle, label={lst:make}, caption={Izvršavanje komande \texttt{make}}.]
+\begin{lstlisting} [style=BashInputStyle, label={lst:make}, caption={Izvršavanje komande \texttt{make}}]
 make
 \end{lstlisting}
 
 \subsubsection{Pokretanje domaćinskog GNU GDB debagera}
 
 \emph{GNU GDB} očekuje kao argument komandne linije program koji je preveden za istu procesorsku arhitekturu. Ukoliko je trenutna putanja pozicionirana u direktorijum gde je izgrađen alat, pokretanje alata nad programom pod imenom \emph{test} se vrši sledećom komandom prikazanom na listingu \ref{lst:pokretanje}.
-\begin{lstlisting} [style=BashInputStyle, label={lst:pokretanje}, caption={Pokretanje debagera.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:pokretanje}, caption={Pokretanje debagera}]
 ./gdb/gdb test
 
 \end{lstlisting}
@@ -482,7 +482,7 @@ make
 Pokažimo neke od osnovnih komandi debagera \emph{GNU GDB}.
 Primer programa koji se debaguje je prikazan u okviru listinga \ref{lst:c_primer_dbg}.\newpage
 
-\begin{lstlisting} [style=customc, label={lst:c_primer_dbg}, caption={Primer programa u programskom jeziku C.}]
+\begin{lstlisting} [style=customc, label={lst:c_primer_dbg}, caption={Primer programa u programskom jeziku C}]
 int fn1 (int &addr) {
   return 0;
 }
@@ -500,7 +500,7 @@ int main()
 
 Postavljanje tačke prekida na funkciju programa koji se debaguje se vrši komandom \texttt{break}. Program koji se debaguje se zaustavlja kada dostigne do određene funkcije. Primer korišćenja postavljanja tačke prekida na funkciju (u ovom slučaju \texttt{fn1}) je prikazan u okviru listinga \ref{lst:break}.
 
-\begin{lstlisting} [style=BashInputStyle, label={lst:break}, caption={Primer postavljanja tačke prekida.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:break}, caption={Primer postavljanja tačke prekida}]
 (gdb) break fn1
 Breakpoint 1 at 0x4005fe: file test.c, line 4.
 (gdb) r
@@ -514,7 +514,7 @@ Breakpoint 1, fn1 (arg=0x7fffffffdbf4) at test.c:4
 
 Izvršavanje programa sekvencu po sekvencu se radi pomoću tehnike koračanja. Komanda u okviru debagera \emph{GNU GDB} koja nam omogućava izvršavanje instrukciju po instrukciju je \texttt{stepi}. Primer korišćenja komande \texttt{stepi}, uz pomoć korišćenja komande \texttt{disassemble} koja nam prikazuje asemblerski kod programa koji se debaguje je prikazan u okviru listinga \ref{lst:dis}.\newpage
 
-\begin{lstlisting} [style=BashInputStyle, label={lst:dis}, caption={Primer korišćenja komande \texttt{stepi}.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:dis}, caption={Primer korišćenja komande \texttt{stepi}}]
 (gdb) disassemble
 Dump of assembler code for function fn1:
 0x00000000004005f6 <+0>:	push   %rbp
@@ -553,7 +553,7 @@ End of assembler dump.
 
 Izvršavanje sledeće linije programa se radi korišćenjem komande \texttt{next}. Primer korišćenja \texttt{next} komande je prikazan u okviru listinga \ref{lst:next}.
 
-\begin{lstlisting} [style=BashInputStyle, label={lst:next}, caption={Primer korišćenja komande \texttt{next}.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:next}, caption={Primer korišćenja komande \texttt{next}}]
 (gdb) r
 The program being debugged has been started already.
 Start it from the beginning? (y or n) y
@@ -597,26 +597,26 @@ Sadržaj datoteke jezgra je organizovan sekvencijalno sledećim redosledom:
 
 Datoteke jezgra se generišu ukoliko dođe do neregularnog prekida rada programa. To je podrazumevana akcija prilikom pojave signala operativnog sistema koji ukazuju na prekid rada programa. Jezgra \emph{UNIX}-olikih operativnih sistema podrazumevano postavljaju dužinu datoteka jezgara na \texttt{0}. To je razlog zašto na našim sistemima nemamo datoteku jezgra nakon npr.~prekidanja programa uz poruku \emph{Segmentation fault}. Da bi se datoteke jezgra generisale, potrebno je eksplicitno promeniti dužinu datoteka jezgara koristeći komandu prikazanu u okviru listinga \ref{lst:unlimited}.
 
-\begin{lstlisting} [style=BashInputStyle, label={lst:unlimited}, caption={Primer korišćenja komande \texttt{unlimited}.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:unlimited}, caption={Primer korišćenja komande \texttt{unlimited}}]
 ulimit -c unlimited
 
 \end{lstlisting}
 
 Datoteka jezgra se može generisati i iz korisničkog nivoa koristeći debager \emph{GNU GDB} komandom \texttt{gcore}.
 
-\section{\emph{Multiarch} GNU GDB}
+\section{Višearhitekturni debager (\emph{Multiarch} GNU GDB)}
 
 \emph{Multiarch GNU GDB} je verzija debagera koja može da debaguje programe sa platformi različitih arhitektura. Alat na korisničkom nivou emulira instrukcije i registre ciljanih platformi. Potrebne su mu i deljene biblioteke za tu ciljanu platformu koje koristi program koji se debaguje. Skup komandi alata je limitiran u odnosu na domaćinski \emph{GNU GDB}.
 
 \subsection{Prevođenje \emph{Multiarch} GNU GDB}
 
 Prvi korak je pozicioniranje u direktorijum sa izvornim kodom debagera je prikazan na \ref{lst:cd}.
-\begin{lstlisting} [style=BashInputStyle, label={lst:cd}, caption={Pozicioniranje u direktorijum \emph{gdb}.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:cd}, caption={Pozicioniranje u direktorijum \emph{gdb}}]
 cd gdb
 \end{lstlisting}
 Sledeći korak je konfiguracija direktorijuma u kome se prevođenje izvršava. Komande za kreiranje fajla \texttt{Makefile} kojim odobravamo debagovanje svih podržanih arhitektura u alatu \emph{GNU GDB} (kao npr.~\emph{MIPS32, MIPS64, ARM, AARCH64, x86\_64, i386, SPARC}) su prikazane u okviru listinga \ref{lst:mkdir}.
 
-\begin{lstlisting} [style=BashInputStyle, label={lst:mkdir}, caption={Konfiguracija direktorijuma za izgradnju debagera.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:mkdir}, caption={Konfiguracija direktorijuma za izgradnju debagera}]
 mkdir build_multi
 cd build_multi
 ../configure --enable-targets=all
@@ -627,7 +627,7 @@ cd build_multi
 \subsection{Pokretanje \emph{Multiarch} GNU GDB}
 
 Ukoliko je trenutna putanja pozicionirana u direktorijum gde je izgrađen alat, pokretanje alata \emph{Multiarch} GDB nad programom pod imenom \emph{test} se vrši na isti način kao i domaćinska verzija debagera komandom prikazanom u okviru listinga \ref{lst:pokretanjee}.
-\begin{lstlisting} [style=BashInputStyle, label={lst:pokretanjee}, caption={Pokretanje debagera.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:pokretanjee}, caption={Pokretanje debagera}]
 ./gdb/gdb test
 
 \end{lstlisting}
@@ -639,7 +639,7 @@ Spisak komandi koje se mogu koristiti korišćenjem \emph{Multiarch} verzije deb
 \subsubsection{Primer učitavanja datoteke jezgra u debager GNU GDB}
 
 U primeru u okviru listinga \ref{lst:core-file} je prikazano učitavanje datoteke jezgra programa čije izvršavanje je prekinuto od strane jezgra operativnog sistema. Komandom alata \texttt{core-file} se učitava datoteka jezgra u debager. Da bi se izazvalo generisanje datoteke jezgra u izvornom kodu programa napisanog u \emph{C} ili \emph{C++} programskom jeziku može se koristiti \texttt{abort()} funkcija iz standardne \emph{C} biblioteke. U ovom primeru je pozvana ta funkcija koja je izazvala prekid programa uz signal \texttt{SIGABRT}. Tom prilikom jezgro operativnog sistema je napravilo datoteku jezgra sa imenom \emph{core}.
-\begin{lstlisting} [style=BashInputStyle, label={lst:core-file}, caption={Primer korišćenja komande \texttt{core-file}.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:core-file}, caption={Primer korišćenja komande \texttt{core-file}}]
 (gdb) core-file core
 [New LWP 20586]
 [Thread debugging using libthread_db enabled]
@@ -652,7 +652,7 @@ Program terminated with signal SIGABRT, Aborted.
 
 U primeru u okviru listinga \ref{lst:bt} je prikazana upotreba komande debagera \emph{GNU GDB} \texttt{bt}. Ona se koristi za izlistavanje pozivanih funkcija programa. Stek okviri programa koji su prikazani na primeru potvrđuju da je u funkciji \texttt{main()} došlo do poziva \texttt{abort()} funkcije. Što je izazvalo prekid rada programa.
 
-\begin{lstlisting} [style=BashInputStyle, label={lst:bt}, caption={Primer korišćenja komande \texttt{bt}.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:bt}, caption={Primer korišćenja komande \texttt{bt}}]
 (gdb) bt
 #0  0x00007fb229164428 in raise (sig=6) at raise.c:54
 #1  0x00007fb22916602a in abort () at abort.c:89
@@ -664,7 +664,7 @@ U primeru u okviru listinga \ref{lst:bt} je prikazana upotreba komande debagera 
 U primeru u okviru listinga \ref{lst:core2} je prikazan primer korišćenja debagera \emph{Multiarch GNU GDB} prilikom učitavanja datoteke jezgra generisane na uređaju sa ugrađenim računarom arhitekture \emph{MIPS}. Uz datoteku jezgra učitavaju se izvršni fajl i deljene biblioteke koje izvršni fajl koristi na ciljanoj platfomi.
 
 
-\begin{lstlisting} [style=BashInputStyle, label={lst:core2}, caption={Primer učitavanja datoteke jezgra generisane na uređaju sa ugrađenim računarom arhitekture \emph{MIPS}.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:core2}, caption={Primer učitavanja datoteke jezgra generisane na uređaju sa ugrađenim računarom arhitekture \emph{MIPS}}]
 (gdb) set solib-search-path ~/master_examples/mips_arch/
 (gdb) core-file ~/master_examples/mips_arch/core
 [New LWP 21808]
@@ -683,7 +683,7 @@ Komanda \texttt{set solib-search-path \emph{dir}} debagera \emph{GNU GDB} koriš
 
 U primeru u okviru listinga \ref{lst:inforeg} je prikazana upotreba komande \texttt{info registers}. \emph{Multiarch GNU GDB} čita informaciju o arhitekturi programa koji se debaguje iz datoteke jezgra. Nakon toga čita vrednosti registara iz datoteke i ispisuje ih na standardni izlaz.
 
-\begin{lstlisting} [style=custombash, label={lst:inforeg}, caption={Primer korišćenja komande \texttt{info registers}.}]
+\begin{lstlisting} [style=custombash, label={lst:inforeg}, caption={Primer korišćenja komande \texttt{info registers}}]
 (gdb) info registers 
 	 zero      at       v0     v1       a0	        a1       
 R0   00000000 00005530 00000000 00005530 00000000 00005530
@@ -711,7 +711,7 @@ Povećanje korišćenja niti u programiranju dovelo je do potrebe programera za 
 
 Za jezike \emph{C} i \emph{C++} ključna reč \texttt{\_\_thread} se koristi za deklaraciju i definiciju promenljivih lokalnih za niti. Neki primeri deklaracija promenljivih lokalnih za niti su prikazani u okviru listinga \ref{lst:deklaracije}. Od \emph{C++11} verzije jezika koristi se i ključna reč \texttt{thread\_local}. Razlika između \texttt{\_\_thread} i \texttt{thread\_local} je ta što \texttt{\_\_thread} nikada nije postao deo standarda \emph{C} i \emph{C++}, dok \texttt{thread\_local} jeste. Što se tiče implementacije, ove dve ključne reči imaju samo jednu rezliku. Ta razlika je što programski prevodilac prilikom kreranja promenljivih deklarisanih korišćenjem \texttt{thread\_local} za svaku referencu na takvu promenljivu kreira funkcijski poziv na funkciju u kojoj se vrši inicijalizacija promenljive. Za promenljive deklarisane ključnom reči \texttt{\_\_thread} inicijalizacija se vrši unutar funkcije gde je kreirana. U nastavku teksta biće reči o implementaciji i izmenama koje su potrebne za korišćenje \texttt{\_\_thread} varijante.
 
-\begin{lstlisting} [style=customc, label={lst:deklaracije}, caption={Deklaracije promenljivih lokalnih za niti.}]
+\begin{lstlisting} [style=customc, label={lst:deklaracije}, caption={Deklaracije promenljivih lokalnih za niti}]
 __thread int j;
 __thread struct state s;
 extern __thread char *p;
@@ -745,7 +745,7 @@ Izmene u fajl formatu izvršnih fajlova, potrebne za emitovanje \emph{TLS} objek
 		\texttt{sh\_entsize} & 0 & 0 \\ \hline
 	\end{tabular}
 	\end{center}
-	\caption{\label{tab:tls_secs}Tabela vrednosti polja koji opisuju nove TLS sekcije.}
+	\caption{\label{tab:tls_secs}Tabela vrednosti polja koji opisuju nove TLS sekcije}
 \end{table}
 
 Imena novih sekcija, kao ni ostalih u fajl formatu \emph{ELF}, nisu bitna. Linker će svaku sekciju tipa \texttt{SHT\_PROGBITS} sa dodatnim flegom \texttt{SHF\_TLS} tretirati kao \texttt{.tdata}, dok će sekcije tipa \texttt{SHT\_NOBITS} sa dodatnim \texttt{SHF\_TLS} tretirati kao \texttt{.tbss} sekciju. Odgovornost proizvođača ovakvih sekcija, obično programskih prevodioca, je da pravilno generiše sva polja prikazana u tebeli \ref{tab:tls_secs}.
@@ -770,7 +770,7 @@ Da bi dinamički linker mogao da izvrši inicijalizaciju inicijalizacione slike,
 			\texttt{p\_aligment} & Poravnanje TLS šablona  \\ \hline
 		\end{tabular}
 	   \end{center}
-		\caption{\label{tab:tls_prheader}Tabela koja predstavlja nove vrednosti programskog zaglavlja.}
+		\caption{\label{tab:tls_prheader}Tabela koja predstavlja nove vrednosti programskog zaglavlja}
 \end{table}
 
 Svaka \emph{TLS} promenljiva je identifikovana pomoću pomeraja od početka \emph{TLS} sekcije. U memoriji, \texttt{.tbss} sekcija je alocirana odmah nakon \texttt{.tdata} sekcije. Nijedna virtualna adresa ne može biti izračunata prilikom povezivanja (\emph{eng.~link time}).
@@ -790,7 +790,7 @@ Promenljiva lokalna za nit se identifikuje referencom na objekat i pomerajem te 
 	\begin{center}
 		\includegraphics[scale=0.6]{slike/TLSModelV1.png}
 	\end{center}
-	\caption{TLS struktura podataka. Varijanta 1.}
+	\caption{TLS struktura podataka (\emph{varijanta 1})}
 	\label{fig:tls_model1}
 \end{figure}
 
@@ -804,7 +804,7 @@ Druga varijanta \emph{TLS} strukture podataka ima sličnu strukturu kao prva. Pr
 	\begin{center}
 		\includegraphics[scale=0.6]{slike/TLSmodelV2.png}
 	\end{center}
-	\caption{TLS struktura podataka. Varijanta 2.}
+	\caption{TLS struktura podataka (\emph{varijanta 2})}
 	\label{fig:tls_model2}
 \end{figure}
 
@@ -820,10 +820,10 @@ Zanimljiviji je slučaj rukovanja \emph{TLS} promenljivom u dinamičko povezanom
 Da bi se podesila memorija lokalna za nit, dinamički povezivač čita sve potrebne informacije o svakom modulu, i o njegovim \emph{TLS} blokovima, iz \texttt{PT\_TLS} polja tabele \emph{TLS} programskog zaglavlja prikazanog u tabeli \ref{tab:tls_prheader}. Informacije o svim modulima moraju biti prikupljene. Ovaj proces se ostvaruje koristeći povezanu listu čiji element sadrži:
 
 \begin{itemize}
-	\item pokazivač na \emph{TLS} inicijalizacionu sliku
-	\item veličinu \emph{TLS} inicijalizacione slike
-	\item \emph{TLS} pomeraj (\texttt{$tlsoffset_m$}) za module \texttt{m}
-	\item fleg koji daje informaciju o tome da li modul koristi statički \emph{TLS} model
+	\item pokazivač na \emph{TLS} inicijalizacionu sliku,
+	\item veličinu \emph{TLS} inicijalizacione slike,
+	\item \emph{TLS} pomeraj (\texttt{$tlsoffset_m$}) za module \texttt{m},
+	\item fleg koji daje informaciju o tome da li modul koristi statički \emph{TLS} model.
 \end{itemize}
 
 Ove informacije će biti proširene kada se učitaju dodatni dinamički moduli. Te informacije se koriste od strane standardne biblioteke za rukovanje nitima prilikom podešavanja \emph{TLS} blokova za novokreiranu nit.
@@ -833,7 +833,7 @@ Promenljiva unutar lokalnog prostora za nit, \emph{TLS}, je identifikovana po re
 Računanje specifične adrese neke \emph{TLS} promenljive je prosta operacija koja može biti izvršena ukoliko je programski prevodilac koji je preveo k\^{o}d korsitio varijantu 1 \emph{TLS} strukture podataka. Ali to ne može biti tako lako odrađeno u kodu koji je generisan od strane kompajlera za procesorske arhitekture koje koriste varijatnu 2 \emph{TLS} strukture podataka.
 Umesto toga, definisana je funkcija \texttt{\_\_tls\_get\_addr()}, koja je prikazana u okviru listinga \ref{lst:ex1}.
 
-\begin{lstlisting}[style=customc, label={lst:ex1}, caption={Implementacija funkcije \texttt{\_\_tls\_get\_addr()}.}]
+\begin{lstlisting}[style=customc, label={lst:ex1}, caption={Implementacija funkcije \texttt{\_\_tls\_get\_addr()}}]
 void *
 __tls_get_addr (size_t m, size_t offset)
 {
@@ -845,7 +845,7 @@ __tls_get_addr (size_t m, size_t offset)
 
 Smeštanje vektora \texttt{dtv[thread\_id]} u memoriju je arhitekturalno specifično. Sa \texttt{m} se označava identifikacioni broj modula, koji mu je dodeljen od strane dinamičkog punionca prilikom učitavanja. Korišćenje \texttt{\_\_tls\_get\_addr()} funkcije ima i dodatne prednosti kako bi se olakšala implementacija dinamičkog modela, gde je alokacija nekog \emph{TLS} bloka odložena do njegove prve upotrebe. Da bi se to podržalo potrebno je popuniti \texttt{dtv[thread\_id]} vektor sa specijalnom vrednošću kojom će biti prepoznate situacije kada je taj vektor trenutno prazan, tj.~da u datom trenutku određeni blok nije u upotrebi. To je omogućeno malom promenom u izvornom kodu \texttt{\_\_tls\_get\_addr()} funkcije koja je prikazana u okviru listinga \ref{lst:ex2}.\newpage
 
-\begin{lstlisting}[style=customc, label={lst:ex2}, caption={Promena implementacije funkcije \texttt{\_\_tls\_get\_addr()}.}]
+\begin{lstlisting}[style=customc, label={lst:ex2}, caption={Promena implementacije funkcije \texttt{\_\_tls\_get\_addr()}}]
 void *
 __tls_get_addr (size_t m, size_t offset)
 {
@@ -859,7 +859,7 @@ __tls_get_addr (size_t m, size_t offset)
 
 Funkcija \texttt{allocate\_tls()} određuje memorijske zahteve \emph{TLS} modula \texttt{m} i inicijalizuje ga ispravno. Postoje dva tipa podataka: inicijalizovani i neinicijalizovani. Inicijalizovani podaci moraju biti kopirani iz inicijalizacione nitne slike, podešenih prilikom učitavanja modula \texttt{m}. Neinicijalizovani podaci se postavljaju na vredosti \texttt{0}. Primer implementacije funkcije \texttt{allocate\_tls()} je prikazan u okviru listinga \ref{lst:exal}.
 
-\begin{lstlisting}[style=customc, label={lst:exal}, caption={Implementacija funkcije \texttt{allocate\_tls()}.}]
+\begin{lstlisting}[style=customc, label={lst:exal}, caption={Implementacija funkcije \texttt{allocate\_tls()}}]
 void *
 allocate_tls (size_t m)
 {
@@ -899,7 +899,7 @@ Ovaj model pristupa dopušta referisanje samo na one \emph{TLS} promenljive koje
 \chapter{Implementacija rešenja}
 \label{chp:Implementacija}
 
-\emph{TLS} mehanizam može biti različito implementiran za različite procesorske arhitekture. \emph{TLS} promenljiva se može smeštati u posebne registre, u određene delove memorije itd. \emph{GNU GDB} alat mora poznavati sve arhitekturne razlike i anulirati ih na neki način. Implementacija realizovanog rešenja za proširenje alata se upravo i zasniva na prethodnoj činjenici. Zbog toga su detaljno istražene implementacije \emph{TLS} mehanizma raznih arhitektura, kako u funkcijama \emph{GNU C} biblioteke (poznatije kao \emph{glibc}) \cite{GLIBC}, tako i karakteristike koje su \emph{ABI}-jem propisane.
+\emph{TLS} mehanizam može biti različito implementiran za različite procesorske arhitekture. \emph{TLS} promenljiva se može smeštati u posebne registre, u određene delove memorije itd. \emph{GNU GDB} alat mora poznavati sve arhitekturne razlike i anulirati ih na neki način. Implementacija realizovanog rešenja za proširenje alata se upravo i zasniva na prethodnoj činjenici. Zbog toga su detaljno istražene implementacije \emph{TLS} mehanizma raznih arhitektura, kako u funkcijama \emph{GNU C} biblioteke, poznatije kao \emph{glibc} \cite{GLIBC}, tako i karakteristike koje su \emph{ABI}-jem propisane.
 
 Poboljšanje alata koje je uspešno realizovano se odnosi na verziju \emph{Multiarch}. Izvorni k\^{o}d alata i instrukcije za prevođenje i upotrebu debagera sa pobljšanjem za pristupanje vrednosti \emph{TLS} promenljive se može pronaći na strani \cite{GITMOJ}. Ukoliko je program koji je učitan u \emph{Multiarch GNU GDB} alat iste arhitekture kao arhitektura domaćina, zadržava se način čitanja vrednosti \emph{TLS} promenljive kao u slučaju \emph{GNU GDB} debagera arhitekture domaćina, jer je ta funkcionalnost već implementirana. Rešenje obuhvata arhitekture procesora \emph{MIPS}, \emph{ARM}, \emph{AARCH64}, \emph{i386} i \emph{PowerPC}. Kao odgovor na komentare \emph{GNU} zajednice razvijeno je i alternativno rešenje koje je takođe opisano u nastavku teksta.
 
@@ -916,7 +916,7 @@ Fajlovi \emph{gdb/configure} i \emph{gdb/Makefile.in} su zaduženi za izgradnju 
 Izvorni k\^{o}d koji u sebi sadrži funkcije za čitanje \emph{TLS} promenljive (\emph{gdb/linux-thread-db.c}) se prevodio samo za domaćinsku verziju \emph{GNU GDB} debagera, pa stoga u proširenje za \emph{Multiarch} \emph{GNU GDB} takođe treba uvrstiti izmenu u pomenutom fajlu prilikom prevođenja. Pored toga, postojeće funkcije koje su zadužene za pristupanje vrednosti \emph{TLS} promenljivih je trebalo izmeniti te je u projekat dodat direktorijum \emph{gdb/glibc-dep/} koji sadrži funkcije koje barataju sa \emph{TLS} mehanizmom različite procesorske arhitekture od arhitekture domaćina. Da bi se ti fajlovi prevodili samo u slučaju \emph{Multiarch} verzije definisan je makro pod imenom \texttt{CROSS\_GDB} koji se definiše prilikom kreiranja \emph{Makefile}. Da bi se ispratila konvencija pisanja skripti za izgradnju alata, u direktorijum \emph{gdb/config/} je dodat fajl \emph{glibc.mh} koji definiše spisak objektnih fajlova za pristupanje \emph{TLS} promenljive u tom slučaju i takođe u tom fajlu se definiše gore pomenuti makro \texttt{CROSS\_GDB}.
 
 Sadržaj \emph{gdb/config/glibc.mh} fajla je prikazan na listingu \ref{lst:conf2}.
-\begin{lstlisting}[label={lst:conf2}, caption={Sadržaj \emph{gdb/config/glibc.mh} fajla.}]
+\begin{lstlisting}[label={lst:conf2}, caption={Sadržaj \emph{gdb/config/glibc.mh} fajla}]
 # GLIBC fragment comes in here
 GLIBCFILES = td_symbol_list.o \
        fetch-value.o gdb_td_ta_new.o \
@@ -928,7 +928,7 @@ INTERNAL_CFLAGS += -DCROSS_GDB
 Da bi sadržaj iz novokreiranog \emph{gdb/config/glibc.mh} fajla bio ispisan u krajnji \emph{Makefile} trebalo je uvesti promenljivu koja proverava da li je prilikom navođenja opcija \emph{gdb/configure} skripti navedena opcija \emph{--enable\_targets}, koja zapravo označava da korisnik ima nameru da alat prevede kao \emph{Multiarch} verziju. Vrednost promenljive \texttt{cross\_makefile\_frag} u \emph{gdb/configure} skripti postaje putanja do \emph{gdb/config/glibc.mh} fajla ukoliko je pomenuta opcija navedena, a u suprotnom ona ostaje prazna.
 
 Deo koda u \emph{gdb/configure} skripti kojim se to postiže je prikazan na listingu \ref{lst:conf}.
-\begin{lstlisting}[label={lst:conf}, caption={Izmena \emph{gdb/configure} fajla.}]
+\begin{lstlisting}[label={lst:conf}, caption={Izmena \emph{gdb/configure} fajla}]
 if test "${gdb_native}" = "no" ||
    test "${enable_targets}" != ""; then
   cross_makefile_frag=${srcdir}/config/glibc.mh
@@ -947,7 +947,7 @@ Sve funkcije koje bi trebalo da emuliraju ponašanje \emph{TLS} funkcija standar
 Takođe u \texttt{gdb\_td\_ta\_new()} funkiji se poziva funkija \texttt{init\_target\_dep\_constants()}, zadužena za inicijalizaciju arhitekturalno zavisnih osobina o \emph{TLS} mehanizmu.
 
 Deo kojim se različite osobine inicijalizuju za arhitekture \emph{MIPS} i \emph{ARM} u funkciji \texttt{init\_target\_dep\_constants()} je prikazan na listingu \ref{lst:izmenaBFD}.
-\begin{lstlisting} [style=customc, label={lst:izmenaBFD}, caption={Inicijalizacija arhitekturalno yavisnih osobina o TLS.}]
+\begin{lstlisting} [style=customc, label={lst:izmenaBFD}, caption={Inicijalizacija arhitekturalno yavisnih osobina o TLS}]
 case bfd_arch_mips:
   tls_tcb_at_tp = 0;
   tls_dtv_at_tp = 1;
@@ -970,7 +970,7 @@ Funkcija \texttt{native\_check()} definisana u fajlu \emph{gdb/glibc-dep/native-
 Cela funkcionalnost se zapravo dodaje u \emph{gdb/linux-thread-db.c} fajl u funkciju koja je zadužena za pristupanje vrednosti \emph{TLS} promenljive. Izmena nije direktno u funkciji \texttt{thread\_db\_get\_thread\_local\_address} koja vraća adresu \emph{TLS} promenljive. Naime, promena je izvedena u funkciji \texttt{try\_thread\_db\_load\_1()} koja uspostavlja konekciju između alata GDB i \emph{libthread\_db} biblioteke. Promenjeni su pokazivači na \emph{TLS} funkcije u slučaju nedomaćinskih datoteka jezgara.
 
 Deo koda koji implementira pomenutu funkcionalnost je prikazan na listingu \ref{lst:izmenaTLS}.
-\begin{lstlisting} [style=customc, label={lst:izmenaTLS}, caption={Postavljanje \emph{callback} funkcija za nedomaćinske arhitekture.}]
+\begin{lstlisting} [style=customc, label={lst:izmenaTLS}, caption={Postavljanje \emph{callback} funkcija za nedomaćinske arhitekture}]
 #ifdef CROSS_GDB
  if (native_check(arch) != 0) {
   info->td_thr_tls_get_addr_p=gdb_td_thr_tls_get_addr;
@@ -991,12 +991,12 @@ Iako je u pitanju \emph{Multiarch} verzija alata, ako je datoteka jezgra kreiran
 
 Drugi način implementacije je modifikacija \emph{libthread\_db} funkcija eksplicitno u standardnoj biblioteci, modifikujući ih tako da rade sa različitim arhitekturama. Naime, formula koja služi za pristupanje \emph{TLS} promenljive se računala u vremenu prevođenja biblioteke, sada bi se računala u vremenu izvršavanja programa, i u zavisnosti od arhitekture promenljive koje učestvuju u pomenutoj formuli će dobiti odgovarajuće vrednosti. Ukoliko se radi o programu arhitekture domaćina u funkciji  \texttt{td\_ta\_new()} promenljive dobijaju vrednosti koje odgovaraju arhitekturi domaćina, dok ako se radi o programu ciljne arhitekture, tj. različite od arhitekture domaćina, iz \emph{GNU GDB}-a će biti pozvana nova funckija u standardnoj biblioteci \texttt{td\_ta\_init\_target\_consts()} koja će postaviti vrednosti promenljivih koje odgovaraju ciljnoj arhitekturi. Ideja je upisati ove vrednosti u datoteku jezgra na ciljnoj arhitekturi i kasnije ih pročitati na arhitekturi domaćina korišćenjem \emph{GNU GDB} debagera. U ovom slučaju izmena u samom \emph{GNU GDB}-u bi bila minorna, te zahteva samo proveru da li je učitani program arhitekture domaćina ili ne, i u zavisnosti od toga se poziva \texttt{td\_ta\_init\_target\_consts()} ili ne. Ovo rešenje je nastalo kao odgovor na komentare \emph{GNU} zajednice na predhodno rešenje. Izmena standardne biblioteke se može pronaći na strani \cite{GLIBCPATCH}.
 
-\section{Čitanje/pisanje datoteke jezgra za procesorsku arhitekturu MIPS}
+\section{Čitanje i pisanje datoteke jezgra za procesorsku arhitekturu MIPS}
 
 Kako bi funkcionalnost bila moguća za svaku podržanu procesorsku arhitekturu, potrebno je da alat \emph{GNU GDB} ima potpunu podršku za čitanje informacija iz datoteka jezgara. Podrška je za sve arhitekrure potpuna, ali u trenutku razvoja ove funkcionalnosti uočeno je da alat nema potpunu podršku za čitanje identifikacionog broja procesa (eng.~\emph{Process ID}) iz datoteke jezgra za arhitekture \emph{MIPS}, neophodnog za pristupanje bazičnih informacija o nitima. Koristeći komandu alata \texttt{gcore} moguće je kreirati datoteku jezgra i sa korisničkog nivoa, gde je takođe uočeno da alat nema potpunu podršku za ispisivanje nekih informacija o procesu za procesorsku arhitekturu \emph{MIPS}. Da bi podrška za \emph{TLS} promenljive bila potpuna i za arhitekturu \emph{MIPS}, implementirani su i uočeni nedostaci. Ova implementacija je privaćena od strane \emph{GNU} zajednice i ušla je u izvršnu verziju alata 8.0.0.
 
 Deo izvornog koda (u fajlu \emph{bfd/elf32-mips.c}) izmene za čitanje informacija o procesu iz datoteke jezgra je prikazan na listinigu \ref{lst:izmenaBFD2}. Bitna informacija za čitanje vrednosti \emph{TLS} promenljive je identifikacioni broj procesa. Bez izmene prikazane u listingu \ref{lst:izmenaBFD2} to ne bi bilo moguće. \newpage
-\begin{lstlisting} [style=customc, label={lst:izmenaBFD2}, caption={Deo izmene za čitanje informacija o procesu iz datoteke jezgra.}]
+\begin{lstlisting} [style=customc, label={lst:izmenaBFD2}, caption={Deo izmene za čitanje informacija o procesu iz datoteke jezgra}]
 
 case 128:                /* Linux/MIPS elf_prpsinfo */
   elf_tdata (abfd)->core->pid
@@ -1006,7 +1006,7 @@ case 128:                /* Linux/MIPS elf_prpsinfo */
 \end{lstlisting}
 
 Ukoliko se koristi datoteka jezgra generisana iz korisničkog nivoa koristeći debager, bez upisivanja u nju informacija o procesu (kao npr.~identifikacioni broj procesa) čitanje vrednosti \emph{TLS} promenljive nije moguće. Deo izvornog koda (u fajlu \emph{bfd/elf32-mips.c}) izmene za pisanje informacija o procesu u datoteku jezgra je prikazan na listinigu \ref{lst:izmenaBFD3}.
-\begin{lstlisting} [style=customc, label={lst:izmenaBFD3}, caption={Deo izmene za pisanje informacija o procesu u datoteku jezgra.}]
+\begin{lstlisting} [style=customc, label={lst:izmenaBFD3}, caption={Deo izmene za pisanje informacija o procesu u datoteku jezgra}]
   ...
     case NT_PRSTATUS:
       {
@@ -1042,13 +1042,13 @@ Takođe, implementirani su \emph{DejeGNU} \cite{DejaGNU} testovi koji testiraju 
 
 Komanda alata kojom pokrećemo testove, ukoliko smo pozicionirani u direktorijumu gde je alat izrađen je prikazana na listingu \ref{lst:makec}.
 
-\begin{lstlisting} [style=BashInputStyle, label={lst:makec}, caption={Komanda za pokretanje testova.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:makec}, caption={Komanda za pokretanje testova}]
 make check
 \end{lstlisting}
 
 Pre izmene koja dodaje \emph{TLS} funkcionalnost, rezultati izvršavanja testova \emph{Multiarch GNU GDB} verzije debagera je prikazana na listingu \ref{lst:tst}
 
-\begin{lstlisting} [style=BashInputStyle, label={lst:tst}, caption={Rezultati izvršavanja testova.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:tst}, caption={Rezultati izvršavanja testova}]
 		=== gdb Summary ===
 		# of expected passes		33715
 		# of expected failures		196
@@ -1060,7 +1060,7 @@ Pre izmene koja dodaje \emph{TLS} funkcionalnost, rezultati izvršavanja testova
  
 Posle izmene koja dodaje \emph{TLS} funkcionalnost, rezultati izvršavanja testova \emph{Multiarch GNU GDB} verzije debagera je prikazana na listingu \ref{lst:tst2}.
 
-\begin{lstlisting} [style=BashInputStyle, label={lst:tst2}, caption={Rezultati izvršavanja testova.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:tst2}, caption={Rezultati izvršavanja testova}]
 		=== gdb Summary ===
 		# of expected passes		33718
 		# of expected failures		196
@@ -1079,7 +1079,7 @@ Da bi \emph{GNU GDB} uspešno koristio naprednije tehinke analize višenitnih pr
 
 Izvorni kod višenitnog programa koji se debaguje u primeru je napisan u programskom jeziku \emph{C} i prikazan je na listingu \ref{lst:ctst}.\newpage
 
-\begin{lstlisting} [style=customc, label={lst:ctst}, caption={Višenitni test primer napisan u C kodu.}]
+\begin{lstlisting} [style=customc, label={lst:ctst}, caption={Višenitni test primer napisan u C kodu}]
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -1116,7 +1116,7 @@ int main()
 
 Korišćenje debagera pre implementacije čitanja vrednosti \emph{TLS} promenljive iz datoteke jezgra generisane na uređaju sa ugrađenim računarom arhitekture \emph{MIPS} je prikazano na listingu \ref{lst:gdbkom}.\newpage
 
-\begin{lstlisting} [style=BashInputStyle, label={lst:gdbkom}, caption={Korišćenja debagera pre implementacije.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:gdbkom}, caption={Korišćenja debagera pre implementacije}]
 (gdb) add-auto-load-safe-path /home/glibc/build_22/INSTALL/lib
 (gdb) set libthread-db-search-path /home/glibc/build_22/INSTALL/lib
 (gdb) set solib-search-path ~/master_examples/mips_arch
@@ -1143,7 +1143,7 @@ Cannot find user-level thread for LWP 21808: generic error
 
 Korišćenje debagera nakon implementacije čitanja vrednosti \emph{TLS} promenljive iz datoteke jezgra generisane na nekom uređaju sa ugrađenim računarom je prikazano na listingu \ref{lst:gdbkom2}.\newpage
 
-\begin{lstlisting} [style=BashInputStyle, label={lst:gdbkom2}, caption={Korišćenja debagera posle implementacije.}]
+\begin{lstlisting} [style=BashInputStyle, label={lst:gdbkom2}, caption={Korišćenja debagera posle implementacije}]
 (gdb) add-auto-load-safe-path /home/glibc/build_22/INSTALL/lib
 (gdb) set libthread-db-search-path /home/glibc/build_22/INSTALL/lib
 (gdb) set solib-search-path ~/master_examples/mips_arch
@@ -1172,13 +1172,13 @@ $1 = 0xdeadbeef
 \chapter{Zaključak}
 % ------------------------------------------------------------------------------
 
-Otkrivanje grešaka u višenitnim programima je veoma teško, u nekim slučajevima gotovo nemoguće, bez korišćenja debagera. Analizom višenitnih programa koristeći debager može se uštedeti dosta vremena. Posebno je teško analizirati rad programa na uređajima sa ugrađenim računarima. Često takvi uređaji nemaju debager. Učitavanje datoteke jezgra u debager na ličnim računarima je nekada jedina moguća opcija. Važno je da mogućnosti debagera prilikom takvih analiza budu što je moguće potpunije.
+U okviru master rada, prikazan je uvod u pomoćne informacije za otklanjanje i analizu grešaka, i rad debagera u opštem slučaju. Pored opisa formata pomoćnih informacija \emph{DWARF}, u radu je dat kratak uvod o formatu izvršnih fajlova \emph{ELF}. U radu je takođe naveden detaljan opis implementacije \emph{TLS} mehanizma, kako hardverski tako i softverski deo.
 
-U ovom radu je prikazan uvod u debag informacije i rad debagera u opštem slučaju. Pored opisa formata debag informacija \emph{DWARF}, u radu je dat kratak uvod o formatu izvršnih fajlova \emph{ELF}. U radu je takođe naveden detaljan opis implementacije \emph{TLS} mehanizma, kako hardverski tako i softverski deo.
+Funkcionalnost debagera prilikom čitanja vrednosti promenljive lokalne za nit iz datoteke jezgra generisane na uređaju sa ugrađenim računarom podiže kvalitet debagera. U radu su opisana dva moguća rešenja problema prilikom čitanja vrednosti \emph{TLS} promenljive iz datoteke jezgara i njihove implementacije. Oba rešenja su poslata \emph{GNU} zajednici i u toku je pregled i analiza implementacije, čija se diskusija može videti na \cite{TLSPatch}. U ovom radu je takođe prikazana evaluacija testiranja debagera sa pomenutim izmenama. Naveden je i precizan postupak korišćenja debagera kako bi se vrednost \emph{TLS} promenljive iz datoteke jezgara uspešno pročitala.
 
-Funkcionalnost debagera prilikom čitanja vrednosti promenljive lokalne za nit iz datoteke jezgra generisane na uređaju sa ugrađenim računarom podiže kvalitet debagera. U radu su opisana dva moguća rešenja i njihove implementacije. Oba rešenja su poslata \emph{GNU} zajednici i u toku je pregled i analiza implementacije, čija se diskusija može videti na \cite{TLSPatch}. I prvi i drugi način imaju svoje prednosti i mane. Mana prvog načina jeste ta što svaka promena arhitekturno zavisnih vrednosti promenljivih koje učestvuju u računanju lokacije \emph{TLS} promenljive u izvornom kodu \emph{glibc} zahteva eksplicitnu izmenu i u \emph{GNU GDB} alata, da bi funkcionalnost i dalje radila, što dodatno otežava održavanje koda. Drugi način zahteva eksplicitne izmene i u izvornom kodu \emph{GNU GDB}-a i \emph{glibc}-a, ali ukoliko želimo da na sistemima arhitekture domaćina baratamo sa programima koji su prevedeni i izvršavani na nekim ciljnim arhitektura, što je za arhitekturu domaćina neprirodno, kompromisi jesu neophodni.
+Pored implementacije čitanja vrednosti promenljive lokalne za nit iz datoteke jezgra, poboljšan je kvalitet čitanja i generisanja datoteke jezgra, sa korisničkog nivoa od strane debagera, namenjene platformama sa arhitekturom procesora \emph{MIPS}. Nedostajala je podrška za čitanje i pisanje osnovnih informacija o procesu, jedna od njih je jedinsveni broj procesa, neophodnih za korišćenje raznih funkcionalnosti debagera prilikom analize datoteke jezgra. Te izmene su prihvaćene od strane \emph{GNU} zajednice i uvrštene u izvršnu verziju debagera.
 
-Kao mogući pravac poboljšanja rada, planirano je rešenje koje ne zavisi od standardne biblioteke. Ta zavisnost bi, uz pomoć upisivanja dodatnih informacija u datoteku jezgra, bila zaobiđena. Da bi se to omogućilo potrebne su promene u jezgru operativnih sistema prilikom generisanja datoteke jezgra.
+Kao mogući pravac daljeg razvoja, planirano je rešenje koje ne zavisi od standardne biblioteke. Ta zavisnost bi, uz pomoć upisivanja dodatnih informacija u datoteku jezgra, bila zaobiđena. Da bi se to omogućilo potrebne su promene u jezgru operativnih sistema prilikom generisanja datoteke jezgra.
 
 % ------------------------------------------------------------------------------
 % Literatura
@@ -1193,7 +1193,7 @@ Kao mogući pravac poboljšanja rada, planirano je rešenje koje ne zavisi od st
 % ------------------------------------------------------------------------------
 % Biografija kandidata
 \begin{biografija}
-Đorđe Todorović (\emph{Užice, 12. Avgust 1993.}) Rođen je u Užicu. Završio je Gimnaziju u Požegi, Informatički smer, 2012.~godine i iste godine upisao Matematički fakultet u Beogradu. 2016. godine je završio osnovne studije Matematičkog fakulteta i iste upisao master studije. Položio je sve ispite master studija u septembru 2018. godine. Od novembra 2015. pa do sada radi kao inženjer u Naučno-istraživačkom institutu RT-RK. Do sada je objavio nekoliko radova iz oblasti debagera i generisanja debag informacija od strane programskih prevodilaca. Na temu opisanu u master radu je objavio rad na konferenciji TELFOR \cite{TELFOR}. Trenutno radi na LLVM projektu, tačnije na poboljšanju tog prevodioca prilikom generisanja debag informacija.
+Đorđe Todorović (\emph{Užice, 12. Avgust 1993.}) Rođen je u Užicu. Završio je Gimnaziju u Požegi, Informatički smer, 2012.~godine i iste godine upisao Matematički fakultet u Beogradu. 2016. godine je završio osnovne studije Matematičkog fakulteta i iste upisao master studije. Položio je sve ispite master studija u septembru 2018. godine. Od novembra 2015. pa do sada radi kao inženjer u Naučno-istraživačkom institutu RT-RK. Do sada je objavio nekoliko radova iz oblasti debagera i generisanja pomoćnih informacija za otklanjanje i analizu grešaka od strane programskih prevodilaca. Na temu opisanu u master radu je objavio rad na konferenciji TELFOR \cite{TELFOR}. Trenutno radi na LLVM projektu, tačnije na poboljšanju tog prevodioca prilikom generisanja pomoćnih informacija za otklanjanje i analizu grešaka.
 
 Radovi:
 \begin{enumerate}
