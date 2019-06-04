@@ -425,7 +425,7 @@ Za čitanje vrednosti promenljivih u programu, debager pretražuje DWARF stablo 
 
 \section{Istorija \emph{GNU GDB} debagera}
 
-Izvorni kod alata \emph{GNU GDB} je originalno napisan od strane Ričarda Stolmana 1986. godine kao deo \emph{GNU} sistema \cite{GDBDOC}. \emph{GNU GDB} je slobodan i besplatan softver realizovan pod licencom \emph{GNU General Public License (GPL)}. Od 1990.~do 1993.~godine alat je održavao Džon Gilmor, a trenutno za održavanje alata je zadužena grupa \emph{GDB Steering Committee}, odobrena od strane fondacije \emph{FSF} (eng.~\emph{Free Software Foundation}) \cite{FSF}.
+Izvorni kod alata \emph{GNU GDB} je originalno napisan od strane Ričarda Stolmana 1986. godine kao deo \emph{GNU} sistema \cite{GDBDOC}. \emph{GNU GDB} je slobodan i besplatan softver realizovan pod licencom \emph{GNU General Public License (GPL)}. Od 1990.~do 1993.~godine alat je održavao Džon Gilmor, a trenutno za održavanje alata je zadužena grupa \emph{GDB Steering Committee}, odobrena od strane fondacije \emph{FSF} (eng.~\emph{Free Software Foundation}). Više informacija o fondaciji \emph{FSF} se može pronaći u \cite{FSF}.
 
 Poslednja realizovana verzija alata \emph{GNU GDB} je 8.3.
 
@@ -1174,7 +1174,7 @@ $1 = 0xdeadbeef
 
 U okviru master rada, prikazan je uvod u pomoćne informacije za otklanjanje i analizu grešaka, i rad debagera u opštem slučaju. Pored opisa formata pomoćnih informacija \emph{DWARF}, u radu je dat kratak uvod o formatu izvršnih fajlova \emph{ELF}. U radu je takođe naveden detaljan opis implementacije \emph{TLS} mehanizma, kako hardverski tako i softverski deo.
 
-Funkcionalnost debagera prilikom čitanja vrednosti promenljive lokalne za nit iz datoteke jezgra generisane na uređaju sa ugrađenim računarom podiže kvalitet debagera. U radu su opisana dva moguća rešenja problema prilikom čitanja vrednosti \emph{TLS} promenljive iz datoteke jezgara i njihove implementacije. Oba rešenja su poslata \emph{GNU} zajednici i u toku je pregled i analiza implementacije, čija se diskusija može videti na \cite{TLSPatch}. U ovom radu je takođe prikazana evaluacija testiranja debagera sa pomenutim izmenama. Naveden je i precizan postupak korišćenja debagera kako bi se vrednost \emph{TLS} promenljive iz datoteke jezgara uspešno pročitala.
+Funkcionalnost debagera prilikom čitanja vrednosti promenljive lokalne za nit iz datoteke jezgra generisane na uređaju sa ugrađenim računarom podiže kvalitet debagera. U radu su opisana dva moguća rešenja problema čitanja vrednosti \emph{TLS} promenljive iz datoteke jezgara i njihove implementacije. Oba rešenja su poslata \emph{GNU} zajednici i u toku je pregled i analiza implementacije, čija se diskusija može videti na \cite{TLSPatch}. U ovom radu je takođe prikazana evaluacija testiranja debagera sa pomenutim izmenama. Naveden je i precizan postupak korišćenja debagera kako bi se vrednost \emph{TLS} promenljive iz datoteke jezgara uspešno pročitala.
 
 Pored implementacije čitanja vrednosti promenljive lokalne za nit iz datoteke jezgra, poboljšan je kvalitet čitanja i generisanja datoteke jezgra, sa korisničkog nivoa od strane debagera, namenjene platformama sa arhitekturom procesora \emph{MIPS}. Nedostajala je podrška za čitanje i pisanje osnovnih informacija o procesu, jedna od njih je jedinsveni broj procesa, neophodnih za korišćenje raznih funkcionalnosti debagera prilikom analize datoteke jezgra. Te izmene su prihvaćene od strane \emph{GNU} zajednice i uvrštene u izvršnu verziju debagera.
 
